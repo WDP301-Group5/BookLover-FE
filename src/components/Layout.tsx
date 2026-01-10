@@ -31,14 +31,13 @@ const Layout = () => {
     <AppShell
       transitionDuration={500}
       transitionTimingFunction="ease"
-      className="bg-green-600"
     >
       <ScrollRestoration />
       {/* Main App */}
       <AppShell.Main
         className={`flex flex-col min-h-screen ${
           colorScheme === "dark"
-            ? "bg-neutral-900"
+            ? "bg-neutral-700"
             : "bg-white"
         } `}
       >

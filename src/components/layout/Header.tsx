@@ -45,7 +45,7 @@ const Header = () => {
     ));
 
     return (
-        <div className="h-[60px] bg-stone-500 border-b-2 border-black">
+        <div className="h-[60px] bg-stone-500 border-black">
             <Container className="flex justify-between items-center h-full">
                 <Title order={3}>Logo</Title>
                 <Button
