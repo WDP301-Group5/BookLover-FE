@@ -5,43 +5,15 @@ import "@mantine/core/styles.css";
 import "@mantine/dates/styles.css";
 import "@mantine/notifications/styles.css";
 import "@mantine/nprogress/styles.css";
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { RouterProvider } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MantineProvider } from '@mantine/core'
 import { ModalsProvider } from '@mantine/modals'
 import { Notifications } from "@mantine/notifications";
 import { NavigationProgress } from "@mantine/nprogress";
 import { DatesProvider } from "@mantine/dates";
-import HomePage from './pages/HomePage.tsx'
-import Layout from './components/Layout.tsx'
-import AdminLayout from './components/AdminLayout.tsx'
-
-const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <Layout />,
-    children: [
-      {
-        path: '/',
-        element: <HomePage />,
-      },
-    ]
-  },
-  {
-    path: '/admin',
-    element: <AdminLayout />,
-    children: [
-      {
-        path: '/admin',
-        element: <HomePage />,
-      },
-    ]
-  },
-  {
-    path: '*',
-    element: <div>404 not found</div>,
-  }
-]);
+import routes from './routes'
+import { appTheme } from './styles/theme'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -63,6 +35,7 @@ createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       {/* provider cua thu vien ui */}
       <MantineProvider
+        theme={appTheme}
         defaultColorScheme={colorScheme}
       >
         <ModalsProvider>
@@ -77,7 +50,7 @@ createRoot(document.getElementById('root')!).render(
               timezone: "Asia/Ho_Chi_Minh",
             }}
           >
-            <RouterProvider router={router} />
+            <RouterProvider router={routes} />
           </DatesProvider>
         </ModalsProvider>
       </MantineProvider>

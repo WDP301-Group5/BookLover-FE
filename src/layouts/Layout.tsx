@@ -5,9 +5,9 @@ import {
 import { Outlet, ScrollRestoration } from "react-router-dom";
 import { useState } from "react";
 import { useEffect } from "react";
-import Header from "./layout/Header";
-import Footer from "./layout/Footer";
 import { CircleArrowUp } from "lucide-react";
+import Header from "./header/Header";
+import Footer from "./footer/Footer";
 
 const Layout = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -42,7 +42,9 @@ const Layout = () => {
         } `}
       >
         <Header />
-        <Outlet />
+        <div style={{ padding: "24px", flex: 1 }}>
+          <Outlet />
+        </div>
         <Footer />
       </AppShell.Main>
       {showScrollTop && (
