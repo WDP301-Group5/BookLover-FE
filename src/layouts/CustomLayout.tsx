@@ -4,8 +4,8 @@ import {
 } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { Outlet, ScrollRestoration } from "react-router-dom";
-import Header from "./layout/Header";
-import Footer from "./layout/Footer";
+import Header from "./header/Header";
+import Footer from "./footer/Footer";
 
 const CustomLayout = () => {
 

@@ -1,9 +1,14 @@
+import styles from "./HomePage.module.scss";
+import '@mantine/core/styles.css';
+import '@mantine/dates/styles.css';
+
+
 const HomePage = () => {
     const dataDefault = [{ id: 1, name: 'Nguyen Van A' }, { id: 2, name: 'Nguyen Van B' }, { id: 3, name: 'Nguyen Van C' }];
     return (
-        <div>
-            <h1>Trang chủ</h1>
-            <p>Đây là trang chủ</p>
+        <div className={styles.wrapper}>
+            <h1>Trang chủ</h1>
+            <p>Đây là trang chủ</p>
             <table>
                 <thead>
                     <tr>
