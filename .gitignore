@@ -24,5 +24,6 @@ dist-ssr
 *.sw?
 
 *.yaml
+package-lock.json
 
 .env
