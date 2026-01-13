@@ -3,15 +3,12 @@ import { IconChevronRight } from "@tabler/icons-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useNavbarStore } from "../../../stores/NavbarStore";
+import type { NavbarItem } from "./";
 import classes from "./LinksGroup.module.css";
 
-interface LinksGroupProps {
-    icon: React.ElementType;
-    label: string;
+type LinksGroupProps = NavbarItem & {
     initiallyOpened?: boolean;
-    link?: string;
-    links?: { label: string; link: string }[];
-}
+};
 
 export function LinksGroup({ icon: Icon, label, initiallyOpened, link, links }: LinksGroupProps) {
     const { isOpen } = useNavbarStore();
@@ -22,7 +19,7 @@ export function LinksGroup({ icon: Icon, label, initiallyOpened, link, links }: 
     const items = (hasLinks ? links : []).map((link) => (
         <Link
             className={classes.link}
-            to={link.link}
+            to={link.link || ""}
             key={link.label}
             style={{
                 backgroundColor:
@@ -50,7 +47,7 @@ export function LinksGroup({ icon: Icon, label, initiallyOpened, link, links }: 
                 <Group justify="space-between" gap={0} wrap="nowrap">
                     <Box style={{ display: "flex", alignItems: "center" }}>
                         <ThemeIcon variant="light" size="30" color="orange">
-                            <Icon style={{ width: rem(18), height: rem(18) }} />
+                            {Icon && <Icon style={{ width: rem(18), height: rem(18) }} />}
                         </ThemeIcon>
                         {isOpen && <Box ml="md">{label}</Box>}
                     </Box>
