@@ -14,9 +14,16 @@ export const AdminNavbar = () => {
     const links = NAVBAR_ITEMS.map((item) => <LinksGroup {...item} key={item.label} />);
 
     return (
-        <nav className="flex flex-col h-full bg-white dark:bg-neutral-900 border-r dark:border-gray-800 transition-[width] duration-300">
+        <nav 
+            className="flex flex-col h-full transition-[width] duration-300"
+            style={{ 
+                backgroundColor: "var(--mantine-color-body)",
+                borderRight: "1px solid var(--mantine-color-default-border)"
+            }}
+        >
             <div
-                className={`h-16 flex items-center border-b dark:border-gray-800 ${isOpen ? "" : "justify-center"}`}
+                className={`h-16 flex items-center border-b ${isOpen ? "" : "justify-center"}`}
+                style={{ borderBottom: "1px solid var(--mantine-color-default-border)" }}
             >
                 {isOpen && <AdminLogo />}
                 <div className="ml-auto pr-2 md:hidden">
@@ -29,7 +36,8 @@ export const AdminNavbar = () => {
             <ScrollArea className="flex-1 px-3 py-4">{links}</ScrollArea>
 
             <div
-                className={`h-16 flex items-center border-t dark:border-gray-800 ${isOpen ? "" : "justify-center"}`}
+                className={`h-16 flex items-center border-t ${isOpen ? "" : "justify-center"}`}
+                style={{ borderTop: "1px solid var(--mantine-color-default-border)" }}
             >
                 {isOpen && <AdminProfile />}
             </div>

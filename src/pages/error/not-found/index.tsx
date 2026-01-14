@@ -6,7 +6,13 @@ export const NotFoundPage = () => {
     const navigate = useNavigate();
 
     return (
-        <div className="flex items-center justify-center bg-white dark:bg-neutral-900 p-4 py-6 rounded-md shadow-md">
+        <div 
+            className="flex items-center justify-center p-4 py-6 rounded-md shadow-md"
+            style={{ 
+                backgroundColor: "var(--mantine-color-body)",
+                border: "1px solid var(--mantine-color-default-border)"
+            }}
+        >
             <Stack align="normal" gap="xl">
                 <div className="w-full rounded-md overflow-hidden">
                     <Image src={notFoundImage} alt="404 Not Found" className="w-full h-auto" />

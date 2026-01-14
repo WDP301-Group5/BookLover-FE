@@ -23,8 +23,8 @@ export function LinksGroup({ icon: Icon, label, initiallyOpened, link, links }: 
             key={link.label}
             style={{
                 backgroundColor:
-                    pathname === link.link ? "var(--mantine-color-orange-light)" : undefined,
-                color: pathname === link.link ? "var(--mantine-color-orange-filled)" : undefined,
+                    pathname === link.link ? "var(--mantine-primary-color-light)" : undefined,
+                color: pathname === link.link ? "var(--mantine-primary-color-filled)" : undefined,
                 fontWeight: pathname === link.link ? 600 : 400,
                 display: isOpen ? "block" : "none",
             }}
@@ -39,8 +39,8 @@ export function LinksGroup({ icon: Icon, label, initiallyOpened, link, links }: 
             className={classes.control}
             style={{
                 backgroundColor:
-                    link && pathname === link ? "var(--mantine-color-orange-light)" : undefined,
-                color: link && pathname === link ? "var(--mantine-color-orange-filled)" : undefined,
+                    link && pathname === link ? "var(--mantine-primary-color-light)" : undefined,
+                color: link && pathname === link ? "var(--mantine-primary-color-filled)" : undefined,
             }}
         >
             <Tooltip label={label} position="right" disabled={isOpen} withArrow>

@@ -52,13 +52,13 @@ export const AdminProfile = () => {
                 <Tooltip label="Đăng xuất" position="top" withArrow>
                     <UnstyledButton
                         onClick={handleLogout}
-                        className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors group"
+                        className="p-2 rounded-full transition-colors group hover:bg-red-50 dark:hover:bg-red-900/20"
                         style={{ flexShrink: 0 }}
                     >
                         <IconLogout
                             size={20}
                             stroke={1.5}
-                            className="text-gray-500 group-hover:text-red-500"
+                            className="text-gray-500 dark:text-gray-400 group-hover:text-red-500"
                         />
                     </UnstyledButton>
                 </Tooltip>

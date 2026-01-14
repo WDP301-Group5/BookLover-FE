@@ -10,7 +10,7 @@ export type NavbarItem = {
 
 export const NAVBAR_ITEMS: NavbarItem[] = [
     {
-      label: "Trang chủ", icon: IconGauge, link: "/admin"
+      label: "Trang chủ", icon: IconGauge, link: "/admin/dashboard"
     },
     {
         label: "Thể loại Truyện",

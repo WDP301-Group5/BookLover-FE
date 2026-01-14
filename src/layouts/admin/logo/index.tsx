@@ -19,7 +19,7 @@ export const AdminLogo = () => {
             {isOpen && (
                 <Title
                     order={4}
-                    className="tracking-tight text-orange-700"
+                    className="tracking-tight text-orange-700 dark:text-orange-500"
                     style={{ whiteSpace: "nowrap" }}
                 >
                     BookLover

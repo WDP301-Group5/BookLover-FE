@@ -19,11 +19,14 @@ export const AdminLayout = () => {
             transitionDuration={300}
             transitionTimingFunction="ease"
         >
-            <AppShell.Navbar>
+            <AppShell.Navbar style={{ borderRight: "1px solid var(--mantine-color-default-border)" }}>
                 <AdminNavbar />
             </AppShell.Navbar>
 
-            <AppShell.Main className="bg-gray-50 dark:bg-neutral-900 min-h-screen flex flex-col transition-[padding] duration-300">
+            <AppShell.Main 
+                className="min-h-screen flex flex-col transition-[padding] duration-300"
+                style={{ backgroundColor: "light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-8))" }}
+            >
                 <AdminHeader />
 
                 <main className="flex-1 p-6">
