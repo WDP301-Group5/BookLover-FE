@@ -3,8 +3,8 @@ import { IconChevronRight } from "@tabler/icons-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useNavbarStore } from "../../../stores/NavbarStore";
-import type { NavbarItem } from "./";
 import classes from "./LinksGroup.module.css";
+import type { NavbarItem } from "./NavbarItems";
 
 type LinksGroupProps = NavbarItem & {
     initiallyOpened?: boolean;

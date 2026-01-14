@@ -1,65 +1,13 @@
 import { ActionIcon, ScrollArea } from "@mantine/core";
 import {
-    IconCalendarStats,
-    IconGauge,
-    IconMenu2,
-    IconNotes,
-    IconPresentationAnalytics,
-    type IconProps,
-    IconReport,
+    IconMenu2
 } from "@tabler/icons-react";
-import type { ForwardRefExoticComponent, RefAttributes } from "react";
 import { useNavbarStore } from "../../../stores/NavbarStore";
 import { AdminLogo } from "../logo";
 import { AdminProfile } from "../profile";
 import { LinksGroup } from "./LinksGroup";
+import { NAVBAR_ITEMS } from "./NavbarItems";
 
-export type NavbarItem = {
-    label: string;
-    icon?: ForwardRefExoticComponent<IconProps & RefAttributes<SVGSVGElement>>;
-    link?: string;
-    links?: NavbarItem[];
-};
-
-const NAVBAR_ITEMS: NavbarItem[] = [
-    { label: "Trang chủ", icon: IconGauge, link: "/admin" },
-    {
-        label: "Danh mục",
-        icon: IconNotes,
-        links: [{ label: "Thể loại", link: "/admin/catalog/genre" }],
-    },
-    {
-        label: "Người giao hàng",
-        icon: IconCalendarStats,
-        links: [
-            { label: "Danh sách tất cả người giao hàng", link: "/admin/shipperslist" },
-            { label: "Người giao hàng đang duyệt", link: "/admin/pendding-shippers" },
-        ],
-    },
-    {
-        label: "Quản lý đơn hàng",
-        icon: IconNotes,
-        link: "/admin/ordermanagement",
-    },
-    {
-        label: "Người dùng",
-        icon: IconPresentationAnalytics,
-        link: "/admin/users",
-    },
-    {
-        label: "Khiếu nại",
-        icon: IconReport,
-        links: [
-            { label: "Tất cả khiếu nại", link: "/admin/reports" },
-            { label: "Danh mục khiếu nại", link: "/admin/report-categories" },
-        ],
-    },
-    {
-        label: "Quản lý banner",
-        icon: IconNotes,
-        links: [{ label: "Danh sách tất cả banner", link: "/admin/banners" }],
-    },
-];
 
 export const AdminNavbar = () => {
     const { isOpen, toggle } = useNavbarStore();
