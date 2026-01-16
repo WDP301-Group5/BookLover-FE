@@ -3,8 +3,10 @@ import HomePage from "../pages/home-page/HomePage";
 import Layout from "../layouts/Layout";
 import LoginPage from "../pages/login-page/LoginPage";
 import UserProfile from "../pages/user-profile/UserProfile";
+import { AdminRoute } from "./admin";
 
 const routes = createBrowserRouter([
+  AdminRoute,
   {
     path: "/",
     element: <Layout />,
