@@ -22,3 +22,12 @@ export interface Story {
     createdAt?: string;
     updatedAt?: string;
 }
+
+export interface StoryItem {
+    id: string;
+    title: string;
+    slug: string;
+    image: string;
+    views: number;
+    chapterNumber: number;
+}

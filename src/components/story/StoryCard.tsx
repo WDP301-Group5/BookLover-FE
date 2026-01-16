@@ -11,8 +11,9 @@ import {
     UserPlus,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { PremiumIcon } from "../assets/index.ts";
-import type { Story } from "../interfaces/Story.ts";
+import { PremiumIcon } from "../../assets/index.ts";
+import type { Story } from "../../interfaces/Story.ts";
+import { ShorterNumber } from "../../utils/index.ts";
 
 type StoryCardProps = {
     story: Story;
@@ -71,7 +72,7 @@ const StoryCard = ({
     if (type === "home") {
         return (
             <div
-                className="w-full h-full max-w-48 shadow-[1px_2px_8px_2px_rgba(128,128,128,0.5)] rounded-sm cursor-pointer"
+                className="w-full h-full min-w-36 max-w-48 shadow-[1px_2px_8px_2px_rgba(128,128,128,0.5)] rounded-sm cursor-pointer hover:scale-105 transition-transform duration-300 ease-in-out"
                 onClick={() => navigate(storyUrl)}
             >
                 <Paper
@@ -79,13 +80,13 @@ const StoryCard = ({
                     radius="sm"
                     className="w-full h-full"
                 >
-                    <div className="relative hover:scale-105 transition-transform duration-300 ease-in-out">
+                    <div className="relative">
                         <Image
                             radius="sm"
                             w={"100%"}
                             alt={story.title}
                             src={story.image}
-                            className="mb-1 aspect-[3/4] object-cover shadow-lg shadow-gray-500/50"
+                            className="aspect-[3/4] object-cover"
                         />
                         {story.isPremium && (
                             <div className="absolute top-1 right-1 flex justify-center items-center bg-yellow-200 rounded-full">
@@ -104,11 +105,10 @@ const StoryCard = ({
                             </span>
                         </div>
                     </div>
-                    <div className="px-1 pb-1">
+                    <div className="px-1 min-h-32 flex flex-col justify-evenly">
                         <Text
                             lineClamp={2}
                             fw={700}
-                            className="h-12"
                         >
                             {story.title}
                         </Text>
@@ -116,6 +116,7 @@ const StoryCard = ({
                             lineClamp={1}
                             fw={500}
                             size="sm"
+                            c={"blue.8"}
                         >
                             {story.author
                                 ? `Tác giả: ${story.author.penName}`
@@ -140,7 +141,7 @@ const StoryCard = ({
     } else {
         return (
             <div
-                className="w-full h-full shadow-[1px_1px_8px_2px_rgba(128,128,128,0.5)] inset-shadow-lg rounded-sm cursor-pointer hover:scale-105 transition-transform duration-300 ease-in-out"
+                className="w-full h-full max-h-64 min-h-56 min-w-[480px] max-w-[640px] shadow-[1px_1px_8px_2px_rgba(128,128,128,0.5)] inset-shadow-lg rounded-sm cursor-pointer hover:scale-105 transition-transform duration-300 ease-in-out"
                 onClick={() => navigate(storyUrl)}
             >
                 <Paper
@@ -148,15 +149,15 @@ const StoryCard = ({
                     radius="sm"
                     className="w-full h-full p-2"
                 >
-                    <div className="flex gap-4 h-full">
-                        <div className="relative h-full aspect-[3/4]">
+                    <div className="flex gap-2 h-full">
+                        <div className="relative h-full aspect-[3/4] max-w-[30%]">
                             <Image
                                 radius="sm"
                                 w={"100%"}
                                 h={"100%"}
                                 alt={story.title}
                                 src={story.image}
-                                className="mb-1 max-w-48 aspect-[3/4] object-cover shadow-lg shadow-gray-500/50"
+                                className="max-w-48 aspect-[3/4] object-cover shadow-lg shadow-gray-500/50"
                             />
                             {story.isPremium && (
                                 <div className="absolute top-1 right-1 flex justify-center items-center bg-yellow-200 rounded-full">
@@ -164,26 +165,24 @@ const StoryCard = ({
                                 </div>
                             )}
                         </div>
-                        <div className="px-1 pb-1 mt-2 w-full overflow-hidden">
+                        <div className="px-1 mt-2 w-full flex flex-col justify-between">
                             <Text
                                 lineClamp={2}
                                 fw={700}
                                 size="md"
-                                className="h-12"
                             >
                                 {story.title}
                             </Text>
                             <Text
                                 lineClamp={1}
-                                fw={500}
+                                fw={600}
                                 size="sm"
-                                mt={"sm"}
                             >
                                 {story.author
                                     ? `Tác giả: ${story.author.penName}`
                                     : "Unknown Author"}
                                 {story.isFinish && (
-                                    <span className="bg-green-500 rounded-full ml-2 px-2 py-[2px] text-xs font-bold text-white">
+                                    <span className="bg-blue-500 rounded-full ml-2 px-2 py-[2px] text-xs font-bold text-white text-center align-middle">
                                         Đã Hoàn
                                         Thành
                                     </span>
@@ -192,7 +191,7 @@ const StoryCard = ({
                             <Text
                                 lineClamp={1}
                                 size="sm"
-                                fw={200}
+                                fw={500}
                             >
                                 <span>
                                     Thể loại:{" "}
@@ -201,86 +200,71 @@ const StoryCard = ({
                                     )}
                                 </span>
                             </Text>
-                            {story?.tags && (
-                                <Text
-                                    lineClamp={1}
-                                    size="sm"
-                                    fw={200}
-                                >
-                                    <span>
-                                        Tag:{" "}
-                                        {story.tags.join(
-                                            ", ",
-                                        )}
-                                    </span>
-                                </Text>
-                            )}
-                            <div className="flex gap-1 h-8 font-extralight text-xs my-3">
-                                <div className="flex flex-col justify-center items-center">
+                            <div className="flex gap-1 font-medium text-xs">
+                                <div className="flex flex-col justify-center items-center w-[23%]">
                                     <span className="flex justify-center items-center gap-1">
                                         <Eye className="w-4" />
                                         Xem
                                     </span>
                                     <span className="font-semibold">
                                         {
-                                            story.views
+                                            ShorterNumber(
+                                                story.views,
+                                            )
                                         }
                                     </span>
                                 </div>
                                 <Divider
                                     size={"sm"}
-                                    className="mx-2"
                                     color="gray.6"
                                     orientation="vertical"
                                 />
-                                <div className="flex flex-col justify-center items-center">
+                                <div className="flex flex-col justify-center items-center w-[23%]">
                                     <span className="flex justify-center items-center gap-1">
                                         <UserPlus className="w-4" />
                                         Theo dõi
                                     </span>
                                     <span className="font-semibold">
                                         {
-                                            story.followers
+                                            ShorterNumber(
+                                                story.followers,
+                                            )
                                         }
                                     </span>
                                 </div>
                                 <Divider
                                     size={"sm"}
-                                    className="mx-2"
                                     color="gray.6"
                                     orientation="vertical"
                                 />
-                                <div className="flex flex-col justify-center items-center">
+                                <div className="flex flex-col justify-center items-center w-[23%]">
                                     <span className="flex justify-center items-center gap-1">
                                         <Star className="w-4" />
                                         Đánh giá
                                     </span>
                                     <span className="font-semibold">
-                                        {story?.rates ||
-                                            0}
+                                        {ShorterNumber(story.rates || 0)}
                                     </span>
                                 </div>
                                 <Divider
                                     size={"sm"}
-                                    className="mx-2"
                                     color="gray.6"
                                     orientation="vertical"
                                 />
-                                <div className="flex flex-col justify-center items-center">
+                                <div className="flex flex-col justify-center items-center w-[23%]">
                                     <span className="flex justify-center items-center gap-1">
                                         <BookOpen className="w-4" />
                                         Chương
                                     </span>
                                     <span className="font-semibold">
-                                        {story?.chapters ||
-                                            0}
+                                        {ShorterNumber(story?.chapters || 0)}
                                     </span>
                                 </div>
                             </div>
                             <Text
-                                lineClamp={3}
+                                lineClamp={2}
                                 size="sm"
-                                className="min-h-15"
+                                className="min-h-10"
                             >
                                 {
                                     story.description
