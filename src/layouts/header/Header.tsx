@@ -254,16 +254,6 @@ const Header = () => {
               )}
             </div>
 
-            {/* Download App Button */}
-            <button
-              onClick={() => navigate("/download")}
-              className="hidden lg:flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-colors duration-200 cursor-pointer shadow-sm"
-              aria-label="Download the BookLover app"
-            >
-              <Download className="w-4 h-4" />
-              Download app
-            </button>
-
             {/* Login Link */}
             <Link
               to="/login"
