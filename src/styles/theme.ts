@@ -6,7 +6,7 @@ export const appTheme = createTheme({
     fontFamily: "'Montserrat', 'Inter', sans-serif",
     fontWeight: "600",
   },
-  primaryColor: "blue",
+  primaryColor: "orange",
   defaultRadius: "md",
   fontSizes: {
     sm: "14px",
