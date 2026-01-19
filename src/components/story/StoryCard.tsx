@@ -128,7 +128,7 @@ const StoryCard = ({
                         >
                             <span>
                                 Thể loại:{" "}
-                                {story.topics.join(
+                                {story.topics?.join(
                                     ", ",
                                 )}
                             </span>
@@ -194,7 +194,7 @@ const StoryCard = ({
                             >
                                 <span>
                                     Thể loại:{" "}
-                                    {story.topics.join(
+                                    {story.topics?.join(
                                         ", ",
                                     )}
                                 </span>
