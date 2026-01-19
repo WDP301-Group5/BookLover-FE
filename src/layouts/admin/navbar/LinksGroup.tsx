@@ -46,7 +46,7 @@ export function LinksGroup({ icon: Icon, label, initiallyOpened, link, links }: 
             <Tooltip label={label} position="right" disabled={isOpen} withArrow>
                 <Group justify="space-between" gap={0} wrap="nowrap">
                     <Box style={{ display: "flex", alignItems: "center" }}>
-                        <ThemeIcon variant="light" size="30" color="orange">
+                        <ThemeIcon variant="light" size="30" color="blue">
                             {Icon && <Icon style={{ width: rem(18), height: rem(18) }} />}
                         </ThemeIcon>
                         {isOpen && <Box ml="md">{label}</Box>}
