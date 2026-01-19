@@ -1,126 +1,235 @@
 import {
-    Anchor,
-    Button,
-    Container,
-    Divider,
-    Grid,
-    Group,
-    Text,
-    ThemeIcon,
-    Title,
-} from "@mantine/core";
-import {
-    IconBook,
-    IconBrandFacebook,
-    IconBrandInstagram,
-    IconBrandTwitter,
-} from "@tabler/icons-react";
-import { Link } from "react-router-dom";
+  BookOpen,
+  Users,
+  Award,
+  Briefcase,
+  HelpCircle,
+  Globe,
+} from "lucide-react";
 
 const Footer = () => {
-    return (
-        <footer className="bg-white dark:bg-neutral-900 border-t dark:border-gray-800 py-12 mt-auto">
-            <Container size="lg">
-                <Grid gutter="xl">
-                    <Grid.Col span={{ base: 12, md: 4 }}>
-                        <Group gap="sm" mb="md">
-                            <ThemeIcon variant="light" size="lg" color="orange">
-                                <IconBook size={24} />
-                            </ThemeIcon>
-                            <Title order={3} className="tracking-tight text-orange-700">
-                                BookLover
-                            </Title>
-                        </Group>
-                        <Text size="sm" c="dimmed" mb="xl">
-                            Trang web yêu thích dành cho những người yêu sách. Khám phá, chia sẻ và
-                            kết nối với cộng đồng đọc giả.
-                        </Text>
-                        <Group gap="md">
-                            <ThemeIcon size="lg" radius="xl" color="gray" variant="light">
-                                <IconBrandFacebook size={20} />
-                            </ThemeIcon>
-                            <ThemeIcon size="lg" radius="xl" color="gray" variant="light">
-                                <IconBrandInstagram size={20} />
-                            </ThemeIcon>
-                            <ThemeIcon size="lg" radius="xl" color="gray" variant="light">
-                                <IconBrandTwitter size={20} />
-                            </ThemeIcon>
-                        </Group>
-                    </Grid.Col>
+  const currentYear = new Date().getFullYear();
 
-                    <Grid.Col span={{ base: 6, md: 2 }}>
-                        <Title order={5} mb="md">
-                            Khám phá
-                        </Title>
-                        <div className="flex flex-col gap-2">
-                            <Anchor component={Link} to="/books" size="sm" c="dimmed">
-                                Tất cả sách
-                            </Anchor>
-                            <Anchor component={Link} to="/categories" size="sm" c="dimmed">
-                                Danh mục
-                            </Anchor>
-                            <Anchor component={Link} to="/authors" size="sm" c="dimmed">
-                                Tác giả
-                            </Anchor>
-                            <Anchor component={Link} to="/trending" size="sm" c="dimmed">
-                                Thịnh hành
-                            </Anchor>
-                        </div>
-                    </Grid.Col>
+  return (
+    <footer className="bg-white border-t border-gray-200 mt-auto">
+      {/* Main Footer Content */}
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+          {/* About Section */}
+          <div>
+            <h3 className="text-gray-900 font-semibold text-lg mb-4 flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-violet-600" />
+              BookLover
+            </h3>
+            <p className="text-gray-600 text-sm leading-relaxed mb-4">
+              Discover, read, and share your favorite books with a community of
+              passionate readers.
+            </p>
+          </div>
 
-                    <Grid.Col span={{ base: 6, md: 2 }}>
-                        <Title order={5} mb="md">
-                            Ứng dụng
-                        </Title>
-                        <div className="flex flex-col gap-2">
-                            <Anchor component={Link} to="/about" size="sm" c="dimmed">
-                                Về chúng tôi
-                            </Anchor>
-                            <Anchor component={Link} to="/contact" size="sm" c="dimmed">
-                                Liên hệ
-                            </Anchor>
-                            <Anchor component={Link} to="/faq" size="sm" c="dimmed">
-                                Câu hỏi thường gặp
-                            </Anchor>
-                        </div>
-                    </Grid.Col>
+          {/* Discover Section */}
+          <div>
+            <h4 className="text-gray-900 font-semibold text-sm mb-4">
+              Discover
+            </h4>
+            <ul className="space-y-3">
+              <li>
+                <a
+                  href="#"
+                  className="text-gray-600 hover:text-violet-600 text-sm transition-colors duration-200 cursor-pointer"
+                >
+                  Browse Books
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-gray-600 hover:text-violet-600 text-sm transition-colors duration-200 cursor-pointer"
+                >
+                  New Releases
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-gray-600 hover:text-violet-600 text-sm transition-colors duration-200 cursor-pointer"
+                >
+                  Best Sellers
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-gray-600 hover:text-violet-600 text-sm transition-colors duration-200 cursor-pointer"
+                >
+                  Genres
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-gray-600 hover:text-violet-600 text-sm transition-colors duration-200 cursor-pointer"
+                >
+                  Authors
+                </a>
+              </li>
+            </ul>
+          </div>
 
-                    <Grid.Col span={{ base: 12, md: 4 }}>
-                        <Title order={5} mb="md">
-                            Bản tin
-                        </Title>
-                        <Text size="sm" c="dimmed" mb="md">
-                            Đăng ký nhận bản tin để cập nhật những cuốn sách mới nhất mỗi tuần.
-                        </Text>
-                        <Group gap="xs" wrap="nowrap">
-                            <div className="flex-1 px-3 py-2 border rounded-md dark:border-gray-700 text-sm opacity-60">
-                                Email của bạn
-                            </div>
-                            <Button color="orange" radius="md">
-                                Tham gia
-                            </Button>
-                        </Group>
-                    </Grid.Col>
-                </Grid>
+          {/* Community Section */}
+          <div>
+            <h4 className="text-gray-900 font-semibold text-sm mb-4 flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              Community
+            </h4>
+            <ul className="space-y-3">
+              <li>
+                <a
+                  href="#"
+                  className="text-gray-600 hover:text-violet-600 text-sm transition-colors duration-200 cursor-pointer"
+                >
+                  Book Clubs
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-gray-600 hover:text-violet-600 text-sm transition-colors duration-200 cursor-pointer"
+                >
+                  Reviews
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-gray-600 hover:text-violet-600 text-sm transition-colors duration-200 cursor-pointer"
+                >
+                  Forums
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-gray-600 hover:text-violet-600 text-sm transition-colors duration-200 cursor-pointer inline-flex items-center gap-1"
+                >
+                  <Award className="w-3.5 h-3.5" />
+                  Writer Program
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-gray-600 hover:text-violet-600 text-sm transition-colors duration-200 cursor-pointer"
+                >
+                  Events
+                </a>
+              </li>
+            </ul>
+          </div>
 
-                <Divider my="xl" className="dark:border-gray-800" />
+          {/* Company Section */}
+          <div>
+            <h4 className="text-gray-900 font-semibold text-sm mb-4">
+              Company
+            </h4>
+            <ul className="space-y-3">
+              <li>
+                <a
+                  href="#"
+                  className="text-gray-600 hover:text-violet-600 text-sm transition-colors duration-200 cursor-pointer"
+                >
+                  About Us
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-gray-600 hover:text-violet-600 text-sm transition-colors duration-200 cursor-pointer inline-flex items-center gap-1"
+                >
+                  <Briefcase className="w-3.5 h-3.5" />
+                  Careers
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-gray-600 hover:text-violet-600 text-sm transition-colors duration-200 cursor-pointer"
+                >
+                  Press
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-gray-600 hover:text-violet-600 text-sm transition-colors duration-200 cursor-pointer"
+                >
+                  Brand Partnerships
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-gray-600 hover:text-violet-600 text-sm transition-colors duration-200 cursor-pointer inline-flex items-center gap-1"
+                >
+                  <HelpCircle className="w-3.5 h-3.5" />
+                  Help Center
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
 
-                <Group justify="space-between">
-                    <Text size="xs" c="dimmed">
-                        &copy; {new Date().getFullYear()} BookLover. Tất cả quyền được bảo lưu.
-                    </Text>
-                    <Group gap="xl">
-                        <Anchor size="xs" c="dimmed">
-                            Chính sách bảo mật
-                        </Anchor>
-                        <Anchor size="xs" c="dimmed">
-                            Điều khoản sử dụng
-                        </Anchor>
-                    </Group>
-                </Group>
-            </Container>
-        </footer>
-    );
+        {/* Divider */}
+        <div className="border-t border-gray-200 pt-8">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            {/* Bottom Links */}
+            <div className="flex flex-wrap justify-center md:justify-start items-center gap-4 text-xs">
+              <a
+                href="#"
+                className="text-gray-500 hover:text-violet-600 transition-colors duration-200 cursor-pointer"
+              >
+                Terms of Service
+              </a>
+              <span className="text-gray-300">•</span>
+              <a
+                href="#"
+                className="text-gray-500 hover:text-violet-600 transition-colors duration-200 cursor-pointer"
+              >
+                Privacy Policy
+              </a>
+              <span className="text-gray-300">•</span>
+              <a
+                href="#"
+                className="text-gray-500 hover:text-violet-600 transition-colors duration-200 cursor-pointer"
+              >
+                Payment Policy
+              </a>
+              <span className="text-gray-300">•</span>
+              <a
+                href="#"
+                className="text-gray-500 hover:text-violet-600 transition-colors duration-200 cursor-pointer"
+              >
+                Accessibility
+              </a>
+              <span className="text-gray-300">•</span>
+              <a
+                href="#"
+                className="text-gray-500 hover:text-violet-600 transition-colors duration-200 cursor-pointer inline-flex items-center gap-1"
+              >
+                <Globe className="w-3 h-3" />
+                Language
+              </a>
+            </div>
+
+            {/* Copyright */}
+            <div className="text-xs text-gray-500">
+              © {currentYear} BookLover. All rights reserved.
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
 };
 
 export default Footer;
