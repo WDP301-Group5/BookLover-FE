@@ -13,7 +13,7 @@ const StoryItemCard = ({ story, type, deleteFunc }: StoryItemProps) => {
 
     if (type === "top") {
         return (
-            <div className="w-full h-full p-2 min-w-[250px] max-w-[360px] max-h-20 flex gap-2">
+            <div className="w-full h-full min-w-[250px] max-w-[360px] max-h-20 flex gap-2">
                 <Image
                     src={story.image}
                     alt={story.title}
@@ -45,7 +45,7 @@ const StoryItemCard = ({ story, type, deleteFunc }: StoryItemProps) => {
         );
     } else {
         return (
-            <div className="w-full p-2 min-w-[250px] max-w-[360px] max-h-20 flex gap-2">
+            <div className="w-full min-w-[250px] max-w-[360px] max-h-20 flex gap-2">
                 <Image
                     src={story.image}
                     alt={story.title}

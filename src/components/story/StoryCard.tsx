@@ -72,7 +72,7 @@ const StoryCard = ({
     if (type === "home") {
         return (
             <div
-                className="w-full h-full min-w-36 max-w-48 shadow-[1px_2px_8px_2px_rgba(128,128,128,0.5)] rounded-sm cursor-pointer hover:scale-105 transition-transform duration-300 ease-in-out"
+                className="w-full h-full min-w-36 max-w-48 cursor-pointer border border-1 rounded"
                 onClick={() => navigate(storyUrl)}
             >
                 <Paper
@@ -96,12 +96,12 @@ const StoryCard = ({
                         <div className="absolute bottom-0 h-8 w-full bg-black rounded-b-sm opacity-50 flex justify-around items-center text-white text-xs">
                             <span className="flex justify-center items-center gap-1">
                                 <Eye className="w-4" />
-                                {story.views}
+                                {ShorterNumber(story.views || 0)}
                             </span>
                             |
                             <span className="flex justify-center items-center gap-1">
                                 <UserPlus className="w-4" />{" "}
-                                {story.followers}
+                                {ShorterNumber(story.followers || 0)}
                             </span>
                         </div>
                     </div>
@@ -116,7 +116,6 @@ const StoryCard = ({
                             lineClamp={1}
                             fw={500}
                             size="sm"
-                            c={"blue.8"}
                         >
                             {story.author
                                 ? `Tác giả: ${story.author.penName}`
@@ -141,7 +140,7 @@ const StoryCard = ({
     } else {
         return (
             <div
-                className="w-full h-full max-h-64 min-h-56 min-w-[480px] max-w-[640px] shadow-[1px_1px_8px_2px_rgba(128,128,128,0.5)] inset-shadow-lg rounded-sm cursor-pointer hover:scale-105 transition-transform duration-300 ease-in-out"
+                className="w-full h-full max-h-64 min-h-56 min-w-[480px] max-w-[640px] shadow-[1px_1px_8px_2px_rgba(128,128,128,0.5)] inset-shadow-lg rounded-sm cursor-pointer"
                 onClick={() => navigate(storyUrl)}
             >
                 <Paper
@@ -182,7 +181,7 @@ const StoryCard = ({
                                     ? `Tác giả: ${story.author.penName}`
                                     : "Unknown Author"}
                                 {story.isFinish && (
-                                    <span className="bg-blue-500 rounded-full ml-2 px-2 py-[2px] text-xs font-bold text-white text-center align-middle">
+                                    <span className="rounded-full ml-2 px-2 py-[2px] text-xs font-bold text-white text-center align-middle">
                                         Đã Hoàn
                                         Thành
                                     </span>
