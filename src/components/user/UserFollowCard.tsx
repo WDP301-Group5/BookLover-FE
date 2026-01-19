@@ -1,5 +1,5 @@
-import { Card, Avatar, Text, Group, Button, Stack } from '@mantine/core';
-import {  UserPlus } from 'lucide-react';
+import { Card, Avatar, Text, Group, Button, Stack, Tooltip } from "@mantine/core";
+import { BookOpen, Bookmark, Users, UserPlus } from "lucide-react";
 
 interface UserFollowCardProps {
   displayName: string;
@@ -44,7 +44,7 @@ export function UserFollowCard({
         </div>
 
         <Button
-          leftSection={<UserPlus size={18} />}
+          leftSection={<UserPlus size={16} />}
           variant="light"
           color="cyan"
           size="md"
@@ -55,33 +55,42 @@ export function UserFollowCard({
           Theo dõi
         </Button>
 
-        <Group grow gap="lg" justify="center" mt="lg" className="w-full">
-          <Stack align="center" gap={4} className="min-w-0">
-            <Text fw={700} size="lg">
+        {/* Stats with tooltip */}
+        <Group grow justify="center" mt="lg" className="w-full">
+
+          {/* Works */}
+          <div className="flex flex-col items-center gap-1">
+            <Text fw={700} size="lg" className="leading-none">
               {stats.works}
             </Text>
-            <Text size="xs" c="dimmed" className="whitespace-nowrap">
-              Tác phẩm
-            </Text>
-          </Stack>
 
-          <Stack align="center" gap={4} className="min-w-0">
-            <Text fw={700} size="lg">
+            <Tooltip label="Tác phẩm" withArrow>
+              <BookOpen size={16} className="text-gray-500 cursor-pointer" />
+            </Tooltip>
+          </div>
+
+          {/* Reading lists */}
+          <div className="flex flex-col items-center gap-1">
+            <Text fw={700} size="lg" className="leading-none">
               {stats.readingLists}
             </Text>
-            <Text size="xs" c="dimmed" className="whitespace-nowrap">
-              Đang theo dõi
-            </Text>
-          </Stack>
 
-          <Stack align="center" gap={4} className="min-w-0">
-            <Text fw={700} size="lg">
+            <Tooltip label="Danh sách đọc" withArrow>
+              <Bookmark size={16} className="text-gray-500 cursor-pointer" />
+            </Tooltip>
+          </div>
+
+          {/* Followers */}
+          <div className="flex flex-col items-center gap-1">
+            <Text fw={700} size="lg" className="leading-none">
               {stats.followers}
             </Text>
-            <Text size="xs" c="dimmed" className="whitespace-nowrap">
-              Người theo dõi
-            </Text>
-          </Stack>
+
+            <Tooltip label="Người theo dõi" withArrow>
+              <Users size={16} className="text-gray-500 cursor-pointer" />
+            </Tooltip>
+          </div>
+
         </Group>
       </Stack>
     </Card>
