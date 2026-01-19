@@ -11,7 +11,7 @@ export const showSuccess = (message: string, title?: string) => {
     icon: <CheckCircle size={20} color="white" />,
     styles: {
       root: {
-        backgroundColor: "#E6F9EE", // xanh nhạt
+        backgroundColor: "#E6F9EE", 
       },
     },
   });
@@ -27,7 +27,7 @@ export const showError = (message: string, title?: string) => {
     icon: <XCircle size={20} color="white" />,
     styles: {
       root: {
-        backgroundColor: "#FDECEC", // đỏ nhạt
+        backgroundColor: "#FDECEC", 
       },
     },
   });
@@ -43,7 +43,7 @@ export const showWarning = (message: string, title?: string) => {
     icon: <AlertTriangle size={20} color="white" />,
     styles: {
       root: {
-        backgroundColor: "#FFF7E1", // vàng nhạt
+        backgroundColor: "#FFF7E1",
       },
     },
   });
