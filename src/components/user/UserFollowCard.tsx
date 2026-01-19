@@ -10,6 +10,7 @@ interface UserFollowCardProps {
     readingLists: number;
     followers: number | string;
   };
+  showFollowButton?: boolean;
 }
 
 export function UserFollowCard({
@@ -17,6 +18,7 @@ export function UserFollowCard({
   username,
   avatarUrl,
   stats,
+  showFollowButton = true,
 }: UserFollowCardProps) {
   return (
     <Card
@@ -43,7 +45,8 @@ export function UserFollowCard({
           </Text>
         </div>
 
-        <Button
+        {showFollowButton && ( 
+          <Button
           leftSection={<UserPlus size={16} />}
           variant="light"
           color="cyan"
@@ -54,7 +57,8 @@ export function UserFollowCard({
         >
           Theo dõi
         </Button>
-
+        )}
+        
         {/* Stats with tooltip */}
         <Group grow justify="center" mt="lg" className="w-full">
 
