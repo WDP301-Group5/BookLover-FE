@@ -26,12 +26,12 @@ export function UserFollowCard({
       withBorder
       className="hover:shadow-md transition-shadow duration-300 bg-white"
     >
-      <Stack align="center" gap="md">
+      <Stack align="center" gap={0}>
         <Avatar
           src={avatarUrl}
           size={100}
           radius="xl"
-          className="border-4 border-white shadow-md"
+          className="border-4 border-white"
         />
 
         <div className="text-center">
@@ -59,7 +59,7 @@ export function UserFollowCard({
         <Group grow justify="center" mt="lg" className="w-full">
 
           {/* Works */}
-          <div className="flex flex-col items-center gap-1">
+          <div className="flex flex-col items-center">
             <Text fw={700} size="lg" className="leading-none">
               {stats.works}
             </Text>
@@ -70,7 +70,7 @@ export function UserFollowCard({
           </div>
 
           {/* Reading lists */}
-          <div className="flex flex-col items-center gap-1">
+          <div className="flex flex-col items-center">
             <Text fw={700} size="lg" className="leading-none">
               {stats.readingLists}
             </Text>
@@ -81,7 +81,7 @@ export function UserFollowCard({
           </div>
 
           {/* Followers */}
-          <div className="flex flex-col items-center gap-1">
+          <div className="flex flex-col items-center">
             <Text fw={700} size="lg" className="leading-none">
               {stats.followers}
             </Text>

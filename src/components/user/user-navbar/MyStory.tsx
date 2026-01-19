@@ -1,6 +1,6 @@
 import React from "react";
 import { authorProfileMock } from "../../author/authorProfile";
-import StoryCard from "../../story/StoryCard";
+import StoryItemCard from "../../story/StoryItemCard";
 
 
 const MyStory = () => {
@@ -11,7 +11,11 @@ const MyStory = () => {
       <h1 className="text-lg font-semibold mb-2 text-[22px]">Truyện của tôi</h1>
 
       {stories.map((story) => (
-        <StoryCard key={story.id} story={story} type="top" />
+        <StoryItemCard 
+          key={story.id}
+          story={story}
+          type="top" 
+        />
       ))}
     </div>
   );

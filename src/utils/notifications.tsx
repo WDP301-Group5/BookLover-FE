@@ -1,3 +1,4 @@
+import { AlertTriangle, XCircle, CheckCircle } from "lucide-react";
 import { notifications } from "@mantine/notifications";
 
 export const showSuccess = (message: string, title?: string) => {
@@ -7,7 +8,12 @@ export const showSuccess = (message: string, title?: string) => {
     color: "green",
     radius: "md",
     withBorder: true,
-    icon: null,
+    icon: <CheckCircle size={20} color="white" />,
+    styles: {
+      root: {
+        backgroundColor: "#E6F9EE", // xanh nhạt
+      },
+    },
   });
 };
 
@@ -18,6 +24,12 @@ export const showError = (message: string, title?: string) => {
     color: "red",
     radius: "md",
     withBorder: true,
+    icon: <XCircle size={20} color="white" />,
+    styles: {
+      root: {
+        backgroundColor: "#FDECEC", // đỏ nhạt
+      },
+    },
   });
 };
 
@@ -28,5 +40,11 @@ export const showWarning = (message: string, title?: string) => {
     color: "yellow",
     radius: "md",
     withBorder: true,
+    icon: <AlertTriangle size={20} color="white" />,
+    styles: {
+      root: {
+        backgroundColor: "#FFF7E1", // vàng nhạt
+      },
+    },
   });
 };

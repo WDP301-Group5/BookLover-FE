@@ -1,6 +1,6 @@
 import React from "react";
 import { authorProfileMock } from "../../author/authorProfile";
-import StoryItemCard from "../../story/StoryItemCard";
+import StoryCard from "../../story/StoryCard";
 
 const ListStoryFollowed = () => {
   const stories = authorProfileMock.stories;
@@ -10,15 +10,11 @@ const ListStoryFollowed = () => {
       <h1 className="text-[22px] font-semibold mb-2">
         Truyện đang theo dõi
       </h1>
-
-      
-      {stories.map((story) => (
-        <StoryItemCard 
-          key={story.id}
-          story={story}
-          type="top" 
-        />
+      <div className="grid grid-cols-4 gap-4"> 
+        {stories.map((story) => (
+        <StoryCard key={story.id} story={story} type="home" />
       ))}
+      </div>
     </div>
   );
 };

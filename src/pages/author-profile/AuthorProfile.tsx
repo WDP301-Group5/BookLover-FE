@@ -6,7 +6,7 @@ import { FollowingTab } from '../../components/author/FollowingTab.tsx';
 
 export function AuthorProfile() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <AuthorHeader />
 
       <Tabs defaultValue="introduction" className="mt-8">

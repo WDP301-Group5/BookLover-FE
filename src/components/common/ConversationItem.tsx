@@ -22,7 +22,7 @@ export function ConversationItem({
     <Stack gap="lg">
       <Group gap="md">
         <Avatar src={userAvatar} size="md" radius="xl" />
-        <Paper p="md" withBorder radius="md" className="flex-1 bg-gray-50">
+        <Paper p="md" withBorder radius="md" className="flex-1">
           <Group justify="space-between">
             <Text fw={600}>{username}</Text>
             <Text size="sm" c="dimmed">{date}</Text>
