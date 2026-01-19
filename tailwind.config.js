@@ -1,7 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
-  darkMode: "class", // hoặc 'media' nếu muốn tự động theo hệ thống
+  darkMode: ["class", '[data-mantine-color-scheme="dark"]'],
   plugins: [],
   theme: {
     extend: {
@@ -12,8 +12,8 @@ export default {
         border: "#DBEAFE",
       },
       fontFamily: {
-        sans: ["Open Sans", "sans-serif"],
-        heading: ["Poppins", "sans-serif"],
+        sans: ["Inter", "sans-serif"],
+        heading: ["Montserrat", "sans-serif"],
       },
     },
   },
