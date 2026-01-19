@@ -12,8 +12,8 @@ export default {
         border: "#DBEAFE",
       },
       fontFamily: {
-        sans: ["Open Sans", "sans-serif"],
-        heading: ["Poppins", "sans-serif"],
+        sans: ["Inter", "sans-serif"],
+        heading: ["Montserrat", "sans-serif"],
       },
     },
   },

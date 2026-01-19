@@ -8,6 +8,8 @@ import {
   BookOpen,
   Menu,
   X,
+  Zap,
+  CircleDollarSignIcon,
 } from "lucide-react";
 
 const Header = () => {
@@ -78,7 +80,7 @@ const Header = () => {
             <Link
               to="/"
               className="flex items-center gap-2 hover:opacity-80 transition-opacity duration-200 cursor-pointer"
-              aria-label="BookLover Home"
+              aria-label="Trang chủ BookLover"
             >
               <div className="w-9 h-9 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center shadow-sm">
                 <BookOpen className="w-5 h-5 text-white" />
@@ -100,7 +102,7 @@ const Header = () => {
                 aria-expanded={browseOpen}
                 aria-haspopup="true"
               >
-                Browse
+                Duyệt
                 <ChevronDown
                   className={`w-4 h-4 transition-transform duration-200 ${browseOpen ? "rotate-180" : ""}`}
                 />
@@ -112,26 +114,26 @@ const Header = () => {
                     to="/browse/featured"
                     className="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 cursor-pointer"
                   >
-                    Featured
+                    Nổi bật
                   </Link>
                   <Link
                     to="/browse/trending"
                     className="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 cursor-pointer"
                   >
-                    Trending
+                    Xu hướng
                   </Link>
                   <Link
                     to="/browse/new"
                     className="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 cursor-pointer"
                   >
-                    New Releases
+                    Mới phát hành
                   </Link>
                   <div className="my-1 border-t border-gray-200 dark:border-gray-700" />
                   <Link
                     to="/browse/genres"
                     className="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 cursor-pointer"
                   >
-                    All Genres
+                    Tất cả thể loại
                   </Link>
                 </div>
               )}
@@ -149,7 +151,7 @@ const Header = () => {
                 aria-expanded={communityOpen}
                 aria-haspopup="true"
               >
-                Community
+                Cộng đồng
                 <ChevronDown
                   className={`w-4 h-4 transition-transform duration-200 ${communityOpen ? "rotate-180" : ""}`}
                 />
@@ -161,26 +163,26 @@ const Header = () => {
                     to="/community/forums"
                     className="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 cursor-pointer"
                   >
-                    Forums
+                    Diễn đàn
                   </Link>
                   <Link
                     to="/community/events"
                     className="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 cursor-pointer"
                   >
-                    Events
+                    Sự kiện
                   </Link>
                   <Link
                     to="/community/contests"
                     className="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 cursor-pointer"
                   >
-                    Contests
+                    Cuộc thi
                   </Link>
                   <div className="my-1 border-t border-gray-200 dark:border-gray-700" />
                   <Link
                     to="/community/guidelines"
                     className="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 cursor-pointer"
                   >
-                    Community Guidelines
+                    Quy định cộng đồng
                   </Link>
                 </div>
               )}
@@ -195,9 +197,9 @@ const Header = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search"
+                placeholder="Tìm kiếm"
                 className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-800 border border-transparent focus:border-gray-300 dark:focus:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all duration-200"
-                aria-label="Search books, stories, or authors"
+                aria-label="Tìm kiếm sách, truyện hoặc tác giả"
               />
             </form>
           </div>
@@ -217,7 +219,7 @@ const Header = () => {
                 aria-haspopup="true"
               >
                 <PenLine className="w-4 h-4" />
-                Write
+                Viết
                 <ChevronDown
                   className={`w-4 h-4 transition-transform duration-200 ${writeOpen ? "rotate-180" : ""}`}
                 />
@@ -229,37 +231,46 @@ const Header = () => {
                     to="/write/new"
                     className="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 cursor-pointer"
                   >
-                    Create New Story
+                    Tạo truyện mới
                   </Link>
                   <Link
                     to="/write/drafts"
                     className="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 cursor-pointer"
                   >
-                    My Drafts
+                    Bản nháp của tôi
                   </Link>
                   <Link
                     to="/write/published"
                     className="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 cursor-pointer"
                   >
-                    Published Stories
+                    Truyện đã đăng
                   </Link>
                   <div className="my-1 border-t border-gray-200 dark:border-gray-700" />
                   <Link
                     to="/write/guide"
                     className="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 cursor-pointer"
                   >
-                    Writer's Guide
+                    Hướng dẫn viết truyện
                   </Link>
                 </div>
               )}
             </div>
+
+            {/* Premium Button */}
+            <Link
+              to="/premium"
+              className="hidden lg:flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/30 hover:bg-orange-100 dark:hover:bg-orange-950/50 border border-orange-200 dark:border-orange-800 rounded-lg transition-all duration-200 cursor-pointer shadow-sm hover:shadow"
+            >
+              <CircleDollarSignIcon />
+              Mua linh thạch/VIP
+            </Link>
 
             {/* Login Link */}
             <Link
               to="/login"
               className="hidden sm:block px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
             >
-              Log in
+              Đăng nhập
             </Link>
 
             {/* Sign Up Button */}
@@ -267,14 +278,14 @@ const Header = () => {
               to="/signup"
               className="hidden sm:block px-4 py-2 text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors duration-200 cursor-pointer shadow-sm"
             >
-              Sign Up
+              Đăng ký
             </Link>
 
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
-              aria-label="Toggle mobile menu"
+              aria-label="Bật/tắt menu di động"
               aria-expanded={mobileMenuOpen}
             >
               {mobileMenuOpen ? (
@@ -294,9 +305,9 @@ const Header = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search"
+              placeholder="Tìm kiếm"
               className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-800 border border-transparent focus:border-gray-300 dark:focus:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all duration-200"
-              aria-label="Search books, stories, or authors"
+              aria-label="Tìm kiếm sách, truyện hoặc tác giả"
             />
           </form>
         </div>
@@ -309,123 +320,131 @@ const Header = () => {
             {/* Browse Section */}
             <div className="space-y-1">
               <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Browse
+                Duyệt
               </div>
               <Link
                 to="/browse/featured"
                 className="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Featured
+                Nổi bật
               </Link>
               <Link
                 to="/browse/trending"
                 className="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Trending
+                Xu hướng
               </Link>
               <Link
                 to="/browse/new"
                 className="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                New Releases
+                Mới phát hành
               </Link>
               <Link
                 to="/browse/genres"
                 className="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                All Genres
+                Tất cả thể loại
               </Link>
             </div>
 
             {/* Community Section */}
             <div className="space-y-1 pt-4">
               <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Community
+                Cộng đồng
               </div>
               <Link
                 to="/community/forums"
                 className="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Forums
+                Diễn đàn
               </Link>
               <Link
                 to="/community/events"
                 className="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Events
+                Sự kiện
               </Link>
               <Link
                 to="/community/contests"
                 className="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Contests
+                Cuộc thi
               </Link>
               <Link
                 to="/community/guidelines"
                 className="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Community Guidelines
+                Quy định cộng đồng
               </Link>
             </div>
 
             {/* Write Section */}
             <div className="space-y-1 pt-4">
               <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Write
+                Viết
               </div>
               <Link
                 to="/write/new"
                 className="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Create New Story
+                Tạo truyện mới
               </Link>
               <Link
                 to="/write/drafts"
                 className="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                My Drafts
+                Bản nháp của tôi
               </Link>
               <Link
                 to="/write/published"
                 className="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Published Stories
+                Truyện đã đăng
               </Link>
               <Link
                 to="/write/guide"
                 className="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Writer's Guide
+                Hướng dẫn viết truyện
               </Link>
             </div>
 
             {/* Action Buttons */}
             <div className="space-y-2 pt-4 border-t border-gray-200 dark:border-gray-700">
               <Link
+                to="/premium"
+                className="flex items-center justify-center gap-2 w-full px-4 py-2 text-sm font-semibold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/30 hover:bg-orange-100 dark:hover:bg-orange-950/50 border border-orange-200 dark:border-orange-800 rounded-lg transition-all duration-200 cursor-pointer"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <Zap className="w-4 h-4 fill-orange-600 dark:fill-orange-400" />
+                Mua linh thạch/VIP
+              </Link>
+              <Link
                 to="/login"
                 className="block w-full px-4 py-2 text-sm font-medium text-center text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Log in
+                Đăng nhập
               </Link>
               <Link
                 to="/signup"
                 className="block w-full px-4 py-2 text-sm font-medium text-center text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors duration-200 cursor-pointer"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Sign Up
+                Đăng ký
               </Link>
               <button
                 onClick={() => {
@@ -435,7 +454,7 @@ const Header = () => {
                 className="flex items-center justify-center gap-2 w-full px-4 py-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-colors duration-200 cursor-pointer"
               >
                 <Download className="w-4 h-4" />
-                Download app
+                Tải ứng dụng
               </button>
             </div>
           </nav>
