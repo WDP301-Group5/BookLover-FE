@@ -26,4 +26,9 @@ dist-ssr
 *.yaml
 package-lock.json
 
+_bmad
+.github/agents
+.github/prompts
+.shared
+
 .env
