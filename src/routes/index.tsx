@@ -5,6 +5,7 @@ import LoginPage from "../pages/login-page/LoginPage";
 import UserProfile from "../pages/user-profile/UserProfile";
 import { AdminRoute } from "./admin";
 import { AuthorProfile } from "../pages/author-profile/AuthorProfile";
+import ForgotPasswordPage from "../pages/forgot-password/ForgotPasswordPage";
 
 const routes = createBrowserRouter([
   AdminRoute,
@@ -18,15 +19,19 @@ const routes = createBrowserRouter([
       },
       {
         path: "login",
-        element: <LoginPage />
+        element: <LoginPage />,
+      },
+      {
+        path: "forgot-password",
+        element: <ForgotPasswordPage />,
       },
       {
         path: "user-profile",
-        element: <UserProfile />
+        element: <UserProfile />,
       },
       {
         path: "author-profile",
-        element: <AuthorProfile />
+        element: <AuthorProfile />,
       },
     ],
   },
