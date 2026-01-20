@@ -41,7 +41,7 @@ createRoot(document.getElementById('root')!).render(
         <ModalsProvider>
           <NavigationProgress />
           {/* toast thong bao */}
-          <Notifications />
+          <Notifications position="top-right" zIndex={1000}/>
           {/* routes */}
           <DatesProvider
             settings={{
