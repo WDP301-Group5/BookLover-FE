@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 19.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 64 64" style="enable-background:new 0 0 64 64;" xml:space="preserve">
+<style>
+.st6{fill:none;stroke:currentColor;stroke-width:2;stroke-miterlimit:10;}
+</style>
+<g id="icons">
+		<g id="XMLID_248_">
+		<path id="XMLID_256_" class="st6" d="M12.4,24.1l-1.9,3.3l21.4,24.4c0.1,0.1,0.2,0.1,0.2,0l21.4-24.4l-5.4-9.3H21.6"/>
+		<line id="XMLID_255_" class="st6" x1="10.4" y1="27.4" x2="53.6" y2="27.4"/>
+		<line id="XMLID_485_" class="st6" x1="32" y1="51.9" x2="22.1" y2="29.4"/>
+		<line id="XMLID_484_" class="st6" x1="32" y1="51.4" x2="41.6" y2="29.4"/>
+		<line id="XMLID_791_" class="st6" x1="32" y1="29.4" x2="32" y2="51.4"/>
+		<polyline id="XMLID_238_" class="st6" points="27.2,17.7 21.5,25.5 20,23.5 		"/>
+		<polyline id="XMLID_250_" class="st6" points="37.5,17.7 31.8,25.5 26.7,18.9 		"/>
+		<polyline id="XMLID_251_" class="st6" points="47.7,17.7 42.1,25.5 37,18.9 		"/>
+		<g id="XMLID_249_">
+			<line id="XMLID_258_" class="st6" x1="15.7" y1="12.1" x2="15.7" y2="14.9"/>
+			<line id="XMLID_259_" class="st6" x1="20.9" y1="15.1" x2="18.5" y2="16.5"/>
+			<line id="XMLID_261_" class="st6" x1="20.9" y1="21.1" x2="18.5" y2="19.7"/>
+			<line id="XMLID_265_" class="st6" x1="15.7" y1="24.1" x2="15.7" y2="21.3"/>
+			<line id="XMLID_269_" class="st6" x1="10.5" y1="21.1" x2="12.9" y2="19.7"/>
+			<line id="XMLID_271_" class="st6" x1="10.5" y1="15.1" x2="12.9" y2="16.5"/>
+		</g>
+	</g>
+</g>
+<g id="headline" class="st0">
+	<circle id="XMLID_61_" class="st11" cx="-133.5" cy="-208.4" r="18.3"/>
+	<circle id="XMLID_60_" class="st12" cx="-110.1" cy="-208.4" r="18.3"/>
+	<circle id="XMLID_63_" class="st13" cx="-122.7" cy="-190.1" r="18.3"/>
+	<g id="XMLID_4_" class="st3">
+		<text id="XMLID_477_" transform="matrix(1 0 0 1 -183.7552 -194.0852)"><tspan x="0" y="0" style="fill:#231F20; font-family:'Oswald-Bold'; font-size:22.512px;">FLAT </tspan><tspan x="45.5" y="0" style="fill:#231F20; font-family:'Oswald-Light'; font-size:22.512px;">LINE </tspan><tspan x="83.9" y="0" style="fill:#231F20; font-family:'Oswald-Bold'; font-size:22.512px;">ICONS</tspan></text>
+	</g>
+	<g id="XMLID_1_" class="st3">
+		
+			<text id="XMLID_478_" transform="matrix(1 0 0 1 127.3388 -193.9056)" style="fill:#231F20; font-family:'Oswald-Light'; font-size:16.1735px;">BUSINESS &amp; FINANCE</text>
+	</g>
+</g>
+</svg>
