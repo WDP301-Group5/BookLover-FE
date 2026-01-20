@@ -1,11 +1,4 @@
-import {
-  BookOpen,
-  Users,
-  Award,
-  Briefcase,
-  HelpCircle,
-  Globe,
-} from "lucide-react";
+import { BookOpen, Users, Award, Briefcase, HelpCircle } from "lucide-react";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -22,15 +15,15 @@ const Footer = () => {
               BookLover
             </h3>
             <p className="text-gray-600 text-sm leading-relaxed mb-4">
-              Discover, read, and share your favorite books with a community of
-              passionate readers.
+              Khám phá, đọc và chia sẻ những cuốn sách yêu thích của bạn cùng
+              cộng đồng độc giả đam mê.
             </p>
           </div>
 
           {/* Discover Section */}
           <div>
             <h4 className="text-gray-900 font-semibold text-sm mb-4">
-              Discover
+              Khám phá
             </h4>
             <ul className="space-y-3">
               <li>
@@ -38,7 +31,7 @@ const Footer = () => {
                   href="#"
                   className="text-gray-600 hover:text-violet-600 text-sm transition-colors duration-200 cursor-pointer"
                 >
-                  Browse Books
+                  Duyệt sách
                 </a>
               </li>
               <li>
@@ -46,7 +39,7 @@ const Footer = () => {
                   href="#"
                   className="text-gray-600 hover:text-violet-600 text-sm transition-colors duration-200 cursor-pointer"
                 >
-                  New Releases
+                  Mới phát hành
                 </a>
               </li>
               <li>
@@ -54,7 +47,7 @@ const Footer = () => {
                   href="#"
                   className="text-gray-600 hover:text-violet-600 text-sm transition-colors duration-200 cursor-pointer"
                 >
-                  Best Sellers
+                  Bán chạy nhất
                 </a>
               </li>
               <li>
@@ -62,7 +55,7 @@ const Footer = () => {
                   href="#"
                   className="text-gray-600 hover:text-violet-600 text-sm transition-colors duration-200 cursor-pointer"
                 >
-                  Genres
+                  Thể loại
                 </a>
               </li>
               <li>
@@ -70,7 +63,7 @@ const Footer = () => {
                   href="#"
                   className="text-gray-600 hover:text-violet-600 text-sm transition-colors duration-200 cursor-pointer"
                 >
-                  Authors
+                  Tác giả
                 </a>
               </li>
             </ul>
@@ -80,7 +73,7 @@ const Footer = () => {
           <div>
             <h4 className="text-gray-900 font-semibold text-sm mb-4 flex items-center gap-2">
               <Users className="w-4 h-4" />
-              Community
+              Cộng đồng
             </h4>
             <ul className="space-y-3">
               <li>
@@ -88,7 +81,7 @@ const Footer = () => {
                   href="#"
                   className="text-gray-600 hover:text-violet-600 text-sm transition-colors duration-200 cursor-pointer"
                 >
-                  Book Clubs
+                  Câu lạc bộ sách
                 </a>
               </li>
               <li>
@@ -96,7 +89,7 @@ const Footer = () => {
                   href="#"
                   className="text-gray-600 hover:text-violet-600 text-sm transition-colors duration-200 cursor-pointer"
                 >
-                  Reviews
+                  Đánh giá
                 </a>
               </li>
               <li>
@@ -104,7 +97,7 @@ const Footer = () => {
                   href="#"
                   className="text-gray-600 hover:text-violet-600 text-sm transition-colors duration-200 cursor-pointer"
                 >
-                  Forums
+                  Diễn đàn
                 </a>
               </li>
               <li>
@@ -113,7 +106,7 @@ const Footer = () => {
                   className="text-gray-600 hover:text-violet-600 text-sm transition-colors duration-200 cursor-pointer inline-flex items-center gap-1"
                 >
                   <Award className="w-3.5 h-3.5" />
-                  Writer Program
+                  Chương trình tác giả
                 </a>
               </li>
               <li>
@@ -121,7 +114,7 @@ const Footer = () => {
                   href="#"
                   className="text-gray-600 hover:text-violet-600 text-sm transition-colors duration-200 cursor-pointer"
                 >
-                  Events
+                  Sự kiện
                 </a>
               </li>
             </ul>
@@ -130,7 +123,7 @@ const Footer = () => {
           {/* Company Section */}
           <div>
             <h4 className="text-gray-900 font-semibold text-sm mb-4">
-              Company
+              Công ty
             </h4>
             <ul className="space-y-3">
               <li>
@@ -138,7 +131,7 @@ const Footer = () => {
                   href="#"
                   className="text-gray-600 hover:text-violet-600 text-sm transition-colors duration-200 cursor-pointer"
                 >
-                  About Us
+                  Về chúng tôi
                 </a>
               </li>
               <li>
@@ -147,7 +140,7 @@ const Footer = () => {
                   className="text-gray-600 hover:text-violet-600 text-sm transition-colors duration-200 cursor-pointer inline-flex items-center gap-1"
                 >
                   <Briefcase className="w-3.5 h-3.5" />
-                  Careers
+                  Tuyển dụng
                 </a>
               </li>
               <li>
@@ -155,7 +148,7 @@ const Footer = () => {
                   href="#"
                   className="text-gray-600 hover:text-violet-600 text-sm transition-colors duration-200 cursor-pointer"
                 >
-                  Press
+                  Báo chí
                 </a>
               </li>
               <li>
@@ -163,7 +156,7 @@ const Footer = () => {
                   href="#"
                   className="text-gray-600 hover:text-violet-600 text-sm transition-colors duration-200 cursor-pointer"
                 >
-                  Brand Partnerships
+                  Đối tác thương hiệu
                 </a>
               </li>
               <li>
@@ -172,7 +165,7 @@ const Footer = () => {
                   className="text-gray-600 hover:text-violet-600 text-sm transition-colors duration-200 cursor-pointer inline-flex items-center gap-1"
                 >
                   <HelpCircle className="w-3.5 h-3.5" />
-                  Help Center
+                  Trung tâm trợ giúp
                 </a>
               </li>
             </ul>
@@ -188,42 +181,39 @@ const Footer = () => {
                 href="#"
                 className="text-gray-500 hover:text-violet-600 transition-colors duration-200 cursor-pointer"
               >
-                Terms of Service
+                Điều khoản dịch vụ
               </a>
               <span className="text-gray-300">•</span>
               <a
                 href="#"
                 className="text-gray-500 hover:text-violet-600 transition-colors duration-200 cursor-pointer"
               >
-                Privacy Policy
+                Chính sách bảo mật
               </a>
               <span className="text-gray-300">•</span>
               <a
                 href="#"
                 className="text-gray-500 hover:text-violet-600 transition-colors duration-200 cursor-pointer"
               >
-                Payment Policy
+                Chính sách thanh toán
               </a>
               <span className="text-gray-300">•</span>
               <a
                 href="#"
                 className="text-gray-500 hover:text-violet-600 transition-colors duration-200 cursor-pointer"
               >
-                Accessibility
+                Khả năng tiếp cận
               </a>
               <span className="text-gray-300">•</span>
               <a
                 href="#"
                 className="text-gray-500 hover:text-violet-600 transition-colors duration-200 cursor-pointer inline-flex items-center gap-1"
-              >
-                <Globe className="w-3 h-3" />
-                Language
-              </a>
+              ></a>
             </div>
 
             {/* Copyright */}
             <div className="text-xs text-gray-500">
-              © {currentYear} BookLover. All rights reserved.
+              © {currentYear} BookLover. Bảo lưu mọi quyền.
             </div>
           </div>
         </div>
