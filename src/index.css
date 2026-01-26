@@ -2,5 +2,5 @@
 @tailwind components;
 @tailwind utilities;
 .mantine-Progress-root {
-    height: 0px !important;
+  height: 0px !important;
 }
