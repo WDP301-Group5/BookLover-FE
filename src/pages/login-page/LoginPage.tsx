@@ -30,7 +30,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 flex flex-col pt-8 pb-8 sm:px-6 lg:px-8">
+    <div className="bg-gray-50 dark:bg-neutral-700 flex flex-col pt-8 pb-8 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         {/* Breadcrumb */}
         <nav
@@ -55,18 +55,18 @@ const LoginPage = () => {
             ĐĂNG NHẬP
           </h1>
           <div
-            className="mt-2 mx-auto w-16 h-1 bg-red-600"
+            className="mt-2 mx-auto w-16 h-1 bg-red-600 dark:bg-orange-500"
             aria-hidden="true"
           ></div>
         </div>
 
         {/* Form Card */}
-        <div className="bg-white dark:bg-gray-800 py-8 px-6 shadow-sm rounded-lg sm:px-10">
+        <div className="bg-white dark:bg-gray-800 py-8 px-6 shadow-sm rounded-lg sm:px-10 border border-gray-200 dark:border-gray-700">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {/* Error Message */}
             {error && (
               <div
-                className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm"
+                className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-md text-sm"
                 role="alert"
               >
                 {error}
@@ -90,7 +90,7 @@ const LoginPage = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email"
-                className="appearance-none block w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors"
+                className="appearance-none block w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 dark:focus:ring-orange-500 focus:border-yellow-500 dark:focus:border-orange-500 transition-colors"
               />
             </div>
 
@@ -111,7 +111,7 @@ const LoginPage = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Mật khẩu"
-                className="appearance-none block w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors"
+                className="appearance-none block w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 dark:focus:ring-orange-500 focus:border-yellow-500 dark:focus:border-orange-500 transition-colors"
               />
             </div>
 
@@ -135,7 +135,7 @@ const LoginPage = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-gray-900 bg-yellow-400 hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-yellow-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-gray-900 dark:text-white bg-yellow-400 dark:bg-orange-500 hover:bg-yellow-500 dark:hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-yellow-500 dark:focus:ring-orange-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
             </button>
@@ -144,7 +144,7 @@ const LoginPage = () => {
             <button
               type="button"
               onClick={handleGoogleLogin}
-              className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-red-500 transition-colors duration-200 cursor-pointer"
+              className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-red-500 transition-colors duration-200 cursor-pointer"
             >
               <svg
                 className="w-5 h-5"
