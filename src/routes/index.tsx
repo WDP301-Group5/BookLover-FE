@@ -24,15 +24,14 @@ const routes = createBrowserRouter([
       {
         path: "register",
         element: <RegisterPage />,
-        element: <LoginPage />
       },
       {
         path: "user-profile",
-        element: <UserProfile />
+        element: <UserProfile />,
       },
       {
         path: "author-profile",
-        element: <AuthorProfile />
+        element: <AuthorProfile />,
       },
     ],
   },
