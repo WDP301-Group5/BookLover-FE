@@ -30,10 +30,8 @@ import {
   Tags,
   Star,
 } from "lucide-react";
+import RequireLoginModal from "../../components/Modal/RequireLoginModal";
 
-/* =======================
-   Types
-======================= */
 interface Chapter {
   number: string;
   title: string;
@@ -56,9 +54,6 @@ interface Story {
   chapters: Chapter[];
 }
 
-/* =======================
-   Fake Data
-======================= */
 const fakeStoryData: Story = {
   title: "Tiểu Thư Mà Tôi Phục Vụ Biến Thành Thiếu Gia Rồi",
   breadcrumbs: [
@@ -117,6 +112,8 @@ const slugify = (str: string) =>
 const StoryDetailPage: FC = () => {
   const [followed, { toggle }] = useDisclosure(false);
   const [hoverRating, setHoverRating] = useState<number | null>(null);
+  const [loginModalOpened, setLoginModalOpened] = useState(false);
+  const isLoggedIn = false;
 
   const {
     title,
@@ -236,7 +233,13 @@ const StoryDetailPage: FC = () => {
                 leftSection={
                   <Heart size={14} fill={followed ? "currentColor" : "none"} />
                 }
-                onClick={toggle}
+                onClick={() => {
+                  if (!isLoggedIn) {
+                    setLoginModalOpened(true);
+                    return;
+                  }
+                  toggle();
+                }}
               >
                 {followed ? "Đã theo dõi" : "Theo dõi"}
               </Button>
@@ -324,11 +327,23 @@ const StoryDetailPage: FC = () => {
 
         <Stack gap="xs">
           <Textarea size="sm" minRows={3} placeholder="Viết bình luận..." />
-          <Button size="xs" w="fit-content">
+          <Button
+            size="xs"
+            w="fit-content"
+            onClick={() => {
+              if (!isLoggedIn) {
+                setLoginModalOpened(true);
+                return;
+              }            }}
+          >
             Gửi bình luận
           </Button>
         </Stack>
       </Paper>
+      <RequireLoginModal
+        opened={loginModalOpened}
+        onClose={() => setLoginModalOpened(false)}
+      />
     </Container>
   );
 };
