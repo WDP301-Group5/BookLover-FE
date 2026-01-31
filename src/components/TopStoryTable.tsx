@@ -8,7 +8,6 @@ const TopStoryTable = () => {
 
     const [activeTab, setActiveTab] = useState<string | null>('m');
     const { data } = useTop10Story(activeTab as "m" | "w" | "d" || "m");
-    console.log("data", data)
     
     return (
         <div>
