@@ -11,9 +11,9 @@ import {
     UserPlus,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { PremiumIcon } from "../../assets/index.ts";
 import type { Story } from "../../interfaces/Story.ts";
 import { ShorterNumber } from "../../utils/index.ts";
+import premiumSvg from "../../assets/premium.svg";
 
 type StoryCardProps = {
     story: Story;
@@ -67,7 +67,7 @@ const StoryCard = ({
     type = "home",
 }: StoryCardProps) => {
     // TODO: check lại route
-    const storyUrl = "/storys/" + story.slug;
+    const storyUrl = "/story/" + story.slug;
     const navigate = useNavigate();
     if (type === "home") {
         return (
@@ -90,7 +90,7 @@ const StoryCard = ({
                         />
                         {story.isPremium && (
                             <div className="absolute top-1 right-1 flex justify-center items-center bg-yellow-200 rounded-full">
-                                <PremiumIcon className="w-8 h-8 rounded-full text-yellow-600" />
+                                <img src={premiumSvg} className="w-8 h-8 rounded-full" />
                             </div>
                         )}
                         <div className="absolute bottom-0 h-8 w-full bg-black rounded-b-sm opacity-50 flex justify-around items-center text-white text-xs">
@@ -160,7 +160,7 @@ const StoryCard = ({
                             />
                             {story.isPremium && (
                                 <div className="absolute top-1 right-1 flex justify-center items-center bg-yellow-200 rounded-full">
-                                    <PremiumIcon className="w-8 h-8 rounded-full text-yellow-600" />
+                                    <img src={premiumSvg} className="w-8 h-8 rounded-full" />
                                 </div>
                             )}
                         </div>

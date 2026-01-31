@@ -4,8 +4,8 @@ const HistoryService = {
     async getLast3History () {
         try {
             const response = await instance
-                .get("/history/last3")
-                .then((res) => res?.data)
+                .get("/user/history/last3")
+                .then((res) => res?.data || [])
                 .catch((err) => {
                     console.error("Error fetching user profile:", err);
                     throw err;

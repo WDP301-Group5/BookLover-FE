@@ -34,7 +34,7 @@ const StoryItemCard = ({ story, type, deleteFunc }: StoryItemProps) => {
                     <div
                         className="mt-auto flex justify-between text-xs text-gray-500"
                     >
-                        <span className="cursor-pointer">Chương {story.chapterNumber}</span>
+                        <span className="cursor-pointer mr-4">Chương {story.chapterNumber}</span>
                         <span className="flex justify-center items-center gap-1">
                             <Eye size={16} />
                             {ShorterNumber(story.views)}
