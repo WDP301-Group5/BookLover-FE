@@ -1,169 +1,213 @@
-import React, { useState } from "react";
+import {
+  Anchor,
+  Button,
+  Checkbox,
+  Container,
+  Divider,
+  Group,
+  Paper,
+  PasswordInput,
+  Text,
+  TextInput,
+  Title,
+} from "@mantine/core";
+import { useForm } from "@mantine/form";
+import { notifications } from "@mantine/notifications";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { z } from "zod";
+import classes from "./LoginPage.module.css";
+import { zod4Resolver } from "mantine-form-zod-resolver";
+import {
+  GoogleLogin,
+  type GoogleCredentialResponse,
+} from "@react-oauth/google";
+import UserService from "../../services/UserService";
+import { useUserStore } from "../../stores/useUserStore";
+import axios from "axios";
 
-const LoginPage = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+const loginSchema = z.object({
+  email: z.string().email("Invalid email format"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  rememberMe: z.boolean().optional(),
+});
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setIsLoading(true);
+type LoginFormValues = z.infer<typeof loginSchema>;
+
+export default function LoginPage() {
+  const navigate = useNavigate();
+  const setUser = useUserStore((state) => state.setUser);
+  const [loading, setLoading] = useState(false);
+  const [, setError] = useState<string | null>(null);
+
+  const form = useForm<LoginFormValues>({
+    initialValues: {
+      email: "",
+      password: "",
+      rememberMe: false,
+    },
+    validate: zod4Resolver(loginSchema),
+  });
+
+  const handleSubmit = async (values: LoginFormValues) => {
+    setLoading(true);
+    setError(null);
 
     try {
-      // TODO: Implement actual login logic
-      console.log("Login attempt:", { email, password });
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Đã xảy ra lỗi không xác định",
-      );
+      const response = await UserService.login(values);
+
+      if (response.success && response.data) {
+        // Store tokens
+        localStorage.setItem("token", response.data.accessToken);
+        localStorage.setItem("refreshToken", response.data.refreshToken);
+
+        // Update user store
+        setUser(response.data.user);
+
+        // Show success notification
+        notifications.show({
+          title: "Success",
+          message: "Login successful!",
+          color: "green",
+        });
+
+        // Redirect to home page
+        navigate("/", { replace: true });
+      }
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response) {
+        const errorData = err.response?.data;
+        const errorMessage =
+          errorData?.message || "Login failed. Please try again.";
+        setError(errorMessage);
+        notifications.show({
+          title: "Login Failed",
+          message: errorMessage,
+          color: "red",
+        });
+      }
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleGoogleLogin = () => {
-    // TODO: Implement Google OAuth login
-    console.log("Google login clicked");
+  const handleGoogleSuccess = async (
+    credentialResponse: GoogleCredentialResponse,
+  ) => {
+    if (!credentialResponse.credential) {
+      notifications.show({
+        title: "Google Login Failed",
+        message: "No credential received from Google",
+        color: "red",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const rememberMe = form.values.rememberMe || false;
+      const response = await UserService.googleLogin(
+        credentialResponse.credential,
+        rememberMe,
+      );
+
+      if (response.success && response.data) {
+        // Store tokens
+        localStorage.setItem("token", response.data.accessToken);
+        localStorage.setItem("refreshToken", response.data.refreshToken);
+
+        // Update user store
+        setUser(response.data.user);
+
+        // Show success notification
+        notifications.show({
+          title: "Success",
+          message: "Google login successful!",
+          color: "green",
+        });
+
+        // Redirect to home page
+        navigate("/", { replace: true });
+      }
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response) {
+        const errorData = err.response?.data;
+        const errorMessage =
+          errorData?.message || "Google login failed. Please try again.";
+        notifications.show({
+          title: "Google Login Failed",
+          message: errorMessage,
+          color: "red",
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    notifications.show({
+      title: "Google Login Failed",
+      message: "Failed to authenticate with Google",
+      color: "red",
+    });
   };
 
   return (
-    <div className="bg-gray-50 dark:bg-neutral-700 flex flex-col pt-8 pb-8 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        {/* Breadcrumb */}
-        <nav
-          className="flex items-center gap-2 text-sm mb-6 justify-center"
-          aria-label="Breadcrumb"
-        >
-          <a
-            href="/"
-            className="text-blue-600 hover:text-blue-700 dark:text-orange-500 dark:hover:text-orange-400 transition-colors cursor-pointer"
-          >
-            Trang chủ
-          </a>
-          <span className="text-gray-400 dark:text-gray-500" aria-hidden="true">
-            &gt;
-          </span>
-          <span className="text-gray-600 dark:text-orange-500">Đăng nhập</span>
-        </nav>
+    <Container size={"xs"} my={"xl"}>
+      <Title ta="center" className={classes.title}>
+        Chào mừng quay trở lại!
+      </Title>
 
-        {/* Title */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
-            ĐĂNG NHẬP
-          </h1>
-          <div
-            className="mt-2 mx-auto w-16 h-1 bg-red-600 dark:bg-orange-500"
-            aria-hidden="true"
-          ></div>
-        </div>
+      <Text className={classes.subtitle}>
+        Bạn chưa có tài khoản? <Anchor>Tạo tài khoản</Anchor>
+      </Text>
 
-        {/* Form Card */}
-        <div className="bg-white dark:bg-gray-800 py-8 px-6 shadow-sm rounded-lg sm:px-10 border border-gray-200 dark:border-gray-700">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            {/* Error Message */}
-            {error && (
-              <div
-                className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-md text-sm"
-                role="alert"
-              >
-                {error}
-              </div>
-            )}
+      <Paper withBorder shadow="sm" p={22} mt={30} radius="md">
+        <form onSubmit={form.onSubmit(handleSubmit)}>
+          <TextInput
+            label="Email"
+            placeholder="you@mantine.dev"
+            required
+            radius="md"
+            {...form.getInputProps("email")}
+          />
+          <PasswordInput
+            label="Mật khẩu"
+            placeholder="Mật khẩu của bạn"
+            required
+            mt="md"
+            radius="md"
+            {...form.getInputProps("password")}
+          />
+          <Group justify="space-between" mt="lg">
+            <Checkbox
+              label="Ghi nhớ tôi"
+              {...form.getInputProps("rememberMe", { type: "checkbox" })}
+            />
+            <Anchor component="button" size="sm" type="button">
+              Quên mật khẩu?
+            </Anchor>
+          </Group>
 
-            {/* Email Field */}
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700 dark:text-white mb-2"
-              >
-                Email
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email"
-                className="appearance-none block w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 dark:focus:ring-orange-500 focus:border-yellow-500 dark:focus:border-orange-500 transition-colors"
-              />
-            </div>
+          <Button fullWidth mt="xl" radius="md" type="submit" loading={loading}>
+            Đăng nhập
+          </Button>
+        </form>
 
-            {/* Password Field */}
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700 dark:text-white mb-2"
-              >
-                Mật khẩu
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Mật khẩu"
-                className="appearance-none block w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 dark:focus:ring-orange-500 focus:border-yellow-500 dark:focus:border-orange-500 transition-colors"
-              />
-            </div>
-
-            {/* Links */}
-            <div className="flex items-center justify-end text-sm gap-6">
-              <a
-                href="/forgot-password"
-                className="text-blue-600 hover:text-blue-700 dark:text-orange-500 dark:hover:text-orange-400 transition-colors cursor-pointer"
-              >
-                Quên mật khẩu
-              </a>
-              <a
-                href="/register"
-                className="text-blue-600 hover:text-blue-700 dark:text-orange-500 dark:hover:text-orange-400 transition-colors cursor-pointer"
-              >
-                Đăng ký
-              </a>
-            </div>
-
-            {/* Login Button */}
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-gray-900 dark:text-white bg-yellow-400 dark:bg-orange-500 hover:bg-yellow-500 dark:hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-yellow-500 dark:focus:ring-orange-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-            >
-              {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
-            </button>
-
-            {/* Google Login Button */}
-            <button
-              type="button"
-              onClick={handleGoogleLogin}
-              className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-red-500 transition-colors duration-200 cursor-pointer"
-            >
-              <svg
-                className="w-5 h-5"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-              </svg>
-              Đăng nhập bằng Google
-            </button>
-          </form>
-        </div>
-      </div>
-    </div>
+        <Divider
+          label="Hoặc tiếp tục với Google"
+          labelPosition="center"
+          my="lg"
+          styles={{
+            label: { color: "var(--mantine-color-bright)", opacity: 0.85 },
+          }}
+        />
+        <GoogleLogin
+          onSuccess={handleGoogleSuccess}
+          onError={handleGoogleError}
+        />
+      </Paper>
+    </Container>
   );
-};
-
-export default LoginPage;
+}

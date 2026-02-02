@@ -29,6 +29,7 @@ package-lock.json
 _bmad
 .github/agents
 .github/prompts
+.github/skills
 .shared
-
+openspec
 .env

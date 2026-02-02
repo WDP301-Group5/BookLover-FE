@@ -14,6 +14,8 @@ import { NavigationProgress } from "@mantine/nprogress";
 import { DatesProvider } from "@mantine/dates";
 import routes from './routes'
 import { appTheme } from './styles/theme'
+import { GoogleOAuthProvider } from '@react-oauth/google'
+import { GOOGLE_CLIENT_ID } from './constants';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,7 +34,8 @@ const colorScheme =
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     {/* khong can quan tam */}
-    <QueryClientProvider client={queryClient}>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <QueryClientProvider client={queryClient}>
       {/* provider cua thu vien ui */}
       <MantineProvider
         theme={appTheme}
@@ -55,5 +58,6 @@ createRoot(document.getElementById('root')!).render(
         </ModalsProvider>
       </MantineProvider>
     </QueryClientProvider>
+    </GoogleOAuthProvider>
   </StrictMode>
 );
