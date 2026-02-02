@@ -24,7 +24,6 @@ import {
 } from "@react-oauth/google";
 import UserService from "../../services/UserService";
 import { useUserStore } from "../../stores/useUserStore";
-import axios from "axios";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email format"),
@@ -75,17 +74,20 @@ export default function LoginPage() {
         navigate("/", { replace: true });
       }
     } catch (err: unknown) {
-      if (axios.isAxiosError(err) && err.response) {
-        const errorData = err.response?.data;
-        const errorMessage =
-          errorData?.message || "Login failed. Please try again.";
-        setError(errorMessage);
-        notifications.show({
-          title: "Login Failed",
-          message: errorMessage,
-          color: "red",
-        });
+      let errorMessage = "Login failed. Please try again.";
+
+      if (typeof err === "object" && err !== null && "message" in err) {
+        errorMessage = (err as { message: string }).message;
+      } else if (typeof err === "string") {
+        errorMessage = err;
       }
+
+      setError(errorMessage);
+      notifications.show({
+        title: "Login Failed",
+        message: errorMessage,
+        color: "red",
+      });
     } finally {
       setLoading(false);
     }
@@ -130,16 +132,19 @@ export default function LoginPage() {
         navigate("/", { replace: true });
       }
     } catch (err: unknown) {
-      if (axios.isAxiosError(err) && err.response) {
-        const errorData = err.response?.data;
-        const errorMessage =
-          errorData?.message || "Google login failed. Please try again.";
-        notifications.show({
-          title: "Google Login Failed",
-          message: errorMessage,
-          color: "red",
-        });
+      let errorMessage = "Google login failed. Please try again.";
+
+      if (typeof err === "object" && err !== null && "message" in err) {
+        errorMessage = (err as { message: string }).message;
+      } else if (typeof err === "string") {
+        errorMessage = err;
       }
+
+      notifications.show({
+        title: "Google Login Failed",
+        message: errorMessage,
+        color: "red",
+      });
     } finally {
       setLoading(false);
     }

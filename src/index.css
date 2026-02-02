@@ -4,3 +4,14 @@
 .mantine-Progress-root {
   height: 0px !important;
 }
+
+/* Tạo các biến màu custom ở chế độ sáng */
+:root {
+    --my-custom-background-color: #ffffff;
+    --my-custom-text-color: #000000;
+}
+/* Ghi đè cho chế độ tối */
+[data-mantine-color-scheme="dark"] {
+    --my-custom-background-color: #000000;
+    --my-custom-text-color: #fff;
+}

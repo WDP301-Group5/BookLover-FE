@@ -28,8 +28,10 @@ const Layout = () => {
       {/* Main App */}
       <AppShell.Main className="flex flex-col min-h-screen bg-white dark:bg-neutral-700">
         <Header />
-        <div style={{ padding: "24px", flex: 1 }}>
+        <div className="flex flex-1 justify-center">
+          <div className="max-w-[1080px] w-full">
           <Outlet />
+          </div>
         </div>
         <Footer />
       </AppShell.Main>
