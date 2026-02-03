@@ -19,6 +19,8 @@ interface UserState {
   isAuthenticated: boolean;
   setUser: (user: UserProfile | null) => void;
   updateUser: (data: Partial<UserProfile>) => void;
+  isLoggedIn: boolean;
+  login: (userData: UserProfile) => void;
   logout: () => void;
 }
 
@@ -38,5 +40,10 @@ export const useUserStore = create<UserState>((set) => ({
     set(() => ({
       user: null,
       isAuthenticated: false,
+      isLoggedIn: false,
     })),
+  isLoggedIn: true,
+  login: (userData: UserProfile) => {
+    set({ user: userData, isLoggedIn: true });
+  },
 }));
