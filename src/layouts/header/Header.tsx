@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Menu as MantineMenu, useMantineColorScheme } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 import { useUserStore } from "../../stores/useUserStore";
 import {
   ChevronDown,
@@ -39,6 +40,11 @@ const Header = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("refreshToken");
     logout();
+    notifications.show({
+      title: "Đăng xuất thành công",
+      message: "Hẹn gặp lại bạn!",
+      color: "blue",
+    });
     navigate("/");
   };
 
