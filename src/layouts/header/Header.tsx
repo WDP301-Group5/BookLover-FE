@@ -52,7 +52,7 @@ const Header = () => {
               className="flex items-center gap-2 hover:opacity-80 transition-opacity duration-200 cursor-pointer"
               aria-label="Trang chủ BookLover"
             >
-              <div className="w-9 h-9 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center shadow-sm">
+              <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-sm">
                 <BookOpen className="w-5 h-5 text-white" />
               </div>
               <span className="text-xl font-semibold text-gray-900 dark:text-white hidden sm:inline">
@@ -154,7 +154,7 @@ const Header = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Tìm truyện..."
-                className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-800 border border-transparent focus:border-gray-300 dark:focus:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all duration-200"
+                className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-800 border border-transparent focus:border-gray-300 dark:focus:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
                 aria-label="Tìm truyện..."
               />
             </form>
@@ -226,7 +226,7 @@ const Header = () => {
             {/* Premium Button */}
             <Link
               to="/premium"
-              className="hidden lg:flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/30 hover:bg-orange-100 dark:hover:bg-orange-950/50 border border-orange-200 dark:border-orange-800 rounded-lg transition-all duration-200 cursor-pointer shadow-sm hover:shadow"
+              className="hidden lg:flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 hover:bg-blue-100 dark:hover:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-lg transition-all duration-200 cursor-pointer shadow-sm hover:shadow"
             >
               <CircleDollarSignIcon />
               Mua linh thạch/VIP
@@ -235,7 +235,7 @@ const Header = () => {
             {/* Login Link */}
             <Link
               to="/login"
-              className="hidden sm:block px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
+              className="hidden sm:block px-4 py-2 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors duration-200 cursor-pointer shadow-sm"
             >
               Đăng nhập
             </Link>
@@ -243,7 +243,7 @@ const Header = () => {
             {/* Sign Up Button */}
             <Link
               to="/signup"
-              className="hidden sm:block px-4 py-2 text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors duration-200 cursor-pointer shadow-sm"
+              className="hidden sm:block px-4 py-2 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors duration-200 cursor-pointer shadow-sm"
             >
               Đăng ký
             </Link>
@@ -273,7 +273,7 @@ const Header = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Tìm kiếm"
-              className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-800 border border-transparent focus:border-gray-300 dark:focus:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all duration-200"
+              className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-800 border border-transparent focus:border-gray-300 dark:focus:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
               aria-label="Tìm kiếm sách, truyện hoặc tác giả"
             />
           </form>
@@ -393,22 +393,22 @@ const Header = () => {
             <div className="space-y-2 pt-4 border-t border-gray-200 dark:border-gray-700">
               <Link
                 to="/premium"
-                className="flex items-center justify-center gap-2 w-full px-4 py-2 text-sm font-semibold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/30 hover:bg-orange-100 dark:hover:bg-orange-950/50 border border-orange-200 dark:border-orange-800 rounded-lg transition-all duration-200 cursor-pointer"
+                className="flex items-center justify-center gap-2 w-full px-4 py-2 text-sm font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 hover:bg-blue-100 dark:hover:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-lg transition-all duration-200 cursor-pointer"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                <Zap className="w-4 h-4 fill-orange-600 dark:fill-orange-400" />
+                <Zap className="w-4 h-4 fill-blue-600 dark:fill-blue-400" />
                 Mua linh thạch/VIP
               </Link>
               <Link
                 to="/login"
-                className="block w-full px-4 py-2 text-sm font-medium text-center text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
+                className="block w-full px-4 py-2 text-sm font-medium text-center text-white bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors duration-200 cursor-pointer"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Đăng nhập
               </Link>
               <Link
                 to="/signup"
-                className="block w-full px-4 py-2 text-sm font-medium text-center text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors duration-200 cursor-pointer"
+                className="block w-full px-4 py-2 text-sm font-medium text-center text-white bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors duration-200 cursor-pointer"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Đăng ký
