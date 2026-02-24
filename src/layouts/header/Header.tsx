@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Menu as MantineMenu, useMantineColorScheme } from "@mantine/core";
+import { useUserStore } from "../../stores/useUserStore";
 import {
   ChevronDown,
   Search,
@@ -20,6 +21,7 @@ const Header = () => {
   const navigate = useNavigate();
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const isDark = colorScheme === "dark";
+  const { isAuthenticated, logout } = useUserStore();
 
   // Close mobile menu when resizing to desktop
   useEffect(() => {
@@ -32,6 +34,13 @@ const Header = () => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [mobileMenuOpen]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
+    logout();
+    navigate("/");
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -232,21 +241,53 @@ const Header = () => {
               Mua linh thạch/VIP
             </Link>
 
-            {/* Login Link */}
-            <Link
-              to="/login"
-              className="hidden sm:block px-4 py-2 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors duration-200 cursor-pointer shadow-sm"
-            >
-              Đăng nhập
-            </Link>
+            {/* Account Dropdown */}
+            <MantineMenu shadow="md" width={224} position="bottom-end">
+              <MantineMenu.Target>
+                <button className="hidden sm:flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors duration-200 cursor-pointer">
+                  Tài Khoản
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+              </MantineMenu.Target>
 
-            {/* Sign Up Button */}
-            <Link
-              to="/signup"
-              className="hidden sm:block px-4 py-2 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors duration-200 cursor-pointer shadow-sm"
-            >
-              Đăng ký
-            </Link>
+              <MantineMenu.Dropdown className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                {isAuthenticated ? (
+                  <>
+                    <MantineMenu.Item
+                      component={Link}
+                      to="/profile"
+                      className="text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      Trang cá nhân
+                    </MantineMenu.Item>
+                    <MantineMenu.Divider className="border-gray-200 dark:border-gray-700" />
+                    <MantineMenu.Item
+                      onClick={handleLogout}
+                      className="text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
+                    >
+                      Đăng Xuất
+                    </MantineMenu.Item>
+                  </>
+                ) : (
+                  <>
+                    <MantineMenu.Item
+                      component={Link}
+                      to="/login"
+                      className="text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      Đăng nhập
+                    </MantineMenu.Item>
+                    <MantineMenu.Item
+                      component={Link}
+                      to="/signup"
+                      className="text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      Đăng ký
+                    </MantineMenu.Item>
+                  </>
+                )}
+              </MantineMenu.Dropdown>
+            </MantineMenu>
 
             {/* Mobile Menu Button */}
             <button
@@ -399,20 +440,48 @@ const Header = () => {
                 <Zap className="w-4 h-4 fill-blue-600 dark:fill-blue-400" />
                 Mua linh thạch/VIP
               </Link>
-              <Link
-                to="/login"
-                className="block w-full px-4 py-2 text-sm font-medium text-center text-white bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors duration-200 cursor-pointer"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Đăng nhập
-              </Link>
-              <Link
-                to="/signup"
-                className="block w-full px-4 py-2 text-sm font-medium text-center text-white bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors duration-200 cursor-pointer"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Đăng ký
-              </Link>
+              <div className="space-y-1">
+                <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Tài Khoản
+                </div>
+                {isAuthenticated ? (
+                  <>
+                    <Link
+                      to="/profile"
+                      className="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Trang cá nhân
+                    </Link>
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="block w-full text-left px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors duration-200 cursor-pointer"
+                    >
+                      Đăng Xuất
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to="/login"
+                      className="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Đăng nhập
+                    </Link>
+                    <Link
+                      to="/signup"
+                      className="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Đăng ký
+                    </Link>
+                  </>
+                )}
+              </div>
             </div>
           </nav>
         </div>
