@@ -1,5 +1,6 @@
 import type { FC } from "react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useParams } from "react-router-dom";
 import {
   Container,
   Title,
@@ -16,7 +17,7 @@ import {
   Anchor,
   Spoiler,
   Textarea,
-  Box,
+  Loader,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import {
@@ -30,77 +31,10 @@ import {
   Tags,
   Star,
 } from "lucide-react";
+
 import RequireLoginModal from "../../components/Modal/RequireLoginModal";
-
-interface Chapter {
-  number: string;
-  title: string;
-  updatedAt: string;
-  views: number;
-}
-
-interface Story {
-  title: string;
-  breadcrumbs: { label: string; href: string }[];
-  coverUrl: string;
-  author: string;
-  status: string;
-  genres: string[];
-  views: number;
-  rating: number;
-  ratingCount: number;
-  updatedAt: string;
-  description: string;
-  chapters: Chapter[];
-}
-
-const fakeStoryData: Story = {
-  title: "Tiểu Thư Mà Tôi Phục Vụ Biến Thành Thiếu Gia Rồi",
-  breadcrumbs: [
-    { label: "Trang chủ", href: "/" },
-    { label: "Manhua", href: "/the-loai/manhua" },
-    { label: "Romance", href: "/the-loai/romance" },
-  ],
-  coverUrl:
-    "https://bloganchoi.com/wp-content/uploads/2023/06/truyen-tranh-ngon-tinh-hay-2023-17-696x938.jpeg",
-  author: "Đang cập nhật",
-  status: "Đang tiến hành",
-  genres: ["Manhua", "Romance", "Hài hước"],
-  views: 1_234_567,
-  rating: 4.5,
-  ratingCount: 123,
-  updatedAt: "1 giờ trước",
-  description:
-    `Chào mừng các đạo hữu thân mến của BookLover, hãy cùng thưởng thức bộ tiểu thuyết Tiểu thư mà tôi phục vụ biến thành thiếu gia rồi đầy cuốn hút trên website của chúng tôi. Bộ tiểu thuyết này thuộc về các thể loại Manhua, Romance và được cập nhật chương mới liên tục trên website BookLover. Đây là một trong những tác phẩm nổi bật nhất của Đang Cập Nhật và đã thu hút hàng triệu độc giả trên khắp thế giới.
-
-BookLover là website đọc tiểu thuyết online hàng đầu tại Việt Nam, cung cấp cho bạn những bộ tiểu thuyết đa dạng và phong phú, từ những thể loại tiểu thuyết ngôn tình lãng mạn, tiểu thuyết đam mỹ hấp dẫn, tiểu thuyết xuyên không phiêu lưu, tiểu thuyết tu tiên huyền ảo, cho đến những thể loại tiểu thuyết adult gây cấn và kịch tính. Bạn có thể tìm kiếm và đọc tiểu thuyết theo nhiều tiêu chí khác nhau, như tên tác phẩm, tác giả, thể loại, năm xuất bản, số lượt xem, số lượt yêu thích và nhiều tiêu chí khác.
-
-BookLover luôn cập nhật những bộ tiểu thuyết mới nhất và nhanh nhất, đảm bảo bạn sẽ không bỏ lỡ bất kỳ bộ tiểu thuyết nào mà bạn yêu thích. Hãy đến với BookLover để thưởng thức những giây phút giải trí tuyệt vời cùng với những bộ tiểu thuyết hấp dẫn nhất!
-
-Xuyên vào thế giới trong cuốn tiểu thuyết mà mình thích nhất, tôi phải dùng thân phận của người hầu bên cạnh nữ chính để bắt đầu cuộc sống mới, giúp tiểu thư nhà tôi và nam chính có được cuộc sống hạnh phúc. Nhưng mọi thứ theo sự việc xảy ra đó, tất cả đều bỗng im bặt. Chính là vào ngày đó, tiểu thư mà tôi phục vụ thế mà lại biến thành thiếu gia?
-
-Để trải nghiệm tiểu thuyết tốt nhất, bạn nên đăng ký tài khoản tại BookLover. Bạn sẽ có thể theo dõi những tiểu thuyết yêu thích, bình luận và giao lưu với cộng đồng độc giả sôi nổi. BookLover tự hào mang đến cho bạn thế giới tiểu thuyết đa dạng và phong phú, với nhiều thể loại và tác phẩm hấp dẫn. Hãy đăng ký ngay hôm nay để khám phá những điều thú vị cùng Tiểu thư mà tôi phục vụ biến thành thiếu gia rồi!`.trim(),
-  chapters: [
-    {
-      number: "Chapter 94",
-      title: "",
-      updatedAt: "11 giờ trước",
-      views: 12345,
-    },
-    {
-      number: "Chapter 93",
-      title: "",
-      updatedAt: "11 giờ trước",
-      views: 11345,
-    },
-    {
-      number: "Chapter 92",
-      title: "",
-      updatedAt: "11 giờ trước",
-      views: 10345,
-    },
-  ],
-};
+import { useStoryDetail } from "../../hooks/useStoryPage";
+import { useChaptersByStory } from "../../hooks/useChapterPage";
 
 const slugify = (str: string) =>
   str
@@ -110,10 +44,75 @@ const slugify = (str: string) =>
     .replace(/\s+/g, "-");
 
 const StoryDetailPage: FC = () => {
+  const { storyId } = useParams<{ storyId: string }>();
+
+  const {
+    data: story,
+    isLoading: storyLoading,
+    isError: storyError,
+  } = useStoryDetail(storyId);
+
+  const { data: chapters, isLoading: chapterLoading } =
+    useChaptersByStory(storyId);
+
   const [followed, { toggle }] = useDisclosure(false);
   const [hoverRating, setHoverRating] = useState<number | null>(null);
   const [loginModalOpened, setLoginModalOpened] = useState(false);
   const isLoggedIn = false;
+
+  const viewData = useMemo(() => {
+    if (!story) return null;
+
+    return {
+      title: story.title,
+      breadcrumbs: [
+        { label: "Trang chủ", href: "/" },
+        ...(story.topics || []).map((t) => ({
+          label: t,
+          href: `/the-loai/${slugify(t)}`,
+        })),
+      ],
+      coverUrl: story.image,
+      author: story.author?.penName || story.author?.name || "Đang cập nhật",
+      status: story.status || "Đang tiến hành",
+      genres: story.topics || [],
+      views: story.views || 0,
+      rating:
+        story.stars && story.rates
+          ? Number((story.stars / story.rates).toFixed(1))
+          : 0,
+      ratingCount: story.rates || 0,
+      updatedAt: story.updatedAt
+        ? new Date(story.updatedAt).toLocaleString("vi-VN")
+        : "",
+      description: story.description || "",
+      chapters:
+        chapters?.map((c) => ({
+          number: `Chapter ${c.chapterNumber}`,
+          title: c.title,
+          updatedAt: c.updatedAt
+            ? new Date(c.updatedAt).toLocaleString("vi-VN")
+            : "",
+          views: c.views || 0,
+        })) || [],
+    };
+  }, [story, chapters]);
+
+  if (storyLoading || chapterLoading) {
+    return (
+      <Container size="lg" py="xl" ta="center">
+        <Loader />
+      </Container>
+    );
+  }
+
+  if (storyError || !viewData) {
+    return (
+      <Container size="lg" py="xl" ta="center">
+        <Text c="red">Không thể tải dữ liệu truyện</Text>
+      </Container>
+    );
+  }
 
   const {
     title,
@@ -127,8 +126,8 @@ const StoryDetailPage: FC = () => {
     ratingCount,
     updatedAt,
     description,
-    chapters,
-  } = fakeStoryData;
+    chapters: chapterList,
+  } = viewData;
 
   return (
     <Container size="lg" py="md">
@@ -155,9 +154,7 @@ const StoryDetailPage: FC = () => {
           />
 
           <Stack flex={1} gap={6}>
-            <Title order={2} lh={1.3}>
-              {title}
-            </Title>
+            <Title order={2}>{title}</Title>
 
             <Stack gap={10}>
               <Group gap={6}>
@@ -192,11 +189,9 @@ const StoryDetailPage: FC = () => {
 
               <Group gap={6}>
                 <Star size={14} />
-
                 <Text size="sm" fw={500}>
                   Đánh giá:
                 </Text>
-
                 <Rating
                   value={hoverRating ?? rating}
                   fractions={2}
@@ -204,24 +199,19 @@ const StoryDetailPage: FC = () => {
                   onHover={setHoverRating}
                   onMouseLeave={() => setHoverRating(null)}
                 />
-
                 <Text size="xs" c="dimmed">
-                  {hoverRating ?? rating} / 5 ({ratingCount})
+                  {Math.max(0, hoverRating ?? rating)} / 5 ({ratingCount})
                 </Text>
               </Group>
 
               <Group gap={6}>
                 <Clock size={14} />
-                <Text size="sm" fw={500}>
-                  Cập nhật cuối: {updatedAt}
-                </Text>
+                <Text size="sm" fw={500}>Cập nhật cuối: {updatedAt}</Text>
               </Group>
 
               <Group gap={6}>
                 <Eye size={14} />
-                <Text size="sm" fw={500}>
-                  {views.toLocaleString("vi-VN")} lượt xem
-                </Text>
+                <Text size="sm" fw={500}>{views.toLocaleString("vi-VN")} lượt xem</Text>
               </Group>
             </Stack>
 
@@ -244,10 +234,35 @@ const StoryDetailPage: FC = () => {
                 {followed ? "Đã theo dõi" : "Theo dõi"}
               </Button>
 
-              <Button size="xs" color="blue">
+              <Button
+                size="xs"
+                color="blue"
+                disabled={!chapterList.length}
+                component="a"
+                href={
+                  chapterList.length
+                    ? `/truyen/${slugify(title)}/chuong/${
+                        chapterList[0].number.split(" ")[1]
+                      }`
+                    : "#"
+                }
+              >
                 Đọc từ đầu
               </Button>
-              <Button size="xs" color="green">
+
+              <Button
+                size="xs"
+                color="green"
+                disabled={!chapterList.length}
+                component="a"
+                href={
+                  chapterList.length
+                    ? `/truyen/${slugify(title)}/chuong/${
+                        chapterList[chapterList.length - 1].number.split(" ")[1]
+                      }`
+                    : "#"
+                }
+              >
                 Đọc mới nhất
               </Button>
             </Group>
@@ -256,12 +271,9 @@ const StoryDetailPage: FC = () => {
 
         <Divider my="sm" />
 
-        <Title order={4} mb={4}>
-          Giới thiệu truyện
-        </Title>
-
+        <Title order={4}>Giới thiệu truyện</Title>
         <Spoiler maxHeight={100} showLabel="Xem thêm" hideLabel="Ẩn bớt">
-          <Text size="sm" lh={1.6} style={{ whiteSpace: "pre-line" }}>
+          <Text size="sm" style={{ whiteSpace: "pre-line" }}>
             {description}
           </Text>
         </Spoiler>
@@ -275,19 +287,8 @@ const StoryDetailPage: FC = () => {
           </Title>
         </Group>
 
-        <Group justify="space-between" px="xs" py={4}>
-          <Text size="sm" fw={500}>
-            Số chương
-          </Text>
-          <Text size="sm" fw={500}>
-            Cập nhật
-          </Text>
-        </Group>
-
-        <Divider mb="xs" />
-
         <Stack gap={0}>
-          {chapters.map((chapter, index) => (
+          {chapterList.map((chapter, index) => (
             <Group
               key={index}
               justify="space-between"
@@ -305,18 +306,12 @@ const StoryDetailPage: FC = () => {
                 {chapter.number}
               </Anchor>
 
-              <Text size="xs" c="dimmed" fs="italic">
+              <Text size="xs" c="dimmed">
                 {chapter.updatedAt}
               </Text>
             </Group>
           ))}
         </Stack>
-
-        <Box mt="sm" ta="center">
-          <Button size="xs" variant="subtle">
-            + Xem thêm
-          </Button>
-        </Box>
       </Paper>
 
       <Paper withBorder radius="md" p="md">
@@ -334,12 +329,14 @@ const StoryDetailPage: FC = () => {
               if (!isLoggedIn) {
                 setLoginModalOpened(true);
                 return;
-              }            }}
+              }
+            }}
           >
             Gửi bình luận
           </Button>
         </Stack>
       </Paper>
+
       <RequireLoginModal
         opened={loginModalOpened}
         onClose={() => setLoginModalOpened(false)}

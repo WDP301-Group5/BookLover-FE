@@ -1,6 +1,6 @@
+// src/lib/axios.ts
 import axios from "axios";
 import { BASE_URL } from "../constants";
-import { useNavigate } from "react-router-dom";
 
 export const instance = axios.create({
   baseURL: BASE_URL,
@@ -28,16 +28,15 @@ instance.interceptors.response.use(
         return response;
     },
     (error) => {
-        const navigate = useNavigate();
         if (error.response && error.response.status === 401) {
             // xóa token khỏi localStorage
             localStorage.removeItem("token");
             console.error("Unauthorized! Redirecting to login...");
-            navigate('/login', { replace: true });
+            window.location.href = "/login";
         }
         if (error.response && error.response.status === 403) {
             console.error("Forbidden! You don't have permission to access this resource.");
-            navigate(-1);
+            history.back();
         }
         return Promise.reject(error);
     },
