@@ -110,7 +110,7 @@ export function GenreManagement() {
   };
 
   const handleDelete = (genre: Genre) => {
-    deleteGenre(genre.id, {
+    deleteGenre(genre._id, {
       onSuccess: () => {
         dataTable.table.resetRowSelection();
       },
@@ -128,7 +128,7 @@ export function GenreManagement() {
   const handleDeleteSelected = () => {
     const selectedRows = dataTable.table.getSelectedRowModel().rows;
     const selectedGenres = selectedRows.map((row) => row.original);
-    const ids = selectedGenres.map((g) => g.id);
+    const ids = selectedGenres.map((g) => g._id);
     const count = ids.length;
 
     modals.openConfirmModal({
@@ -184,7 +184,7 @@ export function GenreManagement() {
     }
 
     updateGenre(
-      { id: editingGenre.id, data: formData },
+      { id: editingGenre._id, data: formData },
       {
         onSuccess: () => {
           closeEdit();
