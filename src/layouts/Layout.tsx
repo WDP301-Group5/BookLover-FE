@@ -1,4 +1,4 @@
-import { AppShell, useMantineColorScheme } from "@mantine/core";
+import { AppShell } from "@mantine/core";
 import { CircleArrowUp } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Outlet, ScrollRestoration, useNavigate } from "react-router-dom";
@@ -27,20 +27,16 @@ const Layout = () => {
     };
   }, []);
 
-  const { colorScheme } = useMantineColorScheme();
-
   return (
     <AppShell transitionDuration={500} transitionTimingFunction="ease">
       <ScrollRestoration />
       {/* Main App */}
-      <AppShell.Main
-        className={`flex flex-col min-h-screen ${
-          colorScheme === "dark" ? "bg-neutral-700" : "bg-white"
-        } `}
-      >
+      <AppShell.Main className="flex flex-col min-h-screen bg-white dark:bg-neutral-700">
         <Header />
-        <div style={{ padding: "24px", flex: 1 }}>
-          <Outlet />
+        <div className="flex flex-1 justify-center">
+          <div className="max-w-[1080px] w-full">
+            <Outlet />
+          </div>
         </div>
         <Footer />
       </AppShell.Main>
