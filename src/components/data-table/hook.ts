@@ -1,27 +1,42 @@
 import { useQuery } from "@tanstack/react-query";
-import { getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable, type ColumnDef, type RowSelectionState, type SortingState, type Table } from "@tanstack/react-table";
+import {
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+  type ColumnDef,
+  type RowSelectionState,
+  type SortingState,
+  type Table,
+} from "@tanstack/react-table";
 import { useState } from "react";
 
 export type UseDataTableReturn<TData> = {
-  data?: TData[]
-  table: Table<TData>
-  loading: boolean
-}
+  data?: TData[];
+  table: Table<TData>;
+  loading: boolean;
+};
 
 type UseDataTableProps<TData> = {
-  columns: ColumnDef<TData>[]
-  service: () => Promise<TData[]> | TData[]
-}
+  columns: ColumnDef<TData>[];
+  service: () => Promise<TData[]> | TData[];
+  queryKey?: unknown[];
+};
 
-export function useDataTable<TData> ({ columns, service }: UseDataTableProps<TData>): UseDataTableReturn<TData> {
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [globalFilter, setGlobalFilter] = useState('');
+export function useDataTable<TData>({
+  columns,
+  service,
+  queryKey = ["data-table"],
+}: UseDataTableProps<TData>): UseDataTableReturn<TData> {
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [globalFilter, setGlobalFilter] = useState("");
 
   const { data, isLoading } = useQuery({
-    queryKey: ['data-table'],
+    queryKey,
     queryFn: service,
-  })
+  });
 
   const table = useReactTable({
     // Core
@@ -35,7 +50,7 @@ export function useDataTable<TData> ({ columns, service }: UseDataTableProps<TDa
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     // Filter
-    globalFilterFn: 'auto',
+    globalFilterFn: "auto",
     onGlobalFilterChange: setGlobalFilter,
     getFilteredRowModel: getFilteredRowModel(),
     // Pagination
@@ -48,5 +63,5 @@ export function useDataTable<TData> ({ columns, service }: UseDataTableProps<TDa
     },
   });
 
-  return {data, table, loading: isLoading}
+  return { data, table, loading: isLoading };
 }

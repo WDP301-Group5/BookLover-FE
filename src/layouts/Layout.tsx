@@ -1,15 +1,17 @@
-import {
-  AppShell,
-  useMantineColorScheme,
-} from "@mantine/core";
-import { Outlet, ScrollRestoration } from "react-router-dom";
-import { useState } from "react";
-import { useEffect } from "react";
+import { AppShell, useMantineColorScheme } from "@mantine/core";
 import { CircleArrowUp } from "lucide-react";
-import Header from "./header/Header";
+import { useEffect, useState } from "react";
+import { Outlet, ScrollRestoration, useNavigate } from "react-router-dom";
+import { setNavigate } from "../lib/navigation";
 import Footer from "./footer/Footer";
+import Header from "./header/Header";
 
 const Layout = () => {
+  const navigate = useNavigate();
+  useEffect(() => {
+    setNavigate(navigate);
+  }, [navigate]);
+
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   useEffect(() => {
@@ -28,17 +30,12 @@ const Layout = () => {
   const { colorScheme } = useMantineColorScheme();
 
   return (
-    <AppShell
-      transitionDuration={500}
-      transitionTimingFunction="ease"
-    >
+    <AppShell transitionDuration={500} transitionTimingFunction="ease">
       <ScrollRestoration />
       {/* Main App */}
       <AppShell.Main
         className={`flex flex-col min-h-screen ${
-          colorScheme === "dark"
-            ? "bg-neutral-700"
-            : "bg-white"
+          colorScheme === "dark" ? "bg-neutral-700" : "bg-white"
         } `}
       >
         <Header />
