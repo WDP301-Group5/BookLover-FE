@@ -13,7 +13,7 @@ const StoryItemCard = ({ story, type, deleteFunc }: StoryItemProps) => {
 
     if (type === "top") {
         return (
-            <div className="w-full h-full p-2 min-w-[250px] max-w-[360px] max-h-20 flex gap-2">
+            <div className="w-full h-full min-w-[250px] max-w-[360px] max-h-20 flex gap-2">
                 <Image
                     src={story.image}
                     alt={story.title}
@@ -34,7 +34,7 @@ const StoryItemCard = ({ story, type, deleteFunc }: StoryItemProps) => {
                     <div
                         className="mt-auto flex justify-between text-xs text-gray-500"
                     >
-                        <span className="cursor-pointer">Chương {story.chapterNumber}</span>
+                        <span className="cursor-pointer mr-4">Chương {story.chapterNumber}</span>
                         <span className="flex justify-center items-center gap-1">
                             <Eye size={16} />
                             {ShorterNumber(story.views)}
@@ -45,7 +45,7 @@ const StoryItemCard = ({ story, type, deleteFunc }: StoryItemProps) => {
         );
     } else {
         return (
-            <div className="w-full p-2 min-w-[250px] max-w-[360px] max-h-20 flex gap-2">
+            <div className="w-full min-w-[250px] max-w-[360px] max-h-20 flex gap-2">
                 <Image
                     src={story.image}
                     alt={story.title}

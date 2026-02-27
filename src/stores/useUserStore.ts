@@ -1,28 +1,42 @@
 import { create } from "zustand";
 
 export interface UserProfile {
-  avatar: string | null;
-  username?: string;
-  name?: string;
-  accountType?: "google" | "email";
-  level?: "vip1" | "vip2" | "vip3";
+  id: string;
+  email: string;
+  username: string;
+  fullName: string;
+  role: "admin" | "author" | "user";
+  status: "active" | "inactive" | "banned";
+  avatarURL?: string;
+  backgroundURL?: string;
+  vipLevel: number;
+  nickName?: string;
+  penName?: string;
 }
 
 interface UserState {
-  user: UserProfile;
+  user: UserProfile | null;
+  isAuthenticated: boolean;
+  setUser: (user: UserProfile | null) => void;
   updateUser: (data: Partial<UserProfile>) => void;
+  logout: () => void;
 }
 
 export const useUserStore = create<UserState>((set) => ({
-  user: {
-    avatar: null,
-    username: "nga123",
-    name: "Nguyen Thien Nga",
-    accountType: "google",
-    level: "vip2",
-  },
+  user: null,
+  isAuthenticated: false,
+  setUser: (user) =>
+    set(() => ({
+      user,
+      isAuthenticated: !!user,
+    })),
   updateUser: (data) =>
     set((state) => ({
-      user: { ...state.user, ...data },
+      user: state.user ? { ...state.user, ...data } : null,
+    })),
+  logout: () =>
+    set(() => ({
+      user: null,
+      isAuthenticated: false,
     })),
 }));
