@@ -13,9 +13,10 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
+import ReCAPTCHA from "react-google-recaptcha";
 import classes from "./LoginPage.module.css";
 import { zod4Resolver } from "mantine-form-zod-resolver";
 import {
@@ -38,6 +39,7 @@ export default function LoginPage() {
   const setUser = useUserStore((state) => state.setUser);
   const [loading, setLoading] = useState(false);
   const [, setError] = useState<string | null>(null);
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
 
   const form = useForm<LoginFormValues>({
     initialValues: {
@@ -49,11 +51,22 @@ export default function LoginPage() {
   });
 
   const handleSubmit = async (values: LoginFormValues) => {
+    const captchaToken = recaptchaRef.current?.getValue();
+    if (!captchaToken) {
+      notifications.show({
+        title: "Xác minh thất bại",
+        message: "Vui lòng hoàn thành xác minh reCAPTCHA.",
+        color: "orange",
+        autoClose: 3000,
+      });
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
-      const response = await UserService.login(values);
+      const response = await UserService.login({ ...values, captchaToken });
 
       if (response.success && response.data) {
         // Store token
@@ -74,6 +87,7 @@ export default function LoginPage() {
         navigate("/", { replace: true });
       }
     } catch (err: unknown) {
+      recaptchaRef.current?.reset();
       let errorMessage = "Đăng nhập thất bại. Vui lòng thử lại.";
 
       if (typeof err === "object" && err !== null && "message" in err) {
@@ -168,7 +182,8 @@ export default function LoginPage() {
       </Title>
 
       <Text className={classes.subtitle}>
-        Bạn chưa có tài khoản? <Anchor>Tạo tài khoản</Anchor>
+        Bạn chưa có tài khoản?{" "}
+        <Anchor onClick={() => navigate("/register")}>Tạo tài khoản</Anchor>
       </Text>
 
       <Paper withBorder shadow="sm" p={22} mt={30} radius="md">
@@ -197,6 +212,16 @@ export default function LoginPage() {
               Quên mật khẩu?
             </Anchor>
           </Group>
+
+          <ReCAPTCHA
+            ref={recaptchaRef}
+            sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+            style={{
+              marginTop: "1rem",
+              display: "flex",
+              justifyContent: "center",
+            }}
+          />
 
           <Button fullWidth mt="xl" radius="md" type="submit" loading={loading}>
             Đăng nhập
