@@ -56,9 +56,8 @@ export default function LoginPage() {
       const response = await UserService.login(values);
 
       if (response.success && response.data) {
-        // Store tokens
+        // Store token
         localStorage.setItem("token", response.data.accessToken);
-        localStorage.setItem("refreshToken", response.data.refreshToken);
 
         // Update user store
         setUser(response.data.user);
@@ -68,6 +67,7 @@ export default function LoginPage() {
           title: "Đăng nhập thành công",
           message: `Chào mừng trở lại, ${response.data.user.fullName}!`,
           color: "green",
+          autoClose: 3000,
         });
 
         // Redirect to home page
@@ -87,6 +87,7 @@ export default function LoginPage() {
         title: "Đăng nhập thất bại",
         message: errorMessage,
         color: "red",
+        autoClose: 3000,
       });
     } finally {
       setLoading(false);
@@ -98,9 +99,10 @@ export default function LoginPage() {
   ) => {
     if (!credentialResponse.credential) {
       notifications.show({
-        title: "Google Login Failed",
-        message: "No credential received from Google",
+        title: "Đăng nhập Google thất bại",
+        message: "Không nhận được thông tin từ Google",
         color: "red",
+        autoClose: 3000,
       });
       return;
     }
@@ -114,9 +116,8 @@ export default function LoginPage() {
       );
 
       if (response.success && response.data) {
-        // Store tokens
+        // Store token
         localStorage.setItem("token", response.data.accessToken);
-        localStorage.setItem("refreshToken", response.data.refreshToken);
 
         // Update user store
         setUser(response.data.user);
@@ -126,6 +127,7 @@ export default function LoginPage() {
           title: "Đăng nhập thành công",
           message: `Chào mừng trở lại, ${response.data.user.fullName}!`,
           color: "green",
+          autoClose: 3000,
         });
 
         // Redirect to home page
@@ -144,6 +146,7 @@ export default function LoginPage() {
         title: "Đăng nhập Google thất bại",
         message: errorMessage,
         color: "red",
+        autoClose: 3000,
       });
     } finally {
       setLoading(false);

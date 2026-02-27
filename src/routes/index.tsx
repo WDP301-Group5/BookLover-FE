@@ -5,6 +5,7 @@ import LoginPage from "../pages/login-page/LoginPage";
 import UserProfile from "../pages/user-profile/UserProfile";
 import { AdminRoute } from "./admin";
 import { AuthorProfile } from "../pages/author-profile/AuthorProfile";
+import { ProtectedRoute } from "../components/common/ProtectedRoute";
 
 const routes = createBrowserRouter([
   AdminRoute,
@@ -18,15 +19,21 @@ const routes = createBrowserRouter([
       },
       {
         path: "login",
-        element: <LoginPage />
-      },
-      {
-        path: "user-profile",
-        element: <UserProfile />
+        element: <LoginPage />,
       },
       {
         path: "author-profile",
-        element: <AuthorProfile />
+        element: <AuthorProfile />,
+      },
+      // Routes below require the user to be authenticated with a valid token.
+      {
+        element: <ProtectedRoute />,
+        children: [
+          {
+            path: "user-profile",
+            element: <UserProfile />,
+          },
+        ],
       },
     ],
   },

@@ -37,11 +37,13 @@ export const useUserStore = create<UserState>()(
         set((state) => ({
           user: state.user ? { ...state.user, ...data } : null,
         })),
-      logout: () =>
+      logout: () => {
+        localStorage.removeItem("token");
         set(() => ({
           user: null,
           isAuthenticated: false,
-        })),
+        }));
+      },
     }),
     {
       name: "user-store",

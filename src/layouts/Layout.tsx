@@ -30,7 +30,7 @@ const Layout = () => {
         <Header />
         <div className="flex flex-1 justify-center">
           <div className="max-w-[1080px] w-full">
-          <Outlet />
+            <Outlet />
           </div>
         </div>
         <Footer />

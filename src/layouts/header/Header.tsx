@@ -37,13 +37,12 @@ const Header = () => {
   }, [mobileMenuOpen]);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("refreshToken");
     logout();
     notifications.show({
       title: "Đăng xuất thành công",
       message: "Hẹn gặp lại bạn!",
       color: "blue",
+      autoClose: 3000,
     });
     navigate("/");
   };
@@ -261,7 +260,7 @@ const Header = () => {
                   <>
                     <MantineMenu.Item
                       component={Link}
-                      to="/profile"
+                      to="/user-profile"
                       className="text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                     >
                       Trang cá nhân
