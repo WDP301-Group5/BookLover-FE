@@ -5,6 +5,7 @@ export interface LoginCredentials {
   email: string;
   password: string;
   rememberMe?: boolean;
+  captchaToken: string;
 }
 
 export interface AuthResponse {
@@ -12,7 +13,6 @@ export interface AuthResponse {
   message: string;
   data: {
     accessToken: string;
-    refreshToken: string;
     user: {
       id: string;
       email: string;

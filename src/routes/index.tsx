@@ -7,6 +7,7 @@ import RegisterPage from "../pages/register-page/RegisterPage";
 import UserProfile from "../pages/user-profile/UserProfile";
 import { AdminRoute } from "./admin";
 import { AuthorProfile } from "../pages/author-profile/AuthorProfile";
+import { ProtectedRoute } from "../components/common/ProtectedRoute";
 import StoryDetailPage from "../pages/story-detail-page/StoryDetailPage";
 
 const routes = createBrowserRouter([
@@ -34,6 +35,16 @@ const routes = createBrowserRouter([
       {
         path: "author-profile",
         element: <AuthorProfile />,
+      },
+      // Routes below require the user to be authenticated with a valid token.
+      {
+        element: <ProtectedRoute />,
+        children: [
+          {
+            path: "user-profile",
+            element: <UserProfile />,
+          },
+        ],
       },
       {
         path: "storydetailpage/:storyId",
