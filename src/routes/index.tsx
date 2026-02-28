@@ -5,6 +5,7 @@ import LoginPage from "../pages/login-page/LoginPage";
 import UserProfile from "../pages/user-profile/UserProfile";
 import { AdminRoute } from "./admin";
 import { AuthorProfile } from "../pages/author-profile/AuthorProfile";
+import BuyVipPlanPage from "../pages/buy-vip-plan/BuyVipPlanPage";
 
 const routes = createBrowserRouter([
   AdminRoute,
@@ -28,6 +29,10 @@ const routes = createBrowserRouter([
         path: "author-profile",
         element: <AuthorProfile />
       },
+      {
+        path: "purchase/vip-plan",
+        element: <BuyVipPlanPage />
+      }
     ],
   },
 ]);
