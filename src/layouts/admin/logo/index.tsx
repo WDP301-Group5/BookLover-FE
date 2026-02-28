@@ -13,13 +13,12 @@ export const AdminLogo = () => {
             wrap="nowrap"
             style={{ overflow: "hidden" }}
         >
-            <ThemeIcon variant="light" size="lg" color="orange" style={{ flexShrink: 0 }}>
+            <ThemeIcon variant="light" size="lg" color="blue" style={{ flexShrink: 0 }}>
                 <IconBook size={24} />
             </ThemeIcon>
             {isOpen && (
                 <Title
                     order={4}
-                    className="tracking-tight text-orange-700 dark:text-orange-500"
                     style={{ whiteSpace: "nowrap" }}
                 >
                     BookLover

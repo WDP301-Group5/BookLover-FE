@@ -26,12 +26,12 @@ export const AdminProfile = () => {
             w="100%"
             style={{ overflow: "hidden" }}
         >
-            <Tooltip label={user.fullName} position="right" disabled={isOpen} withArrow>
-                <Group wrap="nowrap" gap="sm" style={{ flex: isOpen ? 1 : 0, minWidth: 0 }}>
+            <Tooltip label={"Thông tin tài khoản"} position="right" disabled={isOpen} withArrow>
+                <Group wrap="nowrap" gap="sm" style={{ flex: isOpen ? 1 : 0, minWidth: 0 }} onClick={() => navigate("/admin/profile")} className="cursor-pointer">
                     <Avatar
                         src={user?.avartar}
                         radius="xl"
-                        color="orange"
+                        color="blue"
                         style={{ flexShrink: 0 }}
                     />
 
