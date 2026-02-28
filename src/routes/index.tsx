@@ -29,10 +29,6 @@ const routes = createBrowserRouter([
         element: <RegisterPage />,
       },
       {
-        path: "user-profile",
-        element: <UserProfile />,
-      },
-      {
         path: "author-profile",
         element: <AuthorProfile />,
       },
