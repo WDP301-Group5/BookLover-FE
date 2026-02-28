@@ -1,17 +1,22 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-.mantine-Progress-root {
-  height: 0px !important;
+
+@layer base {
+  body {
+    font-family: "Open Sans", sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Poppins", sans-serif;
+  }
 }
 
-/* Tạo các biến màu custom ở chế độ sáng */
-:root {
-    --my-custom-background-color: #ffffff;
-    --my-custom-text-color: #000000;
-}
-/* Ghi đè cho chế độ tối */
-[data-mantine-color-scheme="dark"] {
-    --my-custom-background-color: #000000;
-    --my-custom-text-color: #fff;
+.mantine-Progress-root {
+  height: 0px !important;
 }
