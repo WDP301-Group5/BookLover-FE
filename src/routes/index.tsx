@@ -6,6 +6,7 @@ import LoginPage from "../pages/login-page/LoginPage";
 import UserProfile from "../pages/user-profile/UserProfile";
 import { AdminRoute } from "./admin";
 import { AuthorProfile } from "../pages/author-profile/AuthorProfile";
+import BuyStonePage from "../pages/purchase/buy-stone/BuyStonePage";
 import { ProtectedRoute } from "../components/common/ProtectedRoute";
 import StoryDetailPage from "../pages/story-detail-page/StoryDetailPage";
 
@@ -44,6 +45,10 @@ const routes = createBrowserRouter([
       {
         path: "*",
         element: <HomePage />,
+      },
+      {
+        path: "purchase/spirit-stone",
+        element: <BuyStonePage />,
       },
     ],
   },
