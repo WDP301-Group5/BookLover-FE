@@ -31,12 +31,10 @@ export const useUserStore = create<UserState>()(
       user: null,
       isAuthenticated: false,
       isLoggedIn: false,
-    })),
-  isLoggedIn: true,
-  login: (userData: UserProfile) => {
-    set({ user: userData, isLoggedIn: true });
-  },
-}));
+      isLoggedIn: true,
+      login: (userData: UserProfile) => {
+        set({ user: userData, isLoggedIn: true });
+      },
       setUser: (user) =>
         set(() => ({
           user,
