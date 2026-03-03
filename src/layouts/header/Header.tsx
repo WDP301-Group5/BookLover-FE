@@ -22,7 +22,7 @@ const Header = () => {
   const navigate = useNavigate();
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const isDark = colorScheme === "dark";
-  const { isAuthenticated, logout } = useUserStore();
+  const { isLoggedIn, logout } = useUserStore();
 
   // Close mobile menu when resizing to desktop
   useEffect(() => {
@@ -256,7 +256,7 @@ const Header = () => {
               </MantineMenu.Target>
 
               <MantineMenu.Dropdown className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                {isAuthenticated ? (
+                {isLoggedIn ? (
                   <>
                     <MantineMenu.Item
                       component={Link}
@@ -449,7 +449,7 @@ const Header = () => {
                 <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Tài Khoản
                 </div>
-                {isAuthenticated ? (
+                {isLoggedIn ? (
                   <>
                     <Link
                       to="/profile"
