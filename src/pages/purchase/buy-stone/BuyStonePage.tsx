@@ -147,7 +147,7 @@ const BuyStonePage = () => {
             <div className="max-w-xl mx-auto mt-10 px-4">
                 <Card shadow="lg" radius="lg" padding="lg">
                     {/* Header */}
-                    <div className="rounded-lg p-4 mb-4 bg-blue-600 dark:bg-blue-900 text-white">
+                    <div className="rounded-lg p-4 mb-4 bg-blue-500 dark:bg-blue-900 text-white">
                         <Text size="xl" fw={700}>
                             💎 Nạp linh thạch
                         </Text>
@@ -155,21 +155,21 @@ const BuyStonePage = () => {
                         <Group grow mb="md">
                             <div className="text-center">
                                 <Text fw={600}>🔒 An toàn</Text>
-                                <Text size="sm" c="gray.9">
+                                <Text size="sm">
                                     Giao dịch được mã hoá và xác thực theo từng đơn hàng
                                 </Text>
                             </div>
 
                             <div className="text-center">
                                 <Text fw={600}>⚡ Nhanh chóng</Text>
-                                <Text size="sm" c="gray.9">
+                                <Text size="sm">
                                     Thanh toán xong, linh thạch được cộng trong vài giây
                                 </Text>
                             </div>
 
                             <div className="text-center">
                                 <Text fw={600}>🎯 Chính xác</Text>
-                                <Text size="sm" c="gray.9">
+                                <Text size="sm">
                                     Hệ thống tự động đối soát, hạn chế tối đa sai sót
                                 </Text>
                             </div>
@@ -181,7 +181,7 @@ const BuyStonePage = () => {
                         <Text fw={600} mb="xs">
                             📘 Hướng dẫn nạp linh thạch
                         </Text>
-                        <ol className="list-decimal list-inside space-y-2 text-sm text-gray-900 dark:text-gray-300 mb-4">
+                        <ol className="list-decimal list-inside space-y-2 text-sm dark:text-gray-300 mb-4">
                             <li>Nhập số tiền muốn nạp (tối thiểu 1.000 VNĐ)</li>
                             <li>
                                 Nhấn <b>Thanh toán</b> để tạo mã QR

@@ -239,11 +239,11 @@ const Header = () => {
 
             {/* Premium Button */}
             <Link
-              to="/premium"
+              to="/purchase/vip-plan"
               className="hidden lg:flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 hover:bg-blue-100 dark:hover:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-lg transition-all duration-200 cursor-pointer shadow-sm hover:shadow"
             >
               <CircleDollarSignIcon />
-              Mua linh thạch/VIP
+              Mua gói cao cấp
             </Link>
 
             {/* Account Dropdown */}
@@ -438,12 +438,12 @@ const Header = () => {
             {/* Action Buttons */}
             <div className="space-y-2 pt-4 border-t border-gray-200 dark:border-gray-700">
               <Link
-                to="/premium"
+                to="/purchase/vip-plan"
                 className="flex items-center justify-center gap-2 w-full px-4 py-2 text-sm font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 hover:bg-blue-100 dark:hover:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-lg transition-all duration-200 cursor-pointer"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <Zap className="w-4 h-4 fill-blue-600 dark:fill-blue-400" />
-                Mua linh thạch/VIP
+                Mua gói cao cấp
               </Link>
               <div className="space-y-1">
                 <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
