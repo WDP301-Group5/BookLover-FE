@@ -9,7 +9,6 @@ const SubcriptionPlanService = {
                     console.error("Error fetching subscription plans:", err);
                     throw err;
                 });
-                console.log("plans", response?.data)
             return response?.data;
         } catch (error) {
             console.error("Error fetching subscription plans:", error);

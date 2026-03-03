@@ -1,40 +1,62 @@
+// src/routes/index.tsx
 import { createBrowserRouter } from "react-router-dom";
-import HomePage from "../pages/home-page/HomePage";
+import { ProtectedRoute } from "../components/common/ProtectedRoute";
 import Layout from "../layouts/Layout";
-import LoginPage from "../pages/login-page/LoginPage";
-import UserProfile from "../pages/user-profile/UserProfile";
-import { AdminRoute } from "./admin";
 import { AuthorProfile } from "../pages/author-profile/AuthorProfile";
 import BuyVipPlanPage from "../pages/buy-vip-plan/BuyVipPlanPage";
+import HomePage from "../pages/home-page/HomePage";
+import LoginPage from "../pages/login-page/LoginPage";
+import BuyStonePage from "../pages/purchase/buy-stone/BuyStonePage";
+import StoryDetailPage from "../pages/story-detail-page/StoryDetailPage";
+import UserProfile from "../pages/user-profile/UserProfile";
+import { AdminRoute } from "./admin";
 
 const routes = createBrowserRouter([
-  AdminRoute,
-  {
-    path: "/",
-    element: <Layout />,
-    children: [
-      {
-        index: true,
-        element: <HomePage />,
-      },
-      {
-        path: "login",
-        element: <LoginPage />
-      },
-      {
-        path: "user-profile",
-        element: <UserProfile />
-      },
-      {
-        path: "author-profile",
-        element: <AuthorProfile />
-      },
-      {
-        path: "purchase/vip-plan",
-        element: <BuyVipPlanPage />
-      }
-    ],
-  },
+    AdminRoute,
+    {
+        path: "/",
+        element: <Layout />,
+        children: [
+            {
+                index: true,
+                element: <HomePage />,
+            },
+            {
+                path: "login",
+                element: <LoginPage />,
+            },
+            {
+                path: "author-profile",
+                element: <AuthorProfile />,
+            },
+            {
+                path: "purchase/spirit-stone",
+                element: <BuyStonePage />,
+            },
+            {
+                path: "purchase/vip-plan",
+                element: <BuyVipPlanPage />,
+            },
+            {
+                path: "story/:slug",
+                element: <StoryDetailPage />,
+            },
+            // Routes below require the user to be authenticated with a valid token.
+            {
+                element: <ProtectedRoute />,
+                children: [
+                    {
+                        path: "user-profile",
+                        element: <UserProfile />,
+                    },
+                ],
+            },
+            {
+                path: "*",
+                element: <HomePage />,
+            },
+        ],
+    },
 ]);
 
 export default routes;

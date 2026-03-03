@@ -28,7 +28,7 @@ const statusColorMap = {
   current: "green",
 };
 
-const VipPlanCard = ({ plan }: { plan: ISubcriptionPlan }) => {
+const VipPlanCard = ({ plan, onBuy }: { plan: ISubcriptionPlan, onBuy: () => void }) => {
   return (
     <Card
       withBorder
@@ -126,6 +126,7 @@ const VipPlanCard = ({ plan }: { plan: ISubcriptionPlan }) => {
         mt="auto"
         color="blue"
         variant={plan.status === "current" ? "light" : "filled"}
+        onClick={onBuy}
       >
         {plan.status === "current" ? "Gia hạn" : "Mua ngay"}
       </Button>

@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 export interface UserProfile {
   id: string;
@@ -19,24 +20,41 @@ interface UserState {
   isAuthenticated: boolean;
   setUser: (user: UserProfile | null) => void;
   updateUser: (data: Partial<UserProfile>) => void;
+  isLoggedIn: boolean;
+  login: (userData: UserProfile) => void;
   logout: () => void;
 }
 
-export const useUserStore = create<UserState>((set) => ({
-  user: null,
-  isAuthenticated: false,
-  setUser: (user) =>
-    set(() => ({
-      user,
-      isAuthenticated: !!user,
-    })),
-  updateUser: (data) =>
-    set((state) => ({
-      user: state.user ? { ...state.user, ...data } : null,
-    })),
-  logout: () =>
-    set(() => ({
+export const useUserStore = create<UserState>()(
+  persist(
+    (set) => ({
       user: null,
       isAuthenticated: false,
-    })),
-}));
+      isLoggedIn: false,
+      login: (userData: UserProfile) => {
+        set({ user: userData, isLoggedIn: true });
+      },
+      setUser: (user) =>
+        set(() => ({
+          user,
+          isAuthenticated: !!user,
+          isLoggedIn: !!user,
+        })),
+      updateUser: (data) =>
+        set((state) => ({
+          user: state.user ? { ...state.user, ...data } : null,
+        })),
+      logout: () => {
+        localStorage.removeItem("token");
+        set(() => ({
+          user: null,
+          isAuthenticated: false,
+          isLoggedIn: false,
+        }));
+      },
+    }),
+    {
+      name: "user-store",
+    },
+  ),
+);
