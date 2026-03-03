@@ -13,10 +13,9 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
-import ReCAPTCHA from "react-google-recaptcha";
 import classes from "./LoginPage.module.css";
 import { zod4Resolver } from "mantine-form-zod-resolver";
 import {
@@ -39,7 +38,6 @@ export default function LoginPage() {
   const setUser = useUserStore((state) => state.setUser);
   const [loading, setLoading] = useState(false);
   const [, setError] = useState<string | null>(null);
-  const recaptchaRef = useRef<ReCAPTCHA>(null);
 
   const form = useForm<LoginFormValues>({
     initialValues: {
@@ -51,34 +49,23 @@ export default function LoginPage() {
   });
 
   const handleSubmit = async (values: LoginFormValues) => {
-    const captchaToken = recaptchaRef.current?.getValue();
-    if (!captchaToken) {
-      notifications.show({
-        title: "Xác minh thất bại",
-        message: "Vui lòng hoàn thành xác minh reCAPTCHA.",
-        color: "orange",
-        autoClose: 3000,
-      });
-      return;
-    }
-
     setLoading(true);
     setError(null);
 
     try {
-      const response = await UserService.login({ ...values, captchaToken });
+      const response = await UserService.login(values);
 
-      if (response.success && response.data) {
+      if (response.success && response.accessToken) {
         // Store token
-        localStorage.setItem("token", response.data.accessToken);
+        localStorage.setItem("token", response.accessToken);
 
         // Update user store
-        setUser(response.data.user);
+        setUser(response.user);
 
         // Show success notification
         notifications.show({
           title: "Đăng nhập thành công",
-          message: `Chào mừng trở lại, ${response.data.user.fullName}!`,
+          message: `Chào mừng trở lại, ${response.user.fullName}!`,
           color: "green",
           autoClose: 3000,
         });
@@ -87,7 +74,6 @@ export default function LoginPage() {
         navigate("/", { replace: true });
       }
     } catch (err: unknown) {
-      recaptchaRef.current?.reset();
       let errorMessage = "Đăng nhập thất bại. Vui lòng thử lại.";
 
       if (typeof err === "object" && err !== null && "message" in err) {
@@ -111,6 +97,7 @@ export default function LoginPage() {
   const handleGoogleSuccess = async (
     credentialResponse: GoogleCredentialResponse,
   ) => {
+    console.log("Google Token:", credentialResponse.credential);
     if (!credentialResponse.credential) {
       notifications.show({
         title: "Đăng nhập Google thất bại",
@@ -129,17 +116,17 @@ export default function LoginPage() {
         rememberMe,
       );
 
-      if (response.success && response.data) {
+      if (response.success && response.accessToken) {
         // Store token
-        localStorage.setItem("token", response.data.accessToken);
+        localStorage.setItem("token", response.accessToken);
 
         // Update user store
-        setUser(response.data.user);
+        setUser(response.user);
 
         // Show success notification
         notifications.show({
           title: "Đăng nhập thành công",
-          message: `Chào mừng trở lại, ${response.data.user.fullName}!`,
+          message: `Chào mừng trở lại, ${response.user.fullName}!`,
           color: "green",
           autoClose: 3000,
         });
@@ -212,16 +199,6 @@ export default function LoginPage() {
               Quên mật khẩu?
             </Anchor>
           </Group>
-
-          <ReCAPTCHA
-            ref={recaptchaRef}
-            sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
-            style={{
-              marginTop: "1rem",
-              display: "flex",
-              justifyContent: "center",
-            }}
-          />
 
           <Button fullWidth mt="xl" radius="md" type="submit" loading={loading}>
             Đăng nhập
