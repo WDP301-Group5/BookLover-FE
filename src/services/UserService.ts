@@ -87,10 +87,33 @@ const UserService = {
     return res.data.data;
   },
 
-  async updateProfile(data: UpdateProfileRequest) {
-    const res = await axiosClient.put("/user/profile", data);
+  async updateProfile(data: {
+    fullName?: string;
+    nickName?: string;
+    penName?: string;
+    bio?: string;
+    avatarFile?: File;
+    backgroundFile?: File;
+  }) {
+    const formData = new FormData();
+
+    if (data.fullName) formData.append("fullName", data.fullName);
+    if (data.nickName) formData.append("nickName", data.nickName);
+    if (data.penName) formData.append("penName", data.penName);
+    if (data.bio) formData.append("bio", data.bio);
+
+    if (data.avatarFile) {
+      formData.append("avatarURL", data.avatarFile);
+    }
+
+    if (data.backgroundFile) {
+      formData.append("backgroundURL", data.backgroundFile);
+    }
+
+    const res = await axiosClient.put("/user/profile", formData);
+
     return res.data.data;
-  },
+  }
 };
 
 export default UserService;
