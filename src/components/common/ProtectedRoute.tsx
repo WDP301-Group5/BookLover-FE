@@ -21,7 +21,7 @@ export const ProtectedRoute = () => {
         autoClose: 3000,
       });
     }
-  }, [logout, isAuthenticated, isExpired]);
+  }, [logout, isLoggedIn, isExpired]);
 
   if (!isLoggedIn || isExpired) {
     return <Navigate to="/login" replace />;
