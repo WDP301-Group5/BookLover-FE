@@ -6,24 +6,20 @@ export interface LoginCredentials {
   email: string;
   password: string;
   rememberMe?: boolean;
-  captchaToken: string;
 }
 
 export interface AuthResponse {
   success: boolean;
-  message: string;
-  data: {
-    accessToken: string;
-    user: {
-      id: string;
-      email: string;
-      username: string;
-      fullName: string;
-      role: "admin" | "author" | "user";
-      status: "active" | "inactive" | "banned";
-      avatarURL?: string;
-      vipLevel: number;
-    };
+  accessToken: string;
+  user: {
+    id: string;
+    email: string;
+    username: string;
+    fullName: string;
+    role: "admin" | "author" | "user";
+    status: "active" | "inactive" | "banned";
+    avatarURL?: string;
+    vipLevel: number;
   };
 }
 
