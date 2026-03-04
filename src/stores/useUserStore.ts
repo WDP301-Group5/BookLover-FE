@@ -13,6 +13,7 @@ export interface UserProfile {
   vipLevel: number;
   nickName?: string;
   penName?: string;
+  bio: string;
 }
 
 interface UserState {
@@ -31,15 +32,15 @@ export const useUserStore = create<UserState>()(
       user: null,
       isAuthenticated: false,
       isLoggedIn: false,
-      isLoggedIn: true,
       login: (userData: UserProfile) => {
         set({ user: userData, isLoggedIn: true });
       },
       setUser: (user) =>
-        set(() => ({
+        set({
           user,
           isAuthenticated: !!user,
-        })),
+        }),
+
       updateUser: (data) =>
         set((state) => ({
           user: state.user ? { ...state.user, ...data } : null,

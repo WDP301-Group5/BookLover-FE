@@ -1,5 +1,6 @@
 import axios from "axios";
 import { instance } from "./../lib/axios";
+import axiosClient from "../api/axiosClient";
 
 export interface LoginCredentials {
   email: string;
@@ -26,6 +27,13 @@ export interface AuthResponse {
   };
 }
 
+export interface UpdateProfileRequest {
+  fullName?: string;
+  nickName?: string;
+  penName?: string;
+  bio?: string;
+}
+
 const UserService = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
@@ -42,21 +50,21 @@ const UserService = {
     }
   },
 
-  async getUserProfile() {
-    try {
-      const response = await instance
-        .get("/user/profile")
-        .then((res) => res?.data)
-        .catch((err) => {
-          console.error("Error fetching user profile:", err);
-          throw err;
-        });
-      return response?.data;
-    } catch (error: unknown) {
-      console.error("Error fetching user profile:", error);
-      throw error;
-    }
-  },
+  // async getUserProfile() {
+  //   try {
+  //     const response = await instance
+  //       .get("/user/profile")
+  //       .then((res) => res?.data)
+  //       .catch((err) => {
+  //         console.error("Error fetching user profile:", err);
+  //         throw err;
+  //       });
+  //     return response?.data;
+  //   } catch (error: unknown) {
+  //     console.error("Error fetching user profile:", error);
+  //     throw error;
+  //   }
+  // },
 
   async googleLogin(
     token: string,
@@ -76,6 +84,16 @@ const UserService = {
         ? error.message
         : "An unknown error occurred";
     }
+  },
+
+  async getProfile() {
+    const res = await axiosClient.get("/user/profile");
+    return res.data.data;
+  },
+
+  async updateProfile(data: UpdateProfileRequest) {
+    const res = await axiosClient.put("/user/profile", data);
+    return res.data.data;
   },
 };
 
