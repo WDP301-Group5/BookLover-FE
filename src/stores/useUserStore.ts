@@ -1,13 +1,13 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export interface UserProfile {
   id: string;
   email: string;
   username: string;
   fullName: string;
-  role: "admin" | "author" | "user";
-  status: "active" | "inactive" | "banned";
+  role: 'admin' | 'author' | 'user';
+  status: 'active' | 'inactive' | 'banned';
   avatarURL?: string;
   backgroundURL?: string;
   vipLevel: number;
@@ -43,7 +43,7 @@ export const useUserStore = create<UserState>()(
           user: state.user ? { ...state.user, ...data } : null,
         })),
       logout: () => {
-        localStorage.removeItem("token");
+        localStorage.removeItem('token');
         set(() => ({
           user: null,
           isLoggedIn: false,
@@ -51,7 +51,7 @@ export const useUserStore = create<UserState>()(
       },
     }),
     {
-      name: "user-store",
+      name: 'user-store',
     },
   ),
 );

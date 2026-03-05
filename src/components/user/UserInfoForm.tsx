@@ -1,81 +1,81 @@
-import { useEffect, useState } from "react";
 import {
   Box,
+  Button,
+  Divider,
+  Group,
   Paper,
   Text,
-  Title,
-  Button,
-  Group,
-  TextInput,
-  Divider,
   Textarea,
-} from "@mantine/core";
-import { Pencil, Save, X, User, Book, Bell, Lock } from "lucide-react";
+  TextInput,
+  Title,
+} from '@mantine/core';
+import { Bell, Book, Lock, Pencil, Save, User, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
-import AvatarUploader from "./AvatarUploader";
-import style from "./style.module.scss";
+import AvatarUploader from './AvatarUploader';
+import style from './style.module.scss';
 
-import MyStory from "./user-navbar/MyStory";
-import ListStoryFollowed from "./user-navbar/ListStoryFollowed";
-import AuthorFollow from "./user-navbar/AuthorFollow";
-import Notification from "./user-navbar/Notification";
-import ChangePassword from "./user-navbar/ChangePassword";
-import { useUserStore } from "../../stores/useUserStore";
-import UserService from "../../services/UserService";
-import { showError, showSuccess } from "../../utils/notifications";
+import UserService from '../../services/UserService';
+import { useUserStore } from '../../stores/useUserStore';
+import { showError, showSuccess } from '../../utils/notifications';
+import AuthorFollow from './user-navbar/AuthorFollow';
+import ChangePassword from './user-navbar/ChangePassword';
+import ListStoryFollowed from './user-navbar/ListStoryFollowed';
+import MyStory from './user-navbar/MyStory';
+import Notification from './user-navbar/Notification';
 
 const SIDEBAR_MENU = [
-  { key: "info", label: "Thông tin cá nhân", icon: <User size={18} /> },
-  { key: "my-stories", label: "Truyện của tôi", icon: <Book size={18} /> },
+  { key: 'info', label: 'Thông tin cá nhân', icon: <User size={18} /> },
+  { key: 'my-stories', label: 'Truyện của tôi', icon: <Book size={18} /> },
   {
-    key: "following-stories",
-    label: "Truyện đang theo dõi",
+    key: 'following-stories',
+    label: 'Truyện đang theo dõi',
     icon: <Book size={18} />,
   },
   {
-    key: "following-authors",
-    label: "Tác giả đang theo dõi",
+    key: 'following-authors',
+    label: 'Tác giả đang theo dõi',
     icon: <User size={18} />,
   },
-  { key: "notifications", label: "Thông báo", icon: <Bell size={18} /> },
-  { key: "change-password", label: "Đổi mật khẩu", icon: <Lock size={18} /> },
+  { key: 'notifications', label: 'Thông báo', icon: <Bell size={18} /> },
+  { key: 'change-password', label: 'Đổi mật khẩu', icon: <Lock size={18} /> },
 ];
 
 export default function UserInfoForm() {
   const { user, updateUser } = useUserStore();
 
-  const [activeTab, setActiveTab] = useState("info");
+  const [activeTab, setActiveTab] = useState('info');
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState({
-    fullName: "",
-    nickName: "",
-    penName: "",
-    bio: "",
+    fullName: '',
+    nickName: '',
+    penName: '',
+    bio: '',
   });
 
- useEffect(() => {
-  const fetchProfile = async () => {
-    try {
-      console.log("Calling GET profile...");
-      const data = await UserService.getProfile();
-      updateUser(data);
-    } catch (error) {
-      console.error("Failed to fetch profile:", error);
-    }
-  };
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        console.log('Calling GET profile...');
+        const data = await UserService.getProfile();
+        updateUser(data);
+      } catch (error) {
+        console.error('Failed to fetch profile:', error);
+      }
+    };
 
-  fetchProfile();
-}, []);
+    fetchProfile();
+  }, []);
 
   useEffect(() => {
     if (user) {
       setForm({
-        fullName: user.fullName || "",
-        nickName: user.nickName || "",
-        penName: user.penName || "",
-        bio: user.bio || "",
+        fullName: user.fullName || '',
+        nickName: user.nickName || '',
+        penName: user.penName || '',
+        bio: user.bio || '',
       });
     }
   }, [user]);
@@ -89,14 +89,14 @@ export default function UserInfoForm() {
       setLoading(true);
       const updatedData = await UserService.updateProfile(form);
       updateUser(updatedData);
-      showSuccess("Cập nhật thông tin thành công");
+      showSuccess('Cập nhật thông tin thành công');
       setEditMode(false);
     } catch (error: { message?: string } | unknown) {
-      console.error("Update failed:", error);
-      const errorMessage = (error instanceof Error ? error.message : undefined) || "Không thể cập nhật thông tin. Vui lòng thử lại.";
-      showError(
-        errorMessage
-      );
+      console.error('Update failed:', error);
+      const errorMessage =
+        (error instanceof Error ? error.message : undefined) ||
+        'Không thể cập nhật thông tin. Vui lòng thử lại.';
+      showError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -107,11 +107,11 @@ export default function UserInfoForm() {
   }
 
   const TAB_CONTENT: Record<string, React.ReactNode> = {
-    "my-stories": <MyStory />,
-    "following-stories": <ListStoryFollowed />,
-    "following-authors": <AuthorFollow />,
+    'my-stories': <MyStory />,
+    'following-stories': <ListStoryFollowed />,
+    'following-authors': <AuthorFollow />,
     notifications: <Notification />,
-    "change-password": <ChangePassword />,
+    'change-password': <ChangePassword />,
   };
 
   return (
@@ -123,16 +123,16 @@ export default function UserInfoForm() {
         <SidebarNav activeTab={activeTab} onChangeTab={setActiveTab} />
       </Box>
 
-      <Divider orientation="vertical" />
+      <Divider orientation='vertical' />
 
       {/* RIGHT CONTENT */}
       <Box className={style.right}>
-        {activeTab === "info" ? (
+        {activeTab === 'info' ? (
           <>
             {!editMode && (
               <Button
-                variant="subtle"
-                color="blue"
+                variant='subtle'
+                color='blue'
                 leftSection={<Pencil size={18} />}
                 className={style.editBtn}
                 onClick={() => setEditMode(true)}
@@ -147,59 +147,59 @@ export default function UserInfoForm() {
 
             {!editMode ? (
               <Box>
-                <DisplayItem label="Username" value={user.username} />
-                <DisplayItem label="Full name" value={user.fullName} />
-                <DisplayItem label="Nick name" value={user.nickName || "-"} />
-                {user.role === "author" && (
-                  <DisplayItem label="Pen name" value={user.penName || "-"} />
+                <DisplayItem label='Username' value={user.username} />
+                <DisplayItem label='Full name' value={user.fullName} />
+                <DisplayItem label='Nick name' value={user.nickName || '-'} />
+                {user.role === 'author' && (
+                  <DisplayItem label='Pen name' value={user.penName || '-'} />
                 )}
-                <DisplayItem label="Bio" value={user.bio || "-"} />
-                <DisplayItem label="Role" value={user.role} />
-                <DisplayItem label="VIP Level" value={String(user.vipLevel)} />
+                <DisplayItem label='Bio' value={user.bio || '-'} />
+                <DisplayItem label='Role' value={user.role} />
+                <DisplayItem label='VIP Level' value={String(user.vipLevel)} />
               </Box>
             ) : (
               <Box>
                 <TextInput
-                  label="Full name"
+                  label='Full name'
                   value={form.fullName}
                   onChange={(e) =>
-                    handleChange("fullName", e.currentTarget.value)
+                    handleChange('fullName', e.currentTarget.value)
                   }
-                  mb="md"
+                  mb='md'
                 />
 
                 <TextInput
-                  label="Nick name"
+                  label='Nick name'
                   value={form.nickName}
                   onChange={(e) =>
-                    handleChange("nickName", e.currentTarget.value)
+                    handleChange('nickName', e.currentTarget.value)
                   }
-                  mb="md"
+                  mb='md'
                 />
 
-                {user.role === "author" && (
+                {user.role === 'author' && (
                   <TextInput
-                    label="Pen name"
+                    label='Pen name'
                     value={form.penName}
                     onChange={(e) =>
-                      handleChange("penName", e.currentTarget.value)
+                      handleChange('penName', e.currentTarget.value)
                     }
-                    mb="md"
+                    mb='md'
                   />
                 )}
 
                 <Textarea
-                  label="Bio"
+                  label='Bio'
                   value={form.bio}
-                  onChange={(e) => handleChange("bio", e.currentTarget.value)}
-                  mb="md"
+                  onChange={(e) => handleChange('bio', e.currentTarget.value)}
+                  mb='md'
                   minRows={3}
                 />
 
-                <Group mt="lg">
+                <Group mt='lg'>
                   <Button
                     leftSection={<Save size={18} />}
-                    color="blue"
+                    color='blue'
                     onClick={handleSave}
                     loading={loading}
                   >
@@ -207,8 +207,8 @@ export default function UserInfoForm() {
                   </Button>
 
                   <Button
-                    variant="light"
-                    color="gray"
+                    variant='light'
+                    color='gray'
                     leftSection={<X size={18} />}
                     onClick={() => setEditMode(false)}
                   >
@@ -234,17 +234,17 @@ function SidebarNav({
   onChangeTab: (key: string) => void;
 }) {
   return (
-    <Box mt="lg" className={style.sidebar}>
+    <Box mt='lg' className={style.sidebar}>
       {SIDEBAR_MENU.map((item) => (
         <Box
           key={item.key}
           onClick={() => onChangeTab(item.key)}
           className={`${style.sidebarItem} ${
-            activeTab === item.key ? style.active : ""
+            activeTab === item.key ? style.active : ''
           }`}
         >
           {item.icon}
-          <Text ml="sm">{item.label}</Text>
+          <Text ml='sm'>{item.label}</Text>
         </Box>
       ))}
     </Box>
@@ -254,7 +254,7 @@ function SidebarNav({
 function DisplayItem({ label, value }: { label: string; value: string }) {
   return (
     <Box className={style.item}>
-      <Text size="sm" c="dimmed">
+      <Text size='sm' c='dimmed'>
         {label}
       </Text>
       <Text fw={500}>{value}</Text>
