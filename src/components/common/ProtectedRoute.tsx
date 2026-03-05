@@ -5,13 +5,13 @@ import { useUserStore } from "../../stores/useUserStore";
 import { isTokenExpired } from "../../utils/token";
 
 export const ProtectedRoute = () => {
-  const { isAuthenticated, logout } = useUserStore();
+  const { isLoggedIn, logout } = useUserStore();
   const token = localStorage.getItem("token");
   const isExpired = !token || isTokenExpired(token);
   const handled = useRef(false);
 
   useEffect(() => {
-    if (isAuthenticated && isExpired && !handled.current) {
+    if (isLoggedIn && isExpired && !handled.current) {
       handled.current = true;
       logout();
       notifications.show({
@@ -21,9 +21,9 @@ export const ProtectedRoute = () => {
         autoClose: 3000,
       });
     }
-  }, []);
+  }, [logout, isLoggedIn, isExpired]);
 
-  if (!isAuthenticated || isExpired) {
+  if (!isLoggedIn || isExpired) {
     return <Navigate to="/login" replace />;
   }
 

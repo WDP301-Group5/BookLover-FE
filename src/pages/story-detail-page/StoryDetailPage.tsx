@@ -35,25 +35,19 @@ import {
 import RequireLoginModal from "../../components/Modal/RequireLoginModal";
 import { useStoryDetail } from "../../hooks/useStoryPage";
 import { useChaptersByStory } from "../../hooks/useChapterPage";
-
-const slugify = (str: string) =>
-  str
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, "-");
+import { slugify } from "../../utils";
 
 const StoryDetailPage: FC = () => {
-  const { storyId } = useParams<{ storyId: string }>();
+  const { slug } = useParams<{ slug: string }>();
 
   const {
     data: story,
     isLoading: storyLoading,
     isError: storyError,
-  } = useStoryDetail(storyId);
+  } = useStoryDetail(slug || "");
 
   const { data: chapters, isLoading: chapterLoading } =
-    useChaptersByStory(storyId);
+    useChaptersByStory(story?.id);
 
   const [followed, { toggle }] = useDisclosure(false);
   const [hoverRating, setHoverRating] = useState<number | null>(null);

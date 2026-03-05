@@ -18,8 +18,8 @@ export const StoryPageService = {
     }});
   },
 
-  async getStoryById(id: string): Promise<Story> {
-    const res = await instance.get(`/story/${id}`);
+  async getStoryBySlug(slug: string): Promise<Story> {
+    const res = await instance.get(`/story/${slug}`);
     res.data.topics = res.data.topics.map((topic: { name: string }) => {
       return topic?.name || "";
     });

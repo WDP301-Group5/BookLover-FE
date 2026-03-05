@@ -9,13 +9,10 @@ export const useStories = () => {
   });
 };
 
-export const useStoryDetail = (storyId?: string) => {
+export const useStoryDetail = (slug?: string) => {
   return useQuery({
-    queryKey: ["story", storyId],
-    queryFn: () => StoryPageService.getStoryById(storyId as string),
-    enabled: !!storyId,
+    queryKey: ["story", slug],
+    queryFn: () => StoryPageService.getStoryBySlug(slug as string),
+    enabled: !!slug,
   });
 };
-
-
-

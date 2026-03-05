@@ -13,13 +13,15 @@ export interface UserProfile {
   vipLevel: number;
   nickName?: string;
   penName?: string;
+  bio: string;
 }
 
 interface UserState {
   user: UserProfile | null;
-  isAuthenticated: boolean;
+  isLoggedIn: boolean;
   setUser: (user: UserProfile | null) => void;
   updateUser: (data: Partial<UserProfile>) => void;
+  login: (userData: UserProfile) => void;
   logout: () => void;
 }
 
@@ -27,12 +29,15 @@ export const useUserStore = create<UserState>()(
   persist(
     (set) => ({
       user: null,
-      isAuthenticated: false,
+      isLoggedIn: false,
+      login: (userData: UserProfile) => {
+        set({ user: userData, isLoggedIn: true });
+      },
       setUser: (user) =>
-        set(() => ({
+        set({
           user,
-          isAuthenticated: !!user,
-        })),
+          isLoggedIn: !!user,
+        }),
       updateUser: (data) =>
         set((state) => ({
           user: state.user ? { ...state.user, ...data } : null,
@@ -41,7 +46,7 @@ export const useUserStore = create<UserState>()(
         localStorage.removeItem("token");
         set(() => ({
           user: null,
-          isAuthenticated: false,
+          isLoggedIn: false,
         }));
       },
     }),
