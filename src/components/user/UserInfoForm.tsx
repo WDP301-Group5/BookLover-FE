@@ -11,11 +11,13 @@ import {
 } from '@mantine/core';
 import { Bell, Book, Lock, Pencil, Save, User, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+
+import AvatarUploader from './AvatarUploader';
+import style from './style.module.scss';
+
 import UserService from '../../services/UserService';
 import { useUserStore } from '../../stores/useUserStore';
 import { showError, showSuccess } from '../../utils/notifications';
-import AvatarUploader from './AvatarUploader';
-import style from './style.module.scss';
 import AuthorFollow from './user-navbar/AuthorFollow';
 import ChangePassword from './user-navbar/ChangePassword';
 import ListStoryFollowed from './user-navbar/ListStoryFollowed';
@@ -89,14 +91,15 @@ export default function UserInfoForm() {
       updateUser(updatedData);
       showSuccess('Cập nhật thông tin thành công');
       setEditMode(false);
-    } catch (error: message?: string | unknown) {
+    } catch (error: { message?: string } | unknown) {
       console.error('Update failed:', error);
       const errorMessage =
         (error instanceof Error ? error.message : undefined) ||
         'Không thể cập nhật thông tin. Vui lòng thử lại.';
       showError(errorMessage);
-    } finally 
+    } finally {
       setLoading(false);
+    }
   };
 
   if (!user) {
