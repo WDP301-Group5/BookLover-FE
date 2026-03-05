@@ -12,51 +12,51 @@ import UserProfile from "../pages/user-profile/UserProfile";
 import { AdminRoute } from "./admin";
 
 const routes = createBrowserRouter([
-    AdminRoute,
-    {
-        path: "/",
-        element: <Layout />,
-        children: [
-            {
-                index: true,
-                element: <HomePage />,
-            },
-            {
-                path: "login",
-                element: <LoginPage />,
-            },
-            {
-                path: "author-profile",
-                element: <AuthorProfile />,
-            },
-            {
-                path: "purchase/spirit-stone",
-                element: <BuyStonePage />,
-            },
-            {
-                path: "purchase/vip-plan",
-                element: <BuyVipPlanPage />,
-            },
-            {
-                path: "story/:slug",
-                element: <StoryDetailPage />,
-            },
-            // Routes below require the user to be authenticated with a valid token.
-            {
-                element: <ProtectedRoute />,
-                children: [
-                    {
-                        path: "user-profile",
-                        element: <UserProfile />,
-                    },
-                ],
-            },
-            {
-                path: "*",
-                element: <HomePage />,
-            },
-        ],
-    },
+	AdminRoute,
+	{
+		path: "/",
+		element: <Layout />,
+		children: [
+			{
+				index: true,
+				element: <HomePage />,
+			},
+			{
+				path: "login",
+				element: <LoginPage />,
+			},
+			{
+				path: "author-profile",
+				element: <AuthorProfile />,
+			},
+			{
+				path: "purchase/spirit-stone",
+				element: <BuyStonePage />,
+			},
+			{
+				path: "purchase/vip-plan",
+				element: <BuyVipPlanPage />,
+			},
+			{
+				path: "story/:slug",
+				element: <StoryDetailPage />,
+			},
+			// Routes below require the user to be authenticated with a valid token.
+			{
+				element: <ProtectedRoute />,
+				children: [
+					{
+						path: "user-profile",
+						element: <UserProfile />,
+					},
+				],
+			},
+			{
+				path: "*",
+				element: <HomePage />,
+			},
+		],
+	},
 ]);
 
 export default routes;
