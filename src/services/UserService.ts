@@ -1,5 +1,6 @@
 import axios from "axios";
 import { instance } from "./../lib/axios";
+import axiosClient from "../api/axiosClient";
 
 export interface LoginCredentials {
   email: string;
@@ -9,21 +10,24 @@ export interface LoginCredentials {
 
 export interface AuthResponse {
   success: boolean;
-  message: string;
-  data: {
-    accessToken: string;
-    refreshToken: string;
-    user: {
-      id: string;
-      email: string;
-      username: string;
-      fullName: string;
-      role: "admin" | "author" | "user";
-      status: "active" | "inactive" | "banned";
-      avatarURL?: string;
-      vipLevel: number;
-    };
+  accessToken: string;
+  user: {
+    id: string;
+    email: string;
+    username: string;
+    fullName: string;
+    role: "admin" | "author" | "user";
+    status: "active" | "inactive" | "banned";
+    avatarURL?: string;
+    vipLevel: number;
   };
+}
+
+export interface UpdateProfileRequest {
+  fullName?: string;
+  nickName?: string;
+  penName?: string;
+  bio?: string;
 }
 
 const UserService = {
@@ -42,21 +46,21 @@ const UserService = {
     }
   },
 
-  async getUserProfile() {
-    try {
-      const response = await instance
-        .get("/user/profile")
-        .then((res) => res?.data)
-        .catch((err) => {
-          console.error("Error fetching user profile:", err);
-          throw err;
-        });
-      return response?.data;
-    } catch (error: unknown) {
-      console.error("Error fetching user profile:", error);
-      throw error;
-    }
-  },
+  // async getUserProfile() {
+  //   try {
+  //     const response = await instance
+  //       .get("/user/profile")
+  //       .then((res) => res?.data)
+  //       .catch((err) => {
+  //         console.error("Error fetching user profile:", err);
+  //         throw err;
+  //       });
+  //     return response?.data;
+  //   } catch (error: unknown) {
+  //     console.error("Error fetching user profile:", error);
+  //     throw error;
+  //   }
+  // },
 
   async googleLogin(
     token: string,
@@ -77,6 +81,39 @@ const UserService = {
         : "An unknown error occurred";
     }
   },
+
+  async getProfile() {
+    const res = await axiosClient.get("/user/profile");
+    return res.data.data;
+  },
+
+  async updateProfile(data: {
+    fullName?: string;
+    nickName?: string;
+    penName?: string;
+    bio?: string;
+    avatarFile?: File;
+    backgroundFile?: File;
+  }) {
+    const formData = new FormData();
+
+    if (data.fullName) formData.append("fullName", data.fullName);
+    if (data.nickName) formData.append("nickName", data.nickName);
+    if (data.penName) formData.append("penName", data.penName);
+    if (data.bio) formData.append("bio", data.bio);
+
+    if (data.avatarFile) {
+      formData.append("avatarURL", data.avatarFile);
+    }
+
+    if (data.backgroundFile) {
+      formData.append("backgroundURL", data.backgroundFile);
+    }
+
+    const res = await axiosClient.put("/user/profile", formData);
+
+    return res.data.data;
+  }
 };
 
 export default UserService;

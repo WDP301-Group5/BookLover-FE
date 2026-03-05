@@ -55,26 +55,26 @@ export default function LoginPage() {
     try {
       const response = await UserService.login(values);
 
-      if (response.success && response.data) {
-        // Store tokens
-        localStorage.setItem("token", response.data.accessToken);
-        localStorage.setItem("refreshToken", response.data.refreshToken);
+      if (response.success && response.accessToken) {
+        // Store token
+        localStorage.setItem("token", response.accessToken);
 
         // Update user store
-        setUser(response.data.user);
+        setUser(response.user);
 
         // Show success notification
         notifications.show({
-          title: "Success",
-          message: "Login successful!",
+          title: "Đăng nhập thành công",
+          message: `Chào mừng trở lại, ${response.user.fullName}!`,
           color: "green",
+          autoClose: 3000,
         });
 
         // Redirect to home page
         navigate("/", { replace: true });
       }
     } catch (err: unknown) {
-      let errorMessage = "Login failed. Please try again.";
+      let errorMessage = "Đăng nhập thất bại. Vui lòng thử lại.";
 
       if (typeof err === "object" && err !== null && "message" in err) {
         errorMessage = (err as { message: string }).message;
@@ -84,9 +84,10 @@ export default function LoginPage() {
 
       setError(errorMessage);
       notifications.show({
-        title: "Login Failed",
+        title: "Đăng nhập thất bại",
         message: errorMessage,
         color: "red",
+        autoClose: 3000,
       });
     } finally {
       setLoading(false);
@@ -96,11 +97,13 @@ export default function LoginPage() {
   const handleGoogleSuccess = async (
     credentialResponse: GoogleCredentialResponse,
   ) => {
+    console.log("Google Token:", credentialResponse.credential);
     if (!credentialResponse.credential) {
       notifications.show({
-        title: "Google Login Failed",
-        message: "No credential received from Google",
+        title: "Đăng nhập Google thất bại",
+        message: "Không nhận được thông tin từ Google",
         color: "red",
+        autoClose: 3000,
       });
       return;
     }
@@ -113,26 +116,26 @@ export default function LoginPage() {
         rememberMe,
       );
 
-      if (response.success && response.data) {
-        // Store tokens
-        localStorage.setItem("token", response.data.accessToken);
-        localStorage.setItem("refreshToken", response.data.refreshToken);
+      if (response.success && response.accessToken) {
+        // Store token
+        localStorage.setItem("token", response.accessToken);
 
         // Update user store
-        setUser(response.data.user);
+        setUser(response.user);
 
         // Show success notification
         notifications.show({
-          title: "Success",
-          message: "Google login successful!",
+          title: "Đăng nhập thành công",
+          message: `Chào mừng trở lại, ${response.user.fullName}!`,
           color: "green",
+          autoClose: 3000,
         });
 
         // Redirect to home page
         navigate("/", { replace: true });
       }
     } catch (err: unknown) {
-      let errorMessage = "Google login failed. Please try again.";
+      let errorMessage = "Đăng nhập Google thất bại. Vui lòng thử lại.";
 
       if (typeof err === "object" && err !== null && "message" in err) {
         errorMessage = (err as { message: string }).message;
@@ -141,9 +144,10 @@ export default function LoginPage() {
       }
 
       notifications.show({
-        title: "Google Login Failed",
+        title: "Đăng nhập Google thất bại",
         message: errorMessage,
         color: "red",
+        autoClose: 3000,
       });
     } finally {
       setLoading(false);
@@ -152,8 +156,8 @@ export default function LoginPage() {
 
   const handleGoogleError = () => {
     notifications.show({
-      title: "Google Login Failed",
-      message: "Failed to authenticate with Google",
+      title: "Đăng nhập Google thất bại",
+      message: "Không thể xác thực với Google. Vui lòng thử lại.",
       color: "red",
     });
   };
@@ -165,7 +169,8 @@ export default function LoginPage() {
       </Title>
 
       <Text className={classes.subtitle}>
-        Bạn chưa có tài khoản? <Anchor>Tạo tài khoản</Anchor>
+        Bạn chưa có tài khoản?{" "}
+        <Anchor onClick={() => navigate("/register")}>Tạo tài khoản</Anchor>
       </Text>
 
       <Paper withBorder shadow="sm" p={22} mt={30} radius="md">
