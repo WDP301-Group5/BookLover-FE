@@ -26,8 +26,8 @@ import UserService from "../../services/UserService";
 import { useUserStore } from "../../stores/useUserStore";
 
 const loginSchema = z.object({
-  email: z.string().email("Invalid email format"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  email: z.string().email("Định dạng email không hợp lệ"),
+  password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
   rememberMe: z.boolean().optional(),
 });
 

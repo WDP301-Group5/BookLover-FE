@@ -284,7 +284,7 @@ const Header = () => {
                     </MantineMenu.Item>
                     <MantineMenu.Item
                       component={Link}
-                      to="/signup"
+                      to="/register"
                       className="text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                     >
                       Đăng ký
@@ -478,7 +478,7 @@ const Header = () => {
                       Đăng nhập
                     </Link>
                     <Link
-                      to="/signup"
+                      to="/register"
                       className="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
                       onClick={() => setMobileMenuOpen(false)}
                     >

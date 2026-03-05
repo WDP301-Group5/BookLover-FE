@@ -6,11 +6,12 @@ import { AuthorProfile } from "../pages/author-profile/AuthorProfile";
 import BuyVipPlanPage from "../pages/buy-vip-plan/BuyVipPlanPage";
 import HomePage from "../pages/home-page/HomePage";
 import LoginPage from "../pages/login-page/LoginPage";
-import RegisterPage from "../pages/register-page/RegisterPage";
 import BuyStonePage from "../pages/purchase/buy-stone/BuyStonePage";
 import StoryDetailPage from "../pages/story-detail-page/StoryDetailPage";
 import UserProfile from "../pages/user-profile/UserProfile";
 import { AdminRoute } from "./admin";
+import RegisterPage from "../pages/register-page/RegisterPage";
+import VerifyEmailPage from "../pages/verify-email-page/VerifyEmailPage";
 
 const routes = createBrowserRouter([
   AdminRoute,
@@ -29,6 +30,10 @@ const routes = createBrowserRouter([
       {
         path: "register",
         element: <RegisterPage />,
+      },
+      {
+        path: "verify-email",
+        element: <VerifyEmailPage />,
       },
       {
         path: "author-profile",
