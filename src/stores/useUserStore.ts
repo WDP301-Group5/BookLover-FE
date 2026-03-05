@@ -13,7 +13,7 @@ export interface UserProfile {
   vipLevel: number;
   nickName?: string;
   penName?: string;
-  bio: string;
+  bio?: string;
 }
 
 interface UserState {

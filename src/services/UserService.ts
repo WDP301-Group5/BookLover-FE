@@ -23,6 +23,29 @@ export interface AuthResponse {
   };
 }
 
+export interface RegisterCredentials {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+export interface RegisterResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface VerifyEmailResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface ResendVerificationResponse {
+  success: boolean;
+  message: string;
+  nextResendIn?: number;
+}
+
 export interface UpdateProfileRequest {
   fullName?: string;
   nickName?: string;
@@ -31,18 +54,80 @@ export interface UpdateProfileRequest {
 }
 
 const UserService = {
-  async login(credentials: LoginCredentials): Promise<AuthResponse> {
+  async register(credentials: RegisterCredentials): Promise<RegisterResponse> {
     try {
-      const response = await instance.post("/auth/login", credentials);
+      const response = await instance.post("/auth/register", {
+        name: credentials.name,
+        email: credentials.email,
+        password: credentials.password,
+        confirmPassword: credentials.confirmPassword,
+      });
       return response.data;
     } catch (error: unknown) {
-      console.error("Login error:", error);
+      console.error("Lỗi đăng ký:", error);
       if (axios.isAxiosError(error) && error.response) {
         throw error.response?.data || error.message;
       }
       throw error instanceof Error
         ? error.message
-        : "An unknown error occurred";
+        : "Có lỗi không xác định xảy ra";
+    }
+  },
+
+  async verifyEmail(token: string): Promise<VerifyEmailResponse> {
+    try {
+      const response = await instance.get("/auth/verify-email", {
+        params: { token },
+      });
+      return response.data;
+    } catch (error: unknown) {
+      console.error("Lỗi xác thực email:", error);
+      if (axios.isAxiosError(error) && error.response) {
+        throw error.response?.data || error.message;
+      }
+      throw error instanceof Error
+        ? error.message
+        : "Có lỗi không xác định xảy ra";
+    }
+  },
+
+  async resendVerificationEmail(
+    email: string,
+  ): Promise<ResendVerificationResponse> {
+    try {
+      const response = await instance.post("/auth/resend-verification", {
+        email,
+      });
+      return response.data;
+    } catch (error: unknown) {
+      console.error("Lỗi gửi lại email xác thực:", error);
+      if (axios.isAxiosError(error) && error.response) {
+        throw error.response?.data || error.message;
+      }
+      throw error instanceof Error
+        ? error.message
+        : "Có lỗi không xác định xảy ra";
+    }
+  },
+
+  async login(credentials: LoginCredentials): Promise<AuthResponse> {
+    try {
+      const response = await instance.post("/auth/login", credentials);
+      // Extract data from wrapper
+      const { success, data } = response.data;
+      return {
+        success,
+        accessToken: data.accessToken,
+        user: data.user,
+      };
+    } catch (error: unknown) {
+      console.error("Lỗi đăng nhập:", error);
+      if (axios.isAxiosError(error) && error.response) {
+        throw error.response?.data || error.message;
+      }
+      throw error instanceof Error
+        ? error.message
+        : "Có lỗi không xác định xảy ra";
     }
   },
 
@@ -71,14 +156,20 @@ const UserService = {
         token,
         rememberMe,
       });
-      return response.data;
+      // Extract data from wrapper
+      const { success, data } = response.data;
+      return {
+        success,
+        accessToken: data.accessToken,
+        user: data.user,
+      };
     } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response) {
         throw error.response?.data || error;
       }
       throw error instanceof Error
         ? error.message
-        : "An unknown error occurred";
+        : "Có lỗi không xác định xảy ra";
     }
   },
 
@@ -113,7 +204,7 @@ const UserService = {
     const res = await axiosClient.put("/user/profile", formData);
 
     return res.data.data;
-  }
+  },
 };
 
 export default UserService;
