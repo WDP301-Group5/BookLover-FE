@@ -7,34 +7,39 @@ import { AdminHeader } from "./header";
 import { AdminNavbar } from "./navbar";
 
 export const AdminLayout = () => {
-    const { isOpen } = useNavbarStore();
+  const { isOpen } = useNavbarStore();
 
-    return (
-        <AppShell
-            navbar={{
-                width: isOpen ? 300 : 0,
-                breakpoint: "sm",
-                collapsed: { mobile: !isOpen },
-            }}
-            transitionDuration={300}
-            transitionTimingFunction="ease"
-        >
-            <AppShell.Navbar style={{ borderRight: "1px solid var(--mantine-color-default-border)" }}>
-                <AdminNavbar />
-            </AppShell.Navbar>
+  return (
+    <AppShell
+      navbar={{
+        width: isOpen ? 300 : 0,
+        breakpoint: "sm",
+        collapsed: { mobile: !isOpen },
+      }}
+      transitionDuration={300}
+      transitionTimingFunction="ease"
+    >
+      <AppShell.Navbar
+        style={{ borderRight: "1px solid var(--mantine-color-default-border)" }}
+      >
+        <AdminNavbar />
+      </AppShell.Navbar>
 
-            <AppShell.Main 
-                className="min-h-screen flex flex-col transition-[padding] duration-300"
-                style={{ backgroundColor: "light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-8))" }}
-            >
-                <AdminHeader />
+      <AppShell.Main
+        className="min-h-screen flex flex-col transition-[padding] duration-300"
+        style={{
+          backgroundColor:
+            "light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-8))",
+        }}
+      >
+        <AdminHeader />
 
-                <main className="flex-1 p-6">
-                    <Outlet />
-                </main>
+        <main className="flex-1 p-6">
+          <Outlet />
+        </main>
 
-                <AdminFooter />
-            </AppShell.Main>
-        </AppShell>
-    );
+        <AdminFooter />
+      </AppShell.Main>
+    </AppShell>
+  );
 };

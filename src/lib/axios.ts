@@ -20,7 +20,7 @@ instance.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  },
+  }
 );
 
 instance.interceptors.response.use(
@@ -30,10 +30,12 @@ instance.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 403) {
       console.error(
-        "Forbidden! You don't have permission to access this resource.",
+        "Forbidden! You don't have permission to access this resource."
       );
-      window.history.back();
+      if (navigate) {
+        navigate(-1);
+      }
     }
     return Promise.reject(error);
-  },
+  }
 );

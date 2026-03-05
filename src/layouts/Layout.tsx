@@ -1,12 +1,17 @@
 import { AppShell } from "@mantine/core";
-import { Outlet, ScrollRestoration } from "react-router-dom";
-import { useState } from "react";
-import { useEffect } from "react";
 import { CircleArrowUp } from "lucide-react";
-import Header from "./header/Header";
+import { useEffect, useState } from "react";
+import { Outlet, ScrollRestoration, useNavigate } from "react-router-dom";
+import { setNavigate } from "../lib/navigation";
 import Footer from "./footer/Footer";
+import Header from "./header/Header";
 
 const Layout = () => {
+  const navigate = useNavigate();
+  useEffect(() => {
+    setNavigate(navigate);
+  }, [navigate]);
+
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   useEffect(() => {
