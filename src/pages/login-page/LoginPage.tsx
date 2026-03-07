@@ -10,24 +10,24 @@ import {
   Text,
   TextInput,
   Title,
-} from '@mantine/core';
-import { useForm } from '@mantine/form';
-import { notifications } from '@mantine/notifications';
+} from "@mantine/core";
+import { useForm } from "@mantine/form";
+import { notifications } from "@mantine/notifications";
 import {
   type GoogleCredentialResponse,
   GoogleLogin,
-} from '@react-oauth/google';
-import { zod4Resolver } from 'mantine-form-zod-resolver';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { z } from 'zod';
-import UserService from '../../services/UserService';
-import { useUserStore } from '../../stores/useUserStore';
-import classes from './LoginPage.module.css';
+} from "@react-oauth/google";
+import { zod4Resolver } from "mantine-form-zod-resolver";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { z } from "zod";
+import UserService from "../../services/UserService";
+import { useUserStore } from "../../stores/useUserStore";
+import classes from "./LoginPage.module.css";
 
 const loginSchema = z.object({
-  email: z.email('Định dạng email không hợp lệ'),
-  password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
+  email: z.email("Định dạng email không hợp lệ"),
+  password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
   rememberMe: z.boolean().optional(),
 });
 
@@ -41,8 +41,8 @@ export default function LoginPage() {
 
   const form = useForm<LoginFormValues>({
     initialValues: {
-      email: '',
-      password: '',
+      email: "",
+      password: "",
       rememberMe: false,
     },
     validate: zod4Resolver(loginSchema),
@@ -57,36 +57,36 @@ export default function LoginPage() {
 
       if (response.success && response.accessToken) {
         // Store token
-        localStorage.setItem('token', response.accessToken);
+        localStorage.setItem("token", response.accessToken);
 
         // Update user store
         setUser(response.user);
 
         // Show success notification
         notifications.show({
-          title: 'Đăng nhập thành công',
+          title: "Đăng nhập thành công",
           message: `Chào mừng trở lại, ${response.user.fullName}!`,
-          color: 'green',
+          color: "green",
           autoClose: 3000,
         });
 
         // Redirect to home page
-        navigate('/', { replace: true });
+        navigate("/", { replace: true });
       }
     } catch (err: unknown) {
-      let errorMessage = 'Đăng nhập thất bại. Vui lòng thử lại.';
+      let errorMessage = "Đăng nhập thất bại. Vui lòng thử lại.";
 
-      if (typeof err === 'object' && err !== null && 'message' in err) {
+      if (typeof err === "object" && err !== null && "message" in err) {
         errorMessage = (err as { message: string }).message;
-      } else if (typeof err === 'string') {
+      } else if (typeof err === "string") {
         errorMessage = err;
       }
 
       setError(errorMessage);
       notifications.show({
-        title: 'Đăng nhập thất bại',
+        title: "Đăng nhập thất bại",
         message: errorMessage,
-        color: 'red',
+        color: "red",
         autoClose: 3000,
       });
     } finally {
@@ -97,12 +97,12 @@ export default function LoginPage() {
   const handleGoogleSuccess = async (
     credentialResponse: GoogleCredentialResponse,
   ) => {
-    console.log('Google Token:', credentialResponse.credential);
+    console.log("Google Token:", credentialResponse.credential);
     if (!credentialResponse.credential) {
       notifications.show({
-        title: 'Đăng nhập Google thất bại',
-        message: 'Không nhận được thông tin từ Google',
-        color: 'red',
+        title: "Đăng nhập Google thất bại",
+        message: "Không nhận được thông tin từ Google",
+        color: "red",
         autoClose: 3000,
       });
       return;
@@ -118,35 +118,35 @@ export default function LoginPage() {
 
       if (response.success && response.accessToken) {
         // Store token
-        localStorage.setItem('token', response.accessToken);
+        localStorage.setItem("token", response.accessToken);
 
         // Update user store
         setUser(response.user);
 
         // Show success notification
         notifications.show({
-          title: 'Đăng nhập thành công',
+          title: "Đăng nhập thành công",
           message: `Chào mừng trở lại, ${response.user.fullName}!`,
-          color: 'green',
+          color: "green",
           autoClose: 3000,
         });
 
         // Redirect to home page
-        navigate('/', { replace: true });
+        navigate("/", { replace: true });
       }
     } catch (err: unknown) {
-      let errorMessage = 'Đăng nhập Google thất bại. Vui lòng thử lại.';
+      let errorMessage = "Đăng nhập Google thất bại. Vui lòng thử lại.";
 
-      if (typeof err === 'object' && err !== null && 'message' in err) {
+      if (typeof err === "object" && err !== null && "message" in err) {
         errorMessage = (err as { message: string }).message;
-      } else if (typeof err === 'string') {
+      } else if (typeof err === "string") {
         errorMessage = err;
       }
 
       notifications.show({
-        title: 'Đăng nhập Google thất bại',
+        title: "Đăng nhập Google thất bại",
         message: errorMessage,
-        color: 'red',
+        color: "red",
         autoClose: 3000,
       });
     } finally {
@@ -156,61 +156,66 @@ export default function LoginPage() {
 
   const handleGoogleError = () => {
     notifications.show({
-      title: 'Đăng nhập Google thất bại',
-      message: 'Không thể xác thực với Google. Vui lòng thử lại.',
-      color: 'red',
+      title: "Đăng nhập Google thất bại",
+      message: "Không thể xác thực với Google. Vui lòng thử lại.",
+      color: "red",
     });
   };
 
   return (
-    <Container size={'xs'} my={'xl'}>
-      <Title ta='center' className={classes.title}>
+    <Container size={"xs"} my={"xl"}>
+      <Title ta="center" className={classes.title}>
         Chào mừng quay trở lại!
       </Title>
 
       <Text className={classes.subtitle}>
-        Bạn chưa có tài khoản?{' '}
-        <Anchor onClick={() => navigate('/register')}>Tạo tài khoản</Anchor>
+        Bạn chưa có tài khoản?{" "}
+        <Anchor onClick={() => navigate("/register")}>Tạo tài khoản</Anchor>
       </Text>
 
-      <Paper withBorder shadow='sm' p={22} mt={30} radius='md'>
+      <Paper withBorder shadow="sm" p={22} mt={30} radius="md">
         <form onSubmit={form.onSubmit(handleSubmit)}>
           <TextInput
-            label='Email'
-            placeholder='you@mantine.dev'
+            label="Email"
+            placeholder="you@mantine.dev"
             required
-            radius='md'
-            {...form.getInputProps('email')}
+            radius="md"
+            {...form.getInputProps("email")}
           />
           <PasswordInput
-            label='Mật khẩu'
-            placeholder='Mật khẩu của bạn'
+            label="Mật khẩu"
+            placeholder="Mật khẩu của bạn"
             required
-            mt='md'
-            radius='md'
-            {...form.getInputProps('password')}
+            mt="md"
+            radius="md"
+            {...form.getInputProps("password")}
           />
-          <Group justify='space-between' mt='lg'>
+          <Group justify="space-between" mt="lg">
             <Checkbox
-              label='Ghi nhớ tôi'
-              {...form.getInputProps('rememberMe', { type: 'checkbox' })}
+              label="Ghi nhớ tôi"
+              {...form.getInputProps("rememberMe", { type: "checkbox" })}
             />
-            <Anchor component='button' size='sm' type='button'>
+            <Anchor
+              component="button"
+              size="sm"
+              type="button"
+              onClick={() => navigate("/forgot-password")}
+            >
               Quên mật khẩu?
             </Anchor>
           </Group>
 
-          <Button fullWidth mt='xl' radius='md' type='submit' loading={loading}>
+          <Button fullWidth mt="xl" radius="md" type="submit" loading={loading}>
             Đăng nhập
           </Button>
         </form>
 
         <Divider
-          label='Hoặc tiếp tục với Google'
-          labelPosition='center'
-          my='lg'
+          label="Hoặc tiếp tục với Google"
+          labelPosition="center"
+          my="lg"
           styles={{
-            label: { color: 'var(--mantine-color-bright)', opacity: 0.85 },
+            label: { color: "var(--mantine-color-bright)", opacity: 0.85 },
           }}
         />
         <GoogleLogin
