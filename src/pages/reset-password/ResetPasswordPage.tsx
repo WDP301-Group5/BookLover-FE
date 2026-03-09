@@ -22,7 +22,7 @@ import { zod4Resolver } from "mantine-form-zod-resolver";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useDisclosure } from "@mantine/hooks";
-import { notifications } from "@mantine/notifications";
+import { showSuccess, showError } from "../../utils/notifications";
 import UserService from "../../services/UserService";
 
 const resetPasswordSchema = z
@@ -100,12 +100,7 @@ export default function ResetPasswordPage() {
 
   const handleSubmit = async (values: ResetPasswordFormValues) => {
     if (!token) {
-      notifications.show({
-        title: "Lỗi",
-        message: "Link không hợp lệ",
-        color: "red",
-        autoClose: 3000,
-      });
+      showError("Link không hợp lệ", "Lỗi");
       return;
     }
 
@@ -121,12 +116,10 @@ export default function ResetPasswordPage() {
       setStatus("success");
       setSuccessMessage(response.message);
 
-      notifications.show({
-        title: "Thành công",
-        message: response.message || "Mật khẩu đã được đặt lại thành công!",
-        color: "green",
-        autoClose: 3000,
-      });
+      showSuccess(
+        response.message || "Mật khẩu đã được đặt lại thành công!",
+        "Thành công",
+      );
     } catch (err: unknown) {
       let errorMsg = "Đặt lại mật khẩu thất bại. Vui lòng thử lại.";
 
@@ -148,12 +141,7 @@ export default function ResetPasswordPage() {
         setErrorMessage(errorMsg);
       }
 
-      notifications.show({
-        title: "Lỗi",
-        message: errorMsg,
-        color: "red",
-        autoClose: 3000,
-      });
+      showError(errorMsg, "Lỗi");
     } finally {
       setFormLoading(false);
     }
@@ -169,14 +157,10 @@ export default function ResetPasswordPage() {
         setResendCooldown(response.nextResendIn);
       }
 
-      notifications.show({
-        title: "Thành công",
-        message:
-          response.message ||
-          "Nếu email tồn tại, bạn sẽ nhận được liên kết mới.",
-        color: "green",
-        autoClose: 3000,
-      });
+      showSuccess(
+        response.message || "Nếu email tồn tại, bạn sẽ nhận được liên kết mới.",
+        "Thành công",
+      );
 
       // Clear form
       requestNewLinkForm.reset();

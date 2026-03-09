@@ -20,4 +20,13 @@ export const ChapterPageService = {
 		const res = await instance.get<Chapter>(`/chapter/${id}`);
 		return res.data;
 	},
+
+	async createChapter(data: FormData): Promise<Chapter> {
+		const res = await instance.post("/chapter", data, {
+			headers: {
+				"Content-Type": "multipart/form-data",
+			},
+		});
+		return res.data;
+	},
 };
