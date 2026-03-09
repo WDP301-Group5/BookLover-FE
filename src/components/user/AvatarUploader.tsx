@@ -28,7 +28,11 @@ const AvatarUploader = () => {
       showSuccess(
         type === "avatar" ? "Cập nhật avatar thành công 🎉" : "Cập nhật background thành công 🎉"
       );
-      type === "avatar" ? setAvatarModal(false) : setBgModal(false);
+      if (type === "avatar") {
+        setAvatarModal(false);
+      } else {
+        setBgModal(false);
+      }
     } catch (error) {
       console.error("Upload failed:", error);
       showError("Upload thất bại");

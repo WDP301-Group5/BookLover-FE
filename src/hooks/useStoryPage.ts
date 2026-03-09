@@ -1,6 +1,5 @@
 // src/hooks/useStoryPage.ts
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { StoryPageService } from "../services/StoryPageService";
 import { showError, showSuccess } from "../utils/notifications";
 import StoryService from "../services/StoryService";
 
@@ -22,7 +21,7 @@ export const useStoryDetail = (slug?: string) => {
 export const useCreateStory = () => {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: StoryPageService.createStory,
+		mutationFn: StoryService.createStory,
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["stories"] });
 			queryClient.invalidateQueries({ queryKey: ["my-stories"] });
@@ -37,6 +36,6 @@ export const useCreateStory = () => {
 export const useMyStories = () => {
 	return useQuery({
 		queryKey: ["my-stories"],
-		queryFn: () => StoryPageService.getMyStories(),
+		queryFn: () => StoryService.getMyStories(),
 	});
 };
