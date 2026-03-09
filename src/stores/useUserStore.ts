@@ -14,6 +14,11 @@ export interface UserProfile {
   nickName?: string;
   penName?: string;
   bio?: string;
+  spiritStones?: number;
+  followersCount?: number;
+  followingAuthorsCount?: number;
+  followingStoriesCount?: number;
+  storiesCount?: number;
 }
 
 interface UserState {
