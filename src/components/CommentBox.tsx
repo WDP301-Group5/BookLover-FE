@@ -1,5 +1,5 @@
 const CommentBox = () => {
-    return (<div>Chat Group Component</div>);
+	return <div>Chat Group Component</div>;
 };
 
 export default CommentBox;

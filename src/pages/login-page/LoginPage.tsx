@@ -12,22 +12,22 @@ import {
   Title,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { notifications } from "@mantine/notifications";
+import { showSuccess, showError } from "../../utils/notifications";
+import {
+  type GoogleCredentialResponse,
+  GoogleLogin,
+} from "@react-oauth/google";
+import { zod4Resolver } from "mantine-form-zod-resolver";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
-import classes from "./LoginPage.module.css";
-import { zod4Resolver } from "mantine-form-zod-resolver";
-import {
-  GoogleLogin,
-  type GoogleCredentialResponse,
-} from "@react-oauth/google";
 import UserService from "../../services/UserService";
 import { useUserStore } from "../../stores/useUserStore";
+import classes from "./LoginPage.module.css";
 
 const loginSchema = z.object({
-  email: z.string().email("Invalid email format"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  email: z.email("Định dạng email không hợp lệ"),
+  password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
   rememberMe: z.boolean().optional(),
 });
 
@@ -63,12 +63,10 @@ export default function LoginPage() {
         setUser(response.user);
 
         // Show success notification
-        notifications.show({
-          title: "Đăng nhập thành công",
-          message: `Chào mừng trở lại, ${response.user.fullName}!`,
-          color: "green",
-          autoClose: 3000,
-        });
+        showSuccess(
+          `Chào mừng trở lại, ${response.user.fullName}!`,
+          "Đăng nhập thành công",
+        );
 
         // Redirect to home page
         navigate("/", { replace: true });
@@ -83,12 +81,7 @@ export default function LoginPage() {
       }
 
       setError(errorMessage);
-      notifications.show({
-        title: "Đăng nhập thất bại",
-        message: errorMessage,
-        color: "red",
-        autoClose: 3000,
-      });
+      showError(errorMessage, "Đăng nhập thất bại");
     } finally {
       setLoading(false);
     }
@@ -99,12 +92,10 @@ export default function LoginPage() {
   ) => {
     console.log("Google Token:", credentialResponse.credential);
     if (!credentialResponse.credential) {
-      notifications.show({
-        title: "Đăng nhập Google thất bại",
-        message: "Không nhận được thông tin từ Google",
-        color: "red",
-        autoClose: 3000,
-      });
+      showError(
+        "Không nhận được thông tin từ Google",
+        "Đăng nhập Google thất bại",
+      );
       return;
     }
 
@@ -124,12 +115,10 @@ export default function LoginPage() {
         setUser(response.user);
 
         // Show success notification
-        notifications.show({
-          title: "Đăng nhập thành công",
-          message: `Chào mừng trở lại, ${response.user.fullName}!`,
-          color: "green",
-          autoClose: 3000,
-        });
+        showSuccess(
+          `Chào mừng trở lại, ${response.user.fullName}!`,
+          "Đăng nhập thành công",
+        );
 
         // Redirect to home page
         navigate("/", { replace: true });
@@ -143,23 +132,17 @@ export default function LoginPage() {
         errorMessage = err;
       }
 
-      notifications.show({
-        title: "Đăng nhập Google thất bại",
-        message: errorMessage,
-        color: "red",
-        autoClose: 3000,
-      });
+      showError(errorMessage, "Đăng nhập Google thất bại");
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleError = () => {
-    notifications.show({
-      title: "Đăng nhập Google thất bại",
-      message: "Không thể xác thực với Google. Vui lòng thử lại.",
-      color: "red",
-    });
+    showError(
+      "Không thể xác thực với Google. Vui lòng thử lại.",
+      "Đăng nhập Google thất bại",
+    );
   };
 
   return (
@@ -195,7 +178,12 @@ export default function LoginPage() {
               label="Ghi nhớ tôi"
               {...form.getInputProps("rememberMe", { type: "checkbox" })}
             />
-            <Anchor component="button" size="sm" type="button">
+            <Anchor
+              component="button"
+              size="sm"
+              type="button"
+              onClick={() => navigate("/forgot-password")}
+            >
               Quên mật khẩu?
             </Anchor>
           </Group>

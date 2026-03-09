@@ -1,6 +1,7 @@
 // src/services/ChapterPageService.ts
-import { instance } from "../lib/axios";
+
 import type { Chapter, ChapterItem } from "../interfaces/Chapter";
+import { instance } from "../lib/axios";
 
 export const ChapterPageService = {
   async getChaptersByStory(storyId: string): Promise<ChapterItem[]> {
@@ -15,10 +16,19 @@ export const ChapterPageService = {
     }));
   },
 
-  async getChapterById(id: string): Promise<Chapter> {
-    const res = await instance.get<Chapter>(`/chapter/${id}`);
-    return res.data;
-  },
+	async getChapterById(id: string): Promise<Chapter> {
+		const res = await instance.get<Chapter>(`/chapter/${id}`);
+		return res.data;
+	},
+
+	async createChapter(data: FormData): Promise<Chapter> {
+		const res = await instance.post("/chapter", data, {
+			headers: {
+				"Content-Type": "multipart/form-data",
+			},
+		});
+		return res.data;
+	},
 
   async getChapterByChapterNumber(
     storySlug: string,

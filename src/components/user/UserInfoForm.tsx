@@ -1,28 +1,30 @@
-import { useEffect, useState } from "react";
 import {
   Box,
-  Paper,
-  Text,
-  Title,
   Button,
-  Group,
-  TextInput,
   Divider,
+  Group,
+  Paper,
+  SimpleGrid,
+  Text,
   Textarea,
+  TextInput,
+  Title,
 } from "@mantine/core";
-import { Pencil, Save, X, User, Book, Bell, Lock } from "lucide-react";
+import { Bell, Book, Lock, Pencil, Save, User, X } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import AvatarUploader from "./AvatarUploader";
 import style from "./style.module.scss";
 
-import MyStory from "./user-navbar/MyStory";
-import ListStoryFollowed from "./user-navbar/ListStoryFollowed";
-import AuthorFollow from "./user-navbar/AuthorFollow";
-import Notification from "./user-navbar/Notification";
-import ChangePassword from "./user-navbar/ChangePassword";
-import { useUserStore } from "../../stores/useUserStore";
 import UserService from "../../services/UserService";
+import { useUserStore } from "../../stores/useUserStore";
 import { showError, showSuccess } from "../../utils/notifications";
+
+import AuthorFollow from "./user-navbar/AuthorFollow";
+import ChangePassword from "./user-navbar/ChangePassword";
+import ListStoryFollowed from "./user-navbar/ListStoryFollowed";
+import MyStory from "./user-navbar/MyStory";
+import Notification from "./user-navbar/Notification";
 
 const SIDEBAR_MENU = [
   { key: "info", label: "Thông tin cá nhân", icon: <User size={18} /> },
@@ -55,16 +57,15 @@ export default function UserInfoForm() {
     bio: "",
   });
 
- useEffect(() => {
-  const fetchProfile = async () => {
-    try {
-      console.log("Calling GET profile...");
-      const data = await UserService.getProfile();
-      updateUser(data);
-    } catch (error) {
-      console.error("Failed to fetch profile:", error);
-    }
-  };
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const data = await UserService.getProfile();
+        updateUser(data);
+      } catch (error) {
+        console.error("Failed to fetch profile:", error);
+      }
+    };
 
   fetchProfile();
 }, [updateUser]);
@@ -87,16 +88,20 @@ export default function UserInfoForm() {
   const handleSave = async () => {
     try {
       setLoading(true);
+
       const updatedData = await UserService.updateProfile(form);
+
       updateUser(updatedData);
+
       showSuccess("Cập nhật thông tin thành công");
+
       setEditMode(false);
     } catch (error: { message?: string } | unknown) {
-      console.error("Update failed:", error);
-      const errorMessage = (error instanceof Error ? error.message : undefined) || "Không thể cập nhật thông tin. Vui lòng thử lại.";
-      showError(
-        errorMessage
-      );
+      const errorMessage =
+        (error instanceof Error ? error.message : undefined) ||
+        "Không thể cập nhật thông tin.";
+
+      showError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -137,7 +142,7 @@ export default function UserInfoForm() {
                 className={style.editBtn}
                 onClick={() => setEditMode(true)}
               >
-                Edit
+                Chỉnh sửa
               </Button>
             )}
 
@@ -146,54 +151,116 @@ export default function UserInfoForm() {
             </Title>
 
             {!editMode ? (
-              <Box>
-                <DisplayItem label="Username" value={user.username} />
-                <DisplayItem label="Full name" value={user.fullName} />
-                <DisplayItem label="Nick name" value={user.nickName || "-"} />
-                {user.role === "author" && (
-                  <DisplayItem label="Pen name" value={user.penName || "-"} />
-                )}
-                <DisplayItem label="Bio" value={user.bio || "-"} />
-                <DisplayItem label="Role" value={user.role} />
-                <DisplayItem label="VIP Level" value={String(user.vipLevel)} />
-              </Box>
-            ) : (
-              <Box>
-                <TextInput
-                  label="Full name"
-                  value={form.fullName}
-                  onChange={(e) =>
-                    handleChange("fullName", e.currentTarget.value)
-                  }
-                  mb="md"
-                />
+              <>
+                {/* ACCOUNT */}
+                <Title order={4} mt="md" mb="sm">
+                  Tài khoản
+                </Title>
+                <SimpleGrid cols={2} spacing="md">
+                  <DisplayItem label="Username" value={user.username} />
+                  <DisplayItem label="Email" value={user.email} />
+                </SimpleGrid>
 
-                <TextInput
-                  label="Nick name"
-                  value={form.nickName}
-                  onChange={(e) =>
-                    handleChange("nickName", e.currentTarget.value)
-                  }
-                  mb="md"
-                />
+                <Divider my="md" />
 
-                {user.role === "author" && (
-                  <TextInput
-                    label="Pen name"
-                    value={form.penName}
-                    onChange={(e) =>
-                      handleChange("penName", e.currentTarget.value)
-                    }
-                    mb="md"
+                {/* PERSONAL */}
+                <Title order={4} mb="sm">
+                  Cá nhân
+                </Title>
+                <SimpleGrid cols={3} spacing="md">
+                  <DisplayItem label="Họ và tên" value={user.fullName} />
+                  <DisplayItem label="Biệt danh" value={user.nickName || "-"} />
+                  {user.role === "author" && (
+                    <DisplayItem label="Bút danh" value={user.penName || "-"} />
+                  )}
+                </SimpleGrid>
+                <DisplayItem label="Giới thiệu" value={user.bio || "-"} />
+
+                <Divider my="md" />
+
+                {/* VIP */}
+                <Title order={4} mb="sm">
+                  VIP
+                </Title>
+                <SimpleGrid cols={2} spacing="md">
+                  <DisplayItem label="Cấp độ VIP" value={String(user.vipLevel)} />
+                  <DisplayItem
+                    label="Linh thạch"
+                    value={user.spiritStones != null ? String(user.spiritStones) : "-"}
                   />
-                )}
+                </SimpleGrid>
+
+                <Divider my="md" />
+
+                {/* STATISTICS */}
+                <Title order={4} mb="sm">
+                  Thống kê
+                </Title>
+                <SimpleGrid cols={2} spacing="md">
+                  <DisplayItem
+                    label="Người theo dõi"
+                    value={user.followersCount != null ? String(user.followersCount) : "-"}
+                  />
+                  <DisplayItem
+                    label="Tác giả đang theo dõi"
+                    value={
+                      user.followingAuthorsCount != null
+                        ? String(user.followingAuthorsCount)
+                        : "-"
+                    }
+                  />
+                  <DisplayItem
+                    label="Các câu chuyện đang theo dõi"
+                    value={
+                      user.followingStoriesCount != null
+                        ? String(user.followingStoriesCount)
+                        : "-"
+                    }
+                  />
+                  <DisplayItem
+                    label="Truyện của bạn"
+                    value={user.storiesCount != null ? String(user.storiesCount) : "-"}
+                  />
+                </SimpleGrid>
+              </>
+            ) : (
+              // EDIT MODE
+              <>
+                <Title order={4} mt="md" mb="sm">
+                  Thông tin cá nhân
+                </Title>
+                <SimpleGrid cols={2} spacing="md">
+                  <TextInput
+                    label="Họ và tên"
+                    value={form.fullName}
+                    onChange={(e) =>
+                      handleChange("fullName", e.currentTarget.value)
+                    }
+                  />
+                  <TextInput
+                    label="Biệt danh"
+                    value={form.nickName}
+                    onChange={(e) =>
+                      handleChange("nickName", e.currentTarget.value)
+                    }
+                  />
+                  {user.role === "author" && (
+                    <TextInput
+                      label="Bút danh"
+                      value={form.penName}
+                      onChange={(e) =>
+                        handleChange("penName", e.currentTarget.value)
+                      }
+                    />
+                  )}
+                </SimpleGrid>
 
                 <Textarea
-                  label="Bio"
+                  label="Giới thiệu"
                   value={form.bio}
                   onChange={(e) => handleChange("bio", e.currentTarget.value)}
-                  mb="md"
                   minRows={3}
+                  mt="md"
                 />
 
                 <Group mt="lg">
@@ -203,7 +270,7 @@ export default function UserInfoForm() {
                     onClick={handleSave}
                     loading={loading}
                   >
-                    Save
+                    Lưu thay đổi
                   </Button>
 
                   <Button
@@ -212,10 +279,10 @@ export default function UserInfoForm() {
                     leftSection={<X size={18} />}
                     onClick={() => setEditMode(false)}
                   >
-                    Cancel
+                    Hủy thay đổi
                   </Button>
                 </Group>
-              </Box>
+              </>
             )}
           </>
         ) : (
@@ -251,13 +318,16 @@ function SidebarNav({
   );
 }
 
-function DisplayItem({ label, value }: { label: string; value: string }) {
+function DisplayItem({ label, value }: { label: string; value: string | number | undefined | null }) {
   return (
-    <Box className={style.item}>
-      <Text size="sm" c="dimmed">
+    <Paper withBorder radius="md" p="md" className={style.item}>
+      <Text size="xs" c="dimmed">
         {label}
       </Text>
-      <Text fw={500}>{value}</Text>
-    </Box>
+
+      <Text fw={600} size="lg">
+        {value != null && value !== "" ? value : "-"}
+      </Text>
+    </Paper>
   );
 }

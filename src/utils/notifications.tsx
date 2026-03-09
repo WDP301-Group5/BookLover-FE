@@ -1,5 +1,8 @@
-import { AlertTriangle, XCircle, CheckCircle } from "lucide-react";
 import { notifications } from "@mantine/notifications";
+import { AlertTriangle, CheckCircle, XCircle } from "lucide-react";
+
+const isDarkMode = () =>
+  window.matchMedia?.("(prefers-color-scheme: dark)").matches;
 
 export const showSuccess = (message: string, title?: string) => {
   notifications.show({
@@ -11,7 +14,10 @@ export const showSuccess = (message: string, title?: string) => {
     icon: <CheckCircle size={20} color="white" />,
     styles: {
       root: {
-        backgroundColor: "#E6F9EE", 
+        backgroundColor: "#E6F9EE",
+      },
+      title: {
+        color: isDarkMode() ? "white" : "black", // chỉ đổi màu title
       },
     },
   });
@@ -27,7 +33,10 @@ export const showError = (message: string, title?: string) => {
     icon: <XCircle size={20} color="white" />,
     styles: {
       root: {
-        backgroundColor: "#FDECEC", 
+        backgroundColor: "#FDECEC",
+      },
+      title: {
+        color: isDarkMode() ? "white" : "black",
       },
     },
   });
@@ -44,6 +53,9 @@ export const showWarning = (message: string, title?: string) => {
     styles: {
       root: {
         backgroundColor: "#FFF7E1",
+      },
+      title: {
+        color: isDarkMode() ? "white" : "black",
       },
     },
   });
