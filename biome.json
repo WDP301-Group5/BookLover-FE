@@ -8,6 +8,7 @@
     },
     "files": {
         "ignoreUnknown": false,
+        "ignoreAny": false,
         "includes": ["./src"]
     },
     "formatter": {

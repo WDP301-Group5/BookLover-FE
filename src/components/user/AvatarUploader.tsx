@@ -39,7 +39,7 @@ const AvatarUploader = () => {
   return (
     <div className={style.avatarWrapper}>
       <Avatar
-        src={user.avatarURL || undefined}
+        src={user?.avatarURL || undefined}
         size={140}
         radius="xl"
         className={style.avatar}

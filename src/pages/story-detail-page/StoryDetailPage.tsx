@@ -34,7 +34,7 @@ import {
 
 import RequireLoginModal from "../../components/Modal/RequireLoginModal";
 import { useStoryDetail } from "../../hooks/useStoryPage";
-import { useChaptersByStory } from "../../hooks/useChapterPage";
+import { useChaptersByStory } from "../../hooks/useChapter";
 import { slugify } from "../../utils";
 
 const StoryDetailPage: FC = () => {
@@ -47,7 +47,7 @@ const StoryDetailPage: FC = () => {
   } = useStoryDetail(slug || "");
 
   const { data: chapters, isLoading: chapterLoading } =
-    useChaptersByStory(story?.id);
+    useChaptersByStory(story?.id || "");
 
   const [followed, { toggle }] = useDisclosure(false);
   const [hoverRating, setHoverRating] = useState<number | null>(null);

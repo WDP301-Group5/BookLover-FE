@@ -3,7 +3,6 @@ import { instance } from "../lib/axios";
 import type { Chapter, ChapterItem } from "../interfaces/Chapter";
 
 export const ChapterPageService = {
-
   async getChaptersByStory(storyId: string): Promise<ChapterItem[]> {
     const res = await instance.get<Chapter[]>(`/chapter/story/${storyId}`);
     return res.data.map((c) => ({
@@ -20,4 +19,20 @@ export const ChapterPageService = {
     const res = await instance.get<Chapter>(`/chapter/${id}`);
     return res.data;
   },
+
+  async getChapterByChapterNumber(
+    storySlug: string,
+    chapterNumber: number,
+  ): Promise<Chapter> {
+    const res = await instance.get<Chapter>(
+      `/chapter/story/${storySlug}/chapter/${chapterNumber}`,
+    );
+    return res.data;
+  },
+
+  async userReadChapter(storyId: string, chapterNumber: number) {
+    if (!storyId || !chapterNumber) return null;
+    const res = await instance.post(`/story/read/${storyId}`, { chapterNumber });
+    return res.data;
+  }
 };

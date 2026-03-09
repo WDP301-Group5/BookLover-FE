@@ -1,3 +1,4 @@
+import type { Story, StoryItem } from "../interfaces/Story";
 import { instance } from "../lib/axios";
 
 const StoryService = {
@@ -59,6 +60,28 @@ const StoryService = {
       console.error("Error fetching user profile:", error);
       throw error;
     }
+  },
+
+  async getStories(): Promise<StoryItem[]> {
+    const res = await instance.get<Story[]>("/story");
+    console.log(res.data);
+    return res.data.map((s) => {
+      return{
+      id: s.id,
+      title: s.title,
+      slug: s.slug,
+      image: s.image,
+      views: s.views,
+      chapterNumber: s.chapters ?? 0,
+    }});
+  },
+
+  async getStoryBySlug(slug: string): Promise<Story> {
+    const res = await instance.get(`/story/${slug}`);
+    res.data.topics = res.data.topics.map((topic: { name: string }) => {
+      return topic?.name || "";
+    });
+    return res.data as Story;
   },
 };
 

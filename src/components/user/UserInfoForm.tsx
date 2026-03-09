@@ -67,7 +67,7 @@ export default function UserInfoForm() {
   };
 
   fetchProfile();
-}, []);
+}, [updateUser]);
 
   useEffect(() => {
     if (user) {
@@ -118,7 +118,7 @@ export default function UserInfoForm() {
     <Paper className={style.container}>
       {/* LEFT SIDEBAR */}
       <Box className={style.left}>
-        <AvatarUploader avatarURL={user.avatarURL} />
+        <AvatarUploader />
 
         <SidebarNav activeTab={activeTab} onChangeTab={setActiveTab} />
       </Box>

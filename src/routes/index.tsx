@@ -10,6 +10,7 @@ import BuyStonePage from "../pages/purchase/buy-stone/BuyStonePage";
 import StoryDetailPage from "../pages/story-detail-page/StoryDetailPage";
 import UserProfile from "../pages/user-profile/UserProfile";
 import { AdminRoute } from "./admin";
+import ChapterPage from "../pages/chapter-page/ChapterPage";
 
 const routes = createBrowserRouter([
     AdminRoute,
@@ -40,6 +41,10 @@ const routes = createBrowserRouter([
             {
                 path: "story/:slug",
                 element: <StoryDetailPage />,
+            },
+            {
+                path: "truyen/:storySlug/chuong/:chapterNumber",
+                element: <ChapterPage />,
             },
             // Routes below require the user to be authenticated with a valid token.
             {
