@@ -22,7 +22,7 @@ const Header = () => {
   const navigate = useNavigate();
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
-  const { isLoggedIn, logout } = useUserStore();
+  const { user, isLoggedIn, logout } = useUserStore();
 
   // Close mobile menu when resizing to desktop
   useEffect(() => {
@@ -250,8 +250,19 @@ const Header = () => {
             <MantineMenu shadow='md' width={224} position='bottom-end'>
               <MantineMenu.Target>
                 <button className='hidden sm:flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors duration-200 cursor-pointer'>
-                  Tài Khoản
-                  <ChevronDown className='w-4 h-4' />
+                  {isLoggedIn ? (
+                    <img
+                      src={user?.avatarURL || '/images/default-avatar.png'}
+                      alt='avatar'
+                      className='w-8 h-8 rounded-full object-cover border'
+                    />
+                  ) : (
+                    <div className='w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs'>
+                      ?
+                    </div>
+                  )}
+
+                  <ChevronDown className='w-4 h-4 text-gray-600 dark:text-gray-300' />
                 </button>
               </MantineMenu.Target>
 
@@ -447,7 +458,17 @@ const Header = () => {
               </Link>
               <div className='space-y-1'>
                 <div className='px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
-                  Tài Khoản
+                 {isLoggedIn ? (
+                  <img
+                    src={user?.avatarURL || '/images/default-avatar.png'}
+                    alt='avatar'
+                    className='w-8 h-8 rounded-full object-cover border'
+                  />
+                ) : (
+                  <div className='w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs'>
+                    ?
+                  </div>
+                )}
                 </div>
                 {isLoggedIn ? (
                   <>
