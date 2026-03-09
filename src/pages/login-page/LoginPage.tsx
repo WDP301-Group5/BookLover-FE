@@ -12,7 +12,7 @@ import {
   Title,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { notifications } from "@mantine/notifications";
+import { showSuccess, showError } from "../../utils/notifications";
 import {
   type GoogleCredentialResponse,
   GoogleLogin,
@@ -63,12 +63,10 @@ export default function LoginPage() {
         setUser(response.user);
 
         // Show success notification
-        notifications.show({
-          title: "Đăng nhập thành công",
-          message: `Chào mừng trở lại, ${response.user.fullName}!`,
-          color: "green",
-          autoClose: 3000,
-        });
+        showSuccess(
+          `Chào mừng trở lại, ${response.user.fullName}!`,
+          "Đăng nhập thành công",
+        );
 
         // Redirect to home page
         navigate("/", { replace: true });
@@ -83,12 +81,7 @@ export default function LoginPage() {
       }
 
       setError(errorMessage);
-      notifications.show({
-        title: "Đăng nhập thất bại",
-        message: errorMessage,
-        color: "red",
-        autoClose: 3000,
-      });
+      showError(errorMessage, "Đăng nhập thất bại");
     } finally {
       setLoading(false);
     }
@@ -99,12 +92,10 @@ export default function LoginPage() {
   ) => {
     console.log("Google Token:", credentialResponse.credential);
     if (!credentialResponse.credential) {
-      notifications.show({
-        title: "Đăng nhập Google thất bại",
-        message: "Không nhận được thông tin từ Google",
-        color: "red",
-        autoClose: 3000,
-      });
+      showError(
+        "Không nhận được thông tin từ Google",
+        "Đăng nhập Google thất bại",
+      );
       return;
     }
 
@@ -124,12 +115,10 @@ export default function LoginPage() {
         setUser(response.user);
 
         // Show success notification
-        notifications.show({
-          title: "Đăng nhập thành công",
-          message: `Chào mừng trở lại, ${response.user.fullName}!`,
-          color: "green",
-          autoClose: 3000,
-        });
+        showSuccess(
+          `Chào mừng trở lại, ${response.user.fullName}!`,
+          "Đăng nhập thành công",
+        );
 
         // Redirect to home page
         navigate("/", { replace: true });
@@ -143,23 +132,17 @@ export default function LoginPage() {
         errorMessage = err;
       }
 
-      notifications.show({
-        title: "Đăng nhập Google thất bại",
-        message: errorMessage,
-        color: "red",
-        autoClose: 3000,
-      });
+      showError(errorMessage, "Đăng nhập Google thất bại");
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleError = () => {
-    notifications.show({
-      title: "Đăng nhập Google thất bại",
-      message: "Không thể xác thực với Google. Vui lòng thử lại.",
-      color: "red",
-    });
+    showError(
+      "Không thể xác thực với Google. Vui lòng thử lại.",
+      "Đăng nhập Google thất bại",
+    );
   };
 
   return (

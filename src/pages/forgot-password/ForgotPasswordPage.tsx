@@ -19,7 +19,7 @@ import z from "zod";
 import { zod4Resolver } from "mantine-form-zod-resolver";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { notifications } from "@mantine/notifications";
+import { showSuccess, showError, showWarning } from "../../utils/notifications";
 import UserService from "../../services/UserService";
 
 const forgotPasswordSchema = z.object({
@@ -71,14 +71,11 @@ export default function ForgotPasswordPage() {
         setResendCooldown(response.nextResendIn);
       }
 
-      notifications.show({
-        title: "Thành công",
-        message:
-          response.message ||
+      showSuccess(
+        response.message ||
           "Nếu email tồn tại, bạn sẽ nhận được liên kết đặt lại mật khẩu.",
-        color: "green",
-        autoClose: 3000,
-      });
+        "Thành công",
+      );
     } catch (err: unknown) {
       let errorMsg = "Yêu cầu thất bại. Vui lòng thử lại.";
 
@@ -91,23 +88,13 @@ export default function ForgotPasswordPage() {
       setErrorMessage(errorMsg);
       setStatus("error");
 
-      notifications.show({
-        title: "Lỗi",
-        message: errorMsg,
-        color: "red",
-        autoClose: 3000,
-      });
+      showError(errorMsg, "Lỗi");
     }
   };
 
   const handleResendEmail = async () => {
     if (!email.trim()) {
-      notifications.show({
-        title: "Lỗi",
-        message: "Vui lòng nhập địa chỉ email.",
-        color: "orange",
-        autoClose: 3000,
-      });
+      showWarning("Vui lòng nhập địa chỉ email.", "Lỗi");
       return;
     }
 
@@ -120,14 +107,11 @@ export default function ForgotPasswordPage() {
         setResendCooldown(response.nextResendIn);
       }
 
-      notifications.show({
-        title: "Thành công",
-        message:
-          response.message ||
+      showSuccess(
+        response.message ||
           "Yêu cầu đặt lại mật khẩu đã được gửi. Vui lòng kiểm tra email.",
-        color: "green",
-        autoClose: 3000,
-      });
+        "Thành công",
+      );
     } catch (err: unknown) {
       let errorMsg = "Gửi lại thất bại. Vui lòng thử lại.";
 
@@ -137,12 +121,7 @@ export default function ForgotPasswordPage() {
         errorMsg = err;
       }
 
-      notifications.show({
-        title: "Lỗi",
-        message: errorMsg,
-        color: "red",
-        autoClose: 3000,
-      });
+      showError(errorMsg, "Lỗi");
     } finally {
       setResendLoading(false);
     }

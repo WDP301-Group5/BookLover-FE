@@ -26,4 +26,18 @@ export const StoryPageService = {
 		});
 		return res.data as Story;
 	},
+
+	async createStory(data: FormData): Promise<Story> {
+		const res = await instance.post("/story", data, {
+			headers: {
+				"Content-Type": "multipart/form-data",
+			},
+		});
+		return res.data;
+	},
+
+	async getMyStories(): Promise<Story[]> {
+		const res = await instance.get<Story[]>("/story/my-stories");
+		return res.data;
+	},
 };
