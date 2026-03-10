@@ -27,7 +27,7 @@ import { useUserStore } from "../../stores/useUserStore";
 import RequireLoginModal from "../../components/RequireLoginModal";
 import { useCommentsByChapter, useReplyComments } from "../../hooks/useComment";
 import CommentService from "../../services/CommentService";
-import { showSuccess } from "../../utils/notifications";
+import { showError, showSuccess } from "../../utils/notifications";
 import type { Comment } from "../../interfaces/Comment";
 import { DateHourFormat } from "../../utils";
 import { useQueryClient } from "@tanstack/react-query";
@@ -235,7 +235,7 @@ const ChapterPage = () => {
             await queryClient.invalidateQueries({ queryKey: ["chapter", String(storySlug), Number(chapterNumber)] });
         }
         if (result && !result?.success && !result?.enough) {
-            showSuccess(result?.message || "Linh thạch không đủ. Vui lòng thử lại.");
+            showError(result?.message || "Linh thạch không đủ. Vui lòng thử lại.");
         }
     };
 
@@ -518,8 +518,8 @@ const ChapterPage = () => {
                                 lh={textSettings.lineHeight}
                                 c={textSettings.textColor}
                                 bg={textSettings.backgroundColor || ""}
+                                dangerouslySetInnerHTML={{__html: chapter?.contentURL || ""}}
                             >
-                                {chapter?.contentURL}
                             </Text>
                         ))}
                     </Stack>
