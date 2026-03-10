@@ -28,7 +28,11 @@ const AvatarUploader = () => {
       showSuccess(
         type === "avatar" ? "Cập nhật avatar thành công 🎉" : "Cập nhật background thành công 🎉"
       );
-      type === "avatar" ? setAvatarModal(false) : setBgModal(false);
+      if (type === "avatar") {
+        setAvatarModal(false);
+      } else {
+        setBgModal(false);
+      }
     } catch (error) {
       console.error("Upload failed:", error);
       showError("Upload thất bại");
@@ -43,7 +47,7 @@ const AvatarUploader = () => {
       <div
         className={style.backgroundWrapper}
         style={{
-          backgroundImage: `url(${user.backgroundURL || ""})`,
+          backgroundImage: `url(${user?.backgroundURL || ""})`,
         }}
       >
         <Button
@@ -59,7 +63,7 @@ const AvatarUploader = () => {
       {/* Avatar */}
       <div className={style.avatarContainer} onClick={() => setAvatarModal(true)}>
         <Avatar
-          src={user.avatarURL || undefined}
+          src={user?.avatarURL || undefined}
           size={140}
           radius="xl"
           className={style.avatar}

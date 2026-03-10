@@ -33,8 +33,8 @@ import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import RequireLoginModal from "../../components/Modal/RequireLoginModal";
-import { useChaptersByStory } from "../../hooks/useChapterPage";
-import { useStoryDetail } from "../../hooks/useStoryPage";
+import { useChaptersByStory } from "../../hooks/useChapter";
+import { useStoryDetail } from "../../hooks/useStory";
 import { slugify } from "../../utils";
 
 const StoryDetailPage: FC = () => {
@@ -46,9 +46,8 @@ const StoryDetailPage: FC = () => {
 		isError: storyError,
 	} = useStoryDetail(slug || "");
 
-	const { data: chapters, isLoading: chapterLoading } = useChaptersByStory(
-		story?.id,
-	);
+  const { data: chapters, isLoading: chapterLoading } =
+    useChaptersByStory(story?.id || "");
 
 	const [followed, { toggle }] = useDisclosure(false);
 	const [hoverRating, setHoverRating] = useState<number | null>(null);

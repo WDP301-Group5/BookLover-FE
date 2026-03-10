@@ -1,27 +1,27 @@
 // src/hooks/useStoryPage.ts
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { StoryPageService } from "../services/StoryPageService";
 import { showError, showSuccess } from "../utils/notifications";
+import StoryService from "../services/StoryService";
 
 export const useStories = () => {
-	return useQuery({
-		queryKey: ["stories"],
-		queryFn: () => StoryPageService.getStories(),
-	});
+  return useQuery({
+    queryKey: ["stories"],
+    queryFn: () => StoryService.getStories(),
+  });
 };
 
 export const useStoryDetail = (slug?: string) => {
-	return useQuery({
-		queryKey: ["story", slug],
-		queryFn: () => StoryPageService.getStoryBySlug(slug as string),
-		enabled: !!slug,
-	});
+  return useQuery({
+    queryKey: ["story", slug],
+    queryFn: () => StoryService.getStoryBySlug(slug as string),
+    enabled: !!slug,
+  });
 };
 
 export const useCreateStory = () => {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: StoryPageService.createStory,
+		mutationFn: StoryService.createStory,
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["stories"] });
 			queryClient.invalidateQueries({ queryKey: ["my-stories"] });
@@ -36,6 +36,6 @@ export const useCreateStory = () => {
 export const useMyStories = () => {
 	return useQuery({
 		queryKey: ["my-stories"],
-		queryFn: () => StoryPageService.getMyStories(),
+		queryFn: () => StoryService.getMyStories(),
 	});
 };

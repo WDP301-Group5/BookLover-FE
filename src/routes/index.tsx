@@ -14,6 +14,7 @@ import VerifyEmailPage from "../pages/verify-email-page/VerifyEmailPage";
 import { AdminRoute } from "./admin";
 import ForgotPasswordPage from "../pages/forgot-password/ForgotPasswordPage";
 import ResetPasswordPage from "../pages/reset-password/ResetPasswordPage";
+import ChapterPage from "../pages/chapter-page/ChapterPage";
 
 const routes = createBrowserRouter([
   AdminRoute,
@@ -60,6 +61,10 @@ const routes = createBrowserRouter([
       {
         path: "story/:slug",
         element: <StoryDetailPage />,
+      },
+      {
+        path: "truyen/:storySlug/chuong/:chapterNumber",
+        element: <ChapterPage />,
       },
       // Routes below require the user to be authenticated with a valid token.
       {
