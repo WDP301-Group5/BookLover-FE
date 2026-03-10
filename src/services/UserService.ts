@@ -191,6 +191,7 @@ const UserService = {
 
   async updateProfile(data: {
     fullName?: string;
+    username?: string;
     nickName?: string;
     penName?: string;
     bio?: string;
@@ -200,6 +201,7 @@ const UserService = {
     const formData = new FormData();
 
     if (data.fullName) formData.append("fullName", data.fullName);
+    if (data.username) formData.append("username", data.username);
     if (data.nickName) formData.append("nickName", data.nickName);
     if (data.penName) formData.append("penName", data.penName);
     if (data.bio) formData.append("bio", data.bio);

@@ -52,6 +52,7 @@ export default function UserInfoForm() {
 
   const [form, setForm] = useState({
     fullName: "",
+    username: "",
     nickName: "",
     penName: "",
     bio: "",
@@ -74,6 +75,7 @@ export default function UserInfoForm() {
     if (user) {
       setForm({
         fullName: user.fullName || "",
+        username: user.username || "",
         nickName: user.nickName || "",
         penName: user.penName || "",
         bio: user.bio || "",
@@ -226,15 +228,19 @@ export default function UserInfoForm() {
             ) : (
               // EDIT MODE
               <>
-                <Title order={4} mt="md" mb="sm">
-                  Thông tin cá nhân
-                </Title>
                 <SimpleGrid cols={2} spacing="md">
                   <TextInput
                     label="Họ và tên"
                     value={form.fullName}
                     onChange={(e) =>
                       handleChange("fullName", e.currentTarget.value)
+                    }
+                  />
+                  <TextInput
+                    label="Username"
+                    value={form.username}
+                    onChange={(e) =>
+                      handleChange("username", e.currentTarget.value.toLowerCase().replace(/\s/g, ""))
                     }
                   />
                   <TextInput
