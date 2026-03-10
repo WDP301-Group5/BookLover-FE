@@ -16,19 +16,19 @@ export const ChapterPageService = {
     }));
   },
 
-	async getChapterById(id: string): Promise<Chapter> {
-		const res = await instance.get<Chapter>(`/chapter/${id}`);
-		return res.data;
-	},
+  async getChapterById(id: string): Promise<Chapter> {
+    const res = await instance.get<Chapter>(`/chapter/${id}`);
+    return res.data;
+  },
 
-	async createChapter(data: FormData): Promise<Chapter> {
-		const res = await instance.post("/chapter", data, {
-			headers: {
-				"Content-Type": "multipart/form-data",
-			},
-		});
-		return res.data;
-	},
+  async createChapter(data: FormData): Promise<Chapter> {
+    const res = await instance.post("/chapter", data, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return res.data;
+  },
 
   async getChapterByChapterNumber(
     storySlug: string,
@@ -42,7 +42,18 @@ export const ChapterPageService = {
 
   async userReadChapter(storyId: string, chapterNumber: number) {
     if (!storyId || !chapterNumber) return null;
-    const res = await instance.post(`/story/read/${storyId}`, { chapterNumber });
+    const res = await instance.post(`/story/read/${storyId}`, {
+      chapterNumber,
+    });
     return res.data;
-  }
+  },
+
+  async buyChapter(chapterId: string, currentStone: number) {
+    if (!chapterId || !currentStone || !Number(currentStone)) return null;
+    const res = await instance.post(`/chapter/buy/${chapterId}`, {
+      currentStone,
+    });
+    console.log("res", res)
+    return res.data;
+  },
 };

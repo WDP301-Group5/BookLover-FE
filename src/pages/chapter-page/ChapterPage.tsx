@@ -73,7 +73,7 @@ const ChapterPage = () => {
     const [textSettings, setTextSettings] = useState<ReaderSettings>(defaultSettings);
     const { storySlug, chapterNumber } = useParams();
     const navigate = useNavigate();
-    const { isLoggedIn } = useUserStore();
+    const { isLoggedIn, user, updateUser } = useUserStore();
     const [loginNotice, setLoginNotice] = useState(false);
     const [comment, setComment] = useState("");
     const [commentPage, setCommentPage] = useState(1);
@@ -85,6 +85,8 @@ const ChapterPage = () => {
     const [expandedComments, setExpandedComments] = useState<string[]>([]);
     const [repliesMap] = useState<Record<string, Comment[]>>({});
     const [openedReplyCommentId, setOpenedReplyCommentId] = useState<string>("");
+    const [openedBuyChapter, { open: openBuyChapter, close: closeBuyChapter }] = useDisclosure(false);
+    const [openedConfirmBuyChapter, { open: openConfirmBuyChapter, close: closeConfirmBuyChapter }] = useDisclosure(false);
 
     // Load settings
     useEffect(() => {
@@ -108,7 +110,6 @@ const ChapterPage = () => {
 
     const { data: commentData } = useCommentsByChapter(chapter?.id ?? "", commentPage, LIMIT);
     const comments = commentData?.comments ?? [];
-    console.log("comment", comments)
     const totalCommentPages = commentData && commentData.total ? Math.ceil(commentData.total / LIMIT) : 1;
     const { data: replyData, refetch: refetchReplyComments } = useReplyComments(openedReplyCommentId);
     // console.log("reply", replyData)
@@ -121,8 +122,10 @@ const ChapterPage = () => {
         [commentData?.comments]
     );
     const { data: userReact } = useUserReactOfChapter(chapter?.id ?? "", commentPage, commentIds);
-    console.log("ueReact", userReact)
-    const userReactMap = useMemo(() => new Map(userReact?.map((r: ReactComment) => [r.commentId, r.react]) ?? []), [userReact]);
+    const userReactMap = useMemo(() => {
+        if (!userReact || !userReact.length) return new Map();
+        return new Map(userReact?.map((r: ReactComment) => [r.commentId, r.react]) ?? [])
+    }, [userReact]);
 
     const saveSettings = () => {
         setTextSettings(settings);
@@ -219,6 +222,22 @@ const ChapterPage = () => {
 
         return () => clearTimeout(timer);
     }, [chapter?.storyId, chapterNumber]);
+
+    const handleBuyChapter = async () => {
+        // gọi API mua chương ở đây
+        const result = await ChapterPageService.buyChapter(chapter?.id || "", user?.spiritStones || 0);
+        console.log("Buy chapter", result);
+        closeBuyChapter();
+        closeConfirmBuyChapter();
+        if (result && result?.success) {
+            showSuccess("Mua chương thành công");
+            updateUser({ ...user, spiritStones: (user?.spiritStones || 0) - (chapter?.price || 0) });
+            await queryClient.invalidateQueries({ queryKey: ["chapter", String(storySlug), Number(chapterNumber)] });
+        }
+        if (result && !result?.success && !result?.enough) {
+            showSuccess(result?.message || "Linh thạch không đủ. Vui lòng thử lại.");
+        }
+    };
 
     return (
         <Container size="md" py="xl">
@@ -376,16 +395,133 @@ const ChapterPage = () => {
                             {`Chương ${chapter?.chapterNumber}: ${chapter?.title}`}
                         </Title>
                         <Divider />
-                        <Text
-                            style={{ whiteSpace: "pre-wrap" }}
-                            ff={textSettings.fontFamily}
-                            fz={textSettings.fontSize}
-                            lh={textSettings.lineHeight}
-                            c={textSettings.textColor}
-                            bg={textSettings.backgroundColor || ""}
-                        >
-                            {chapter?.contentURL}
-                        </Text>
+                        {chapter?.contentURL === "status-require-login" ? (
+                            <Text size="lg">
+                                Vui lòng{" "}
+                                <Anchor href="/login" fw={600}>
+                                    đăng nhập
+                                </Anchor>{" "}
+                                và mua chương để xem nội dung.
+                            </Text>
+                        ) : (chapter?.contentURL === "status-buy-chapter" ? (
+                            <>
+                                <Text size="lg">
+                                    Vui lòng{" "}
+                                    <Anchor
+                                        component="button"
+                                        onClick={openBuyChapter}
+                                        className="text-blue-600 hover:underline"
+                                        fw={600}
+                                    >
+                                        mua chương
+                                    </Anchor>{" "}
+                                    để xem nội dung.
+                                </Text>
+
+                                <Modal
+                                    opened={openedBuyChapter}
+                                    onClose={closeBuyChapter}
+                                    centered
+                                    title={
+                                        <Text fw={700} size="lg">
+                                            Xác nhận mua chương
+                                        </Text>
+                                    }
+                                >
+                                    <Text size="md" mb="sm">
+                                        Bạn có chắc muốn mua chương này không?
+                                    </Text>
+
+                                    {/* Thông tin linh thạch */}
+                                    <Group justify="space-between" mb="md">
+                                        <Text size="md" c={"blue"}>
+                                            Linh thạch hiện tại
+                                        </Text>
+                                        <Text fw={600} c="blue">
+                                            {user?.spiritStones || 0} 💎
+                                        </Text>
+                                    </Group>
+
+                                    <Group justify="space-between" mb="lg">
+                                        <Text size="md" c={"blue"}>
+                                            Giá chương
+                                        </Text>
+                                        <Text fw={600} c="red">
+                                            {chapter?.price} 💎
+                                        </Text>
+                                    </Group>
+
+                                    {!user || user?.spiritStones < chapter?.price && (
+                                        <Group justify="space-between" mb="md" >
+                                            <Text size="md" c={""}>
+                                                Linh thạch không đủ. {" "}
+                                                <Anchor
+                                                    component="button"
+                                                    onClick={() => navigate("/purchase/spirit-stone")}
+                                                    className="text-blue-600 hover:underline"
+                                                    fw={600}
+                                                >
+                                                    Mua thêm
+                                                </Anchor>{" "}
+                                                linh thạch.
+                                            </Text>
+                                        </Group>
+                                    )}
+
+                                    <Group justify="flex-end">
+                                        <Button variant="default" onClick={closeBuyChapter}>
+                                            Hủy
+                                        </Button>
+
+                                        <Button
+                                            color="blue"
+                                            onClick={openConfirmBuyChapter}
+                                            disabled={!user || user?.spiritStones < chapter?.price}
+                                        >
+                                            Xác nhận mua
+                                        </Button>
+                                    </Group>
+                                </Modal>
+                                <Modal
+                                    opened={openedConfirmBuyChapter}
+                                    onClose={closeConfirmBuyChapter}
+                                    centered
+                                    title={
+                                        <Text fw={700} size="lg">
+                                            Xác nhận mua chương
+                                        </Text>
+                                    }
+                                >
+                                    <Text fw={500} size="md">
+                                        Bạn chắc chắn xác nhận mua chương?
+                                    </Text>
+                                    <Group justify="flex-end">
+                                        <Button variant="default" onClick={() => { closeConfirmBuyChapter(); closeBuyChapter() }}>
+                                            Hủy
+                                        </Button>
+
+                                        <Button
+                                            color="blue"
+                                            onClick={handleBuyChapter}
+                                            disabled={!user || user?.spiritStones < chapter?.price}
+                                        >
+                                            Xác nhận
+                                        </Button>
+                                    </Group>
+                                </Modal>
+                            </>
+                        ) : (
+                            <Text
+                                style={{ whiteSpace: "pre-wrap" }}
+                                ff={textSettings.fontFamily}
+                                fz={textSettings.fontSize}
+                                lh={textSettings.lineHeight}
+                                c={textSettings.textColor}
+                                bg={textSettings.backgroundColor || ""}
+                            >
+                                {chapter?.contentURL}
+                            </Text>
+                        ))}
                     </Stack>
                 </Paper>
 

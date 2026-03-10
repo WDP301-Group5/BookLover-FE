@@ -28,14 +28,14 @@ instance.interceptors.response.use(
 		return response;
 	},
 	(error) => {
-		if (error.response && error.response.status === 403) {
+		if (error.response && error.response.status === 401) {
 			console.error(
-				"Forbidden! You don't have permission to access this resource.",
+				"Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để tiếp tục.",
 			);
-			if (navigate) {
-				navigate(-1);
-			}
+			localStorage.removeItem("token");
+			localStorage.removeItem("user");
 		}
-		return Promise.reject(error);
+		return error.response;
+		
 	},
 );
