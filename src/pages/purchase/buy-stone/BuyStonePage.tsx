@@ -33,7 +33,7 @@ const BuyStonePage = () => {
   const [purchaseSuccess, setPurchaseSuccess] = useState(false);
   const [countdown, setCountdown] = useState(5);
 
-  const { isLoggedIn: isUserLoggedIn, logout } = useUserStore();
+  const { isLoggedIn: isUserLoggedIn, user, logout, updateUser } = useUserStore();
 
   const [appTransId, setAppTransId] = useState<string | null>(null);
 
@@ -77,7 +77,9 @@ const BuyStonePage = () => {
     const eventName = `purchase_status_${appTransId}`;
 
     const handleSuccess = () => {
+
       setPurchaseSuccess(true);
+      updateUser({ spiritStones: user?.spiritStones || 0 + stones });
     };
 
     socket.once(eventName, handleSuccess);
