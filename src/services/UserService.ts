@@ -64,6 +64,21 @@ export interface UpdateProfileRequest {
   bio?: string;
 }
 
+export interface AuthorPublicProfile {
+  _id: string;
+  username: string;
+  fullName: string;
+  nickName?: string;
+  penName?: string;
+  avatarURL?: string;
+  backgroundURL?: string;
+  vipLevel?: number;
+  followersCount: number;
+  followingCount: number;
+  storiesCount: number;
+  isFollowing?: boolean; // trạng thái follow của user hiện tại
+}
+
 const UserService = {
   async register(credentials: RegisterCredentials): Promise<RegisterResponse> {
     try {
@@ -258,6 +273,33 @@ const UserService = {
       throw error instanceof Error
         ? error.message
         : "Có lỗi không xác định xảy ra";
+    }
+  },
+
+  async getPublicProfile(authorId: string): Promise<AuthorPublicProfile> {
+    try {
+      const res = await axiosClient.get(`/user/${authorId}/public`);
+      return res.data.data;
+    } catch (error: unknown) {
+      console.error("Error fetching public profile:", error);
+      if (axios.isAxiosError(error) && error.response) {
+        throw error.response?.data || error.message;
+      }
+      throw error instanceof Error ? error.message : "Unknown error";
+    }
+  },
+
+  // Follow/unfollow author
+  async toggleFollow(authorId: string): Promise<{ status: "follow" | "unfollow"; followersCount: number }> {
+    try {
+      const res = await axiosClient.post("/user/follow", { authorId });
+      return res.data.data;
+    } catch (error: unknown) {
+      console.error("Error following author:", error);
+      if (axios.isAxiosError(error) && error.response) {
+        throw error.response?.data || error.message;
+      }
+      throw error instanceof Error ? error.message : "Unknown error";
     }
   },
 };

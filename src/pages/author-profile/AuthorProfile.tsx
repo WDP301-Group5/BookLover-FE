@@ -3,11 +3,14 @@ import { AuthorHeader } from "../../components/author/AuthorHeader";
 import { ConversationTab } from "../../components/author/ConversationTab.tsx";
 import { FollowingTab } from "../../components/author/FollowingTab.tsx";
 import { IntroductionTab } from "../../components/author/IntroductionTab";
+import { useParams } from "react-router-dom";
 
 export function AuthorProfile() {
+	const { authorId } = useParams<{ authorId: string }>();
+
 	return (
 		<div className="min-h-screen">
-			<AuthorHeader />
+			{authorId && <AuthorHeader authorId={authorId} />}
 
 			<Tabs defaultValue="introduction" className="mt-8">
 				<Tabs.List grow className="max-w-4xl mx-auto border-b bg-white">
