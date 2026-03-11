@@ -4,7 +4,7 @@ import { instance as axios } from "../lib/axios";
 
 export const GenreService = {
   getAll: async (): Promise<Genre[]> => {
-    const response = await axios.get("/genres");
+    const response = await axios.get("/genres/all-genres");
     return response.data.genres; 
   },
 

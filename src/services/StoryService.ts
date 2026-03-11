@@ -106,7 +106,7 @@ async getStoriesWithFilter(params: {
   sortBy?: string;
 }) {
   try {
-    const response = await instance.get("/story/newchapter", { params });
+    const response = await instance.get("/story/search", { params });
     return response?.data;
   } catch (error) {
     console.error("Error fetching stories with filter:", error);
