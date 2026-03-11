@@ -72,11 +72,7 @@ export function AuthorHeader({ authorId }: AuthorHeaderProps) {
             radius="full"
             className="border-4 border-white"
           />
-          <Stack
-            gap="md"
-            align={{ base: "center", sm: "start" }}
-            className="text-white"
-          >
+          <Stack gap="md" align="center" className="text-white">
             <Text size="xl" fw={800}>
               {author.penName}
             </Text>

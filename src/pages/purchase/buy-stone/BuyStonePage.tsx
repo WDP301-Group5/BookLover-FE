@@ -33,7 +33,12 @@ const BuyStonePage = () => {
   const [purchaseSuccess, setPurchaseSuccess] = useState(false);
   const [countdown, setCountdown] = useState(5);
 
-  const { isLoggedIn: isUserLoggedIn, user, logout, updateUser } = useUserStore();
+  const {
+    isLoggedIn: isUserLoggedIn,
+    user,
+    logout,
+    updateUser,
+  } = useUserStore();
 
   const [appTransId, setAppTransId] = useState<string | null>(null);
 
@@ -77,7 +82,6 @@ const BuyStonePage = () => {
     const eventName = `purchase_status_${appTransId}`;
 
     const handleSuccess = () => {
-
       setPurchaseSuccess(true);
       updateUser({ spiritStones: user?.spiritStones || 0 + stones });
     };
@@ -151,10 +155,8 @@ const BuyStonePage = () => {
   return (
     <>
       <div className="max-w-xl mx-auto mt-10 px-4">
-
         {/* HEADER */}
         <Card shadow="md" radius="lg" p="lg">
-
           <div className="rounded-xl p-6 mb-6 bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
             <Text size="xl" fw={800}>
               💎 Nạp linh thạch
@@ -165,23 +167,36 @@ const BuyStonePage = () => {
             </Text>
 
             <Group mt="md">
-              <Badge color="white" variant="light">🔒 An toàn</Badge>
-              <Badge color="white" variant="light">⚡ Tự động</Badge>
-              <Badge color="white" variant="light">🎯 Chính xác</Badge>
+              <Badge color="white" variant="light">
+                🔒 An toàn
+              </Badge>
+              <Badge color="white" variant="light">
+                ⚡ Tự động
+              </Badge>
+              <Badge color="white" variant="light">
+                🎯 Chính xác
+              </Badge>
             </Group>
           </div>
 
           {/* QUICK AMOUNT */}
           <Group mb="md">
-            <Button variant="light" onClick={() => setAmount(10000)}>10K</Button>
-            <Button variant="light" onClick={() => setAmount(20000)}>20K</Button>
-            <Button variant="light" onClick={() => setAmount(50000)}>50K</Button>
-            <Button variant="light" onClick={() => setAmount(100000)}>100K</Button>
+            <Button variant="light" onClick={() => setAmount(10000)}>
+              10K
+            </Button>
+            <Button variant="light" onClick={() => setAmount(20000)}>
+              20K
+            </Button>
+            <Button variant="light" onClick={() => setAmount(50000)}>
+              50K
+            </Button>
+            <Button variant="light" onClick={() => setAmount(100000)}>
+              100K
+            </Button>
           </Group>
 
           {/* INPUT */}
           <Card withBorder radius="md" p="md">
-
             <NumberInput
               label="Số tiền muốn nạp"
               description="Tối thiểu 10.000 VNĐ"
@@ -209,7 +224,6 @@ const BuyStonePage = () => {
                 💎 {Math.floor(stones).toLocaleString()}
               </Text>
             </Group>
-
           </Card>
 
           {/* BUTTON */}
@@ -224,21 +238,20 @@ const BuyStonePage = () => {
           >
             💳 Thanh toán ngay
           </Button>
-
         </Card>
 
         {/* NOTE */}
         <Card shadow="sm" radius="lg" mt="md" p="lg">
-          <Text fw={600} mb="xs">⚠️ Lưu ý</Text>
+          <Text fw={600} mb="xs">
+            ⚠️ Lưu ý
+          </Text>
 
           <ul className="list-disc list-inside space-y-1 text-sm text-gray-600">
             <li>Không reload trang khi đang thanh toán</li>
             <li>QR chỉ có hiệu lực trong phiên hiện tại</li>
             <li>Nếu thanh toán xong chưa nhận linh thạch hãy liên hệ hỗ trợ</li>
           </ul>
-
         </Card>
-
       </div>
 
       {/* MODAL PAYMENT */}
@@ -252,7 +265,6 @@ const BuyStonePage = () => {
         closeOnEscape={false}
       >
         <div className="flex flex-col items-center gap-5">
-
           {purchaseSuccess ? (
             <>
               <img
@@ -292,9 +304,14 @@ const BuyStonePage = () => {
           <Divider className="w-full" />
 
           <div className="w-full text-sm space-y-3 border rounded-md p-4 bg-gray-50">
-
-            <InfoRow label="Số tiền" value={`${amount?.toLocaleString()} VNĐ`} />
-            <InfoRow label="Nhận được" value={`💎 ${stones.toLocaleString()}`} />
+            <InfoRow
+              label="Số tiền"
+              value={`${amount?.toLocaleString()} VNĐ`}
+            />
+            <InfoRow
+              label="Nhận được"
+              value={`💎 ${stones.toLocaleString()}`}
+            />
 
             <Divider />
 
@@ -306,7 +323,6 @@ const BuyStonePage = () => {
               mono
               highlight
             />
-
           </div>
 
           {!purchaseSuccess && (
@@ -314,7 +330,6 @@ const BuyStonePage = () => {
               Vui lòng không đóng trang trong quá trình thanh toán.
             </Text>
           )}
-
         </div>
       </Modal>
 
@@ -364,7 +379,6 @@ const InfoRow = ({
 }) => (
   <div className="flex justify-between">
     <span className="text-gray-500">{label}</span>
-
     <span
       className={`font-semibold ${mono ? "font-mono" : ""} ${
         highlight ? "text-blue-600" : ""

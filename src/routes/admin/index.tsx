@@ -6,58 +6,62 @@ import { GenreManagement } from "../../pages/admin/catalog/genre/GenreManagement
 import { AdminChapterModeration } from "../../pages/admin/censor/AdminChapterModeration";
 import { AdminStoryModeration } from "../../pages/admin/censor/AdminStoryModeration";
 import NotFoundPage from "../../pages/error/not-found";
+import { RoleBasedRoute } from "../../components/common/RoleBasedRoute";
 
 export const AdminRoute: RouteObject = {
   path: "/admin",
   element: (
-    // <AdminRouteGuard>
-    <AdminLayout />
-    // </AdminRouteGuard>
+    <RoleBasedRoute allowedRoles="admin" fallbackRoute="/unauthorized" />
   ),
   children: [
     {
-      index: true,
-      element: <Navigate to="dashboard" replace />,
-    },
-    {
-      path: "dashboard",
-      element: <div>Dashboard</div>,
-    },
-    {
-      path: "account",
-      element: <AdminAccountManagement />,
-    },
-    {
-      path: "catalog",
-      element: <Outlet />,
-      children: [
-        {
-          path: "genre",
-          element: <GenreManagement />,
-        },
-      ],
-    },
-    {
-      path: "censor",
-      element: <Outlet />,
+      element: <AdminLayout />,
       children: [
         {
           index: true,
-          element: <Navigate to="stories" replace />,
+          element: <Navigate to="dashboard" replace />,
         },
         {
-          path: "stories",
-          element: <AdminStoryModeration />,
+          path: "dashboard",
+          element: <div>Dashboard</div>,
         },
         {
-          path: "chapters",
-          element: <AdminChapterModeration />,
+          path: "account",
+          element: <AdminAccountManagement />,
+        },
+        {
+          path: "catalog",
+          element: <Outlet />,
+          children: [
+            {
+              path: "genre",
+              element: <GenreManagement />,
+            },
+          ],
+        },
+        {
+          path: "censor",
+          element: <Outlet />,
+          children: [
+            {
+              index: true,
+              element: <Navigate to="stories" replace />,
+            },
+            {
+              path: "stories",
+              element: <AdminStoryModeration />,
+            },
+            {
+              path: "chapters",
+              element: <AdminChapterModeration />,
+            },
+          ],
+        },
+        {
+          path: "*",
+          element: <NotFoundPage />,
         },
       ],
-    },
-    {
-      path: "*",
-      element: <NotFoundPage />,
     },
   ],
 };
