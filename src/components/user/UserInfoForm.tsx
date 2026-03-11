@@ -19,14 +19,13 @@ import style from "./style.module.scss";
 import UserService from "../../services/UserService";
 import { useUserStore } from "../../stores/useUserStore";
 import { showError, showSuccess } from "../../utils/notifications";
-
-import AuthorFollow from "./user-navbar/AuthorFollow";
 import ChangePassword from "./user-navbar/ChangePassword";
 import ListStoryFollowed from "./user-navbar/ListStoryFollowed";
 import MyStory from "./user-navbar/MyStory";
 import Notification from "./user-navbar/Notification";
 import { useNavigate } from "react-router-dom";
 import Followers from "./user-navbar/Followers";
+import { FollowingTab } from "../author/FollowingTab";
 
 const SIDEBAR_MENU = [
   { key: "info", label: "Thông tin cá nhân", icon: <User size={18} /> },
@@ -42,8 +41,8 @@ const SIDEBAR_MENU = [
     icon: <Users size={18} />,
   },
   {
-    key: "following-authors",
-    label: "Tác giả đang theo dõi",
+    key: "following",
+    label: "Đang theo dõi",
     icon: <UserRoundPlus size={18} />,
   },
   { key: "notifications", label: "Thông báo", icon: <Bell size={18} /> },
@@ -123,8 +122,8 @@ export default function UserInfoForm() {
   const TAB_CONTENT: Record<string, React.ReactNode> = {
     "my-stories": <MyStory />,
     "following-stories": <ListStoryFollowed />,
-    "following-authors": <AuthorFollow />,
-    "followers": <Followers />,
+    "following": <FollowingTab authorId={user.id} layout="compact" showTitle />,
+    "followers": <Followers authorId={user.id} layout="compact" showTitle />,
     "notifications": <Notification />,
     "change-password": <ChangePassword />,
   };
@@ -156,7 +155,7 @@ export default function UserInfoForm() {
                 </Button>
 
                 {/* Nút điều hướng sang trang author-profile */}
-                {user.role === "author" && (
+                {(user.role === "author" || user.role === "user") && (
                   <Button
                     variant="outline"
                     color="green"
@@ -224,15 +223,15 @@ export default function UserInfoForm() {
                     value={user.followersCount != null ? String(user.followersCount) : "-"}
                   />
                   <DisplayItem
-                    label="Tác giả đang theo dõi"
+                    label="Đang theo dõi"
                     value={
-                      user.followingAuthorsCount != null
-                        ? String(user.followingAuthorsCount)
+                      user.followingCount != null
+                        ? String(user.followingCount)
                         : "-"
                     }
                   />
                   <DisplayItem
-                    label="Các câu chuyện đang theo dõi"
+                    label="Truyện đang theo dõi"
                     value={
                       user.followingStoriesCount != null
                         ? String(user.followingStoriesCount)
