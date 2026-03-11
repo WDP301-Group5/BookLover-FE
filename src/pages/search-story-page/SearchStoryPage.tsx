@@ -225,7 +225,7 @@
 
                   <Text fw={500}>Topics</Text>
                   <Stack gap={2}>
-                    {topics.map((t: { _id: string; name: string }) => (
+                    {topics?.map((t: { _id: string; name: string }) => (
                       <Anchor
                         key={t._id}
                         href="#"

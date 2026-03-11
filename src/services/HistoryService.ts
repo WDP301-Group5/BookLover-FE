@@ -16,6 +16,22 @@ const HistoryService = {
 			throw error;
 		}
 	},
+
+	async deleteHistory(id: string) {
+		try {
+			const response = await instance
+				.delete(`/user/history/${id}`)
+				.then((res) => res?.data || [])
+				.catch((err) => {
+					console.error("Error fetching user profile:", err);
+					throw err;
+				});
+			return response;
+		} catch (error) {
+			console.error("Error fetching user profile:", error);
+			throw error;
+		}
+	},
 };
 
 export default HistoryService;

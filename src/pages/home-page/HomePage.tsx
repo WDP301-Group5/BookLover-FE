@@ -9,12 +9,15 @@ import StoryCard from "../../components/story/StoryCard";
 import TopStoryTable from "../../components/TopStoryTable";
 import { useNewChapterStory, useRecommendStory } from "../../hooks/useStory";
 import type { Story } from "../../interfaces/Story";
+import { useRef } from "react";
+import Autoplay from "embla-carousel-autoplay";
 
 const HomePage = () => {
 	const [searchParams] = useSearchParams();
 	const page = Number(searchParams.get("page") ?? 1);
 	const LIMIT = 24;
 	const navigate = useNavigate();
+	const autoplay = useRef(Autoplay({ delay: 2000 }));
 
 	const { data: recommendStory } = useRecommendStory();
 	const { data: newChapterData } = useNewChapterStory(page, LIMIT);
@@ -30,7 +33,7 @@ const HomePage = () => {
 	return (
 		<div className="w-full p-4 bg-custom-bg">
 			<Paper shadow="xs" p="sm">
-				<Text fw={500} size="lg" mb={8}>
+				<Text fw={600} size="lg" mb={8}>
 					Truyện đề cử
 				</Text>
 				<Carousel
@@ -39,24 +42,31 @@ const HomePage = () => {
 					loop
 					align="start"
 					controlSize={40}
+					plugins={[autoplay.current]}
+					onMouseEnter={autoplay.current.reset}
+					onMouseLeave={autoplay.current.reset}
+					onClick={autoplay.current.reset}
 				>
 					{recommendStory?.map((story: Story) => (
-						<Carousel.Slide>
-							<StoryCard key={story.id} story={story} type="home" />
+						<Carousel.Slide key={story.id}>
+							<StoryCard story={story} type="home" />
 						</Carousel.Slide>
 					))}
 				</Carousel>
 			</Paper>
 			<Paper shadow="xs" p="sm" my={24}>
 				<Text size="lg" fw={600}>
-					Đây là thẻ giới thiệu trang web
+					Khám phá thế giới truyện hấp dẫn
 				</Text>
+
 				<Text lineClamp={4}>
-					Content test: Use it to create cards, dropdowns, modals and other
-					components that require background with shadow
+					Nền tảng đọc truyện online với hàng nghìn chương truyện được cập nhật
+					liên tục. Theo dõi những bộ truyện yêu thích, lưu lại lịch sử đọc và
+					mở khóa các chương mới một cách nhanh chóng. Trải nghiệm đọc mượt mà,
+					tiện lợi trên mọi thiết bị.
 				</Text>
 			</Paper>
-			<Text fw={500} size="lg" mb={8}>
+			<Text fw={600} size="lg" mb={8}>
 				Truyện có chương mới
 			</Text>
 			<div className="grid grid-cols-2 gap-8 lg:grid-cols-3 ">
