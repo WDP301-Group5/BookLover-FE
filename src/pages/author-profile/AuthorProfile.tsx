@@ -10,7 +10,9 @@ import Followers from "../../components/user/user-navbar/Followers.tsx";
 
 export function AuthorProfile() {
   const { authorId } = useParams<{ authorId: string }>();
-  const [authorData, setAuthorData] = useState<AuthorPublicProfile | null>(null);
+  const [authorData, setAuthorData] = useState<AuthorPublicProfile | null>(
+    null,
+  );
 
   return (
     <div className="min-h-screen">
@@ -51,19 +53,13 @@ export function AuthorProfile() {
 
         <Tabs.Panel value="following" pt="xl">
           {authorId && (
-            <FollowingTab
-              authorId={authorId}
-              setAuthorData={setAuthorData}
-            />
+            <FollowingTab authorId={authorId} layout="profile" showTitle />
           )}
         </Tabs.Panel>
 
         <Tabs.Panel value="followers" pt="xl">
           {authorId && (
-            <Followers
-              authorId={authorId}
-              setAuthorData={setAuthorData}
-            />
+            <Followers authorId={authorId} layout="profile" showTitle />
           )}
         </Tabs.Panel>
       </Tabs>
