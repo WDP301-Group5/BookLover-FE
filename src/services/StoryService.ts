@@ -76,12 +76,11 @@ const StoryService = {
     }});
   },
 
-  async getStoryBySlug(slug: string): Promise<Story> {
-    const res = await instance.get(`/story/${slug}`);
-    res.data.topics = res.data.topics.map((topic: { name: string }) => {
-      return topic?.name || "";
-    });
-    return res.data as Story;
+  async getStoryBySlug(slug: string) {
+    const res = await instance.get(`/story/with-author/${slug}`);
+    res.data.author = res.data.authorId;
+    res.data.id = res.data._id;
+    return res.data;
   },
 
   async getMyStories(): Promise<Story[]> {
@@ -113,7 +112,6 @@ async getStoriesWithFilter(params: {
     throw error;
   }
 },
-
 };
 
 export default StoryService;

@@ -77,3 +77,9 @@ export const useStories = (params: StoryQueryParams) => {
     placeholderData: keepPreviousData,
   });
 };
+
+export const useStoryDetailWithAuthor = (slug: string) =>
+  useQuery(["story", slug], async () => {
+    const res = await axios.get(`/api/v1/story/with-author/${slug}`);
+    return res.data;
+  });
