@@ -2,8 +2,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { keepPreviousData } from "@tanstack/react-query"; 
 import StoryService from "../services/StoryService";
-import { showError, showSuccess } from "../utils/notifications";
 import type { Story } from "../interfaces/Story";
+import { showError, showSuccess } from "../utils/notifications";
 
 export const useRecommendStory = () => {
   return useQuery({
@@ -26,13 +26,6 @@ export const useTop10Story = (type: "m" | "w" | "d" = "m") => {
   });
 };
 
-export const useMyStories = () => {
-	return useQuery({
-		queryKey: ["my-stories"],
-		queryFn: () => StoryService.getMyStories(),
-	});
-};
-
 export const useStoryDetail = (slug?: string) => {
 	return useQuery({
 		queryKey: ["story", slug],
@@ -53,6 +46,13 @@ export const useCreateStory = () => {
 		onError: (error: Error) => {
 			showError(error.message || "Lỗi khi tạo truyện");
 		},
+	});
+};
+
+export const useMyStories = () => {
+	return useQuery({
+		queryKey: ["my-stories"],
+		queryFn: () => StoryService.getMyStories(),
 	});
 };
 
