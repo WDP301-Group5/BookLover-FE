@@ -33,6 +33,12 @@ export interface StoryItem {
   image: string;
   views: number;
   chapterNumber: number;
+  storyId?: {
+    id: string;
+    slug: string;
+    image: string;
+    title: string;
+  };
 }
 
 export interface CensorLog {
