@@ -1,3 +1,4 @@
+// src/pages/story-detail-page/StoryDetailPage.tsx
 import {
 	Anchor,
 	Badge,

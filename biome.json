@@ -19,7 +19,7 @@
         "formatWithErrors": true
     },
     "linter": {
-        "enabled": true,
+        "enabled": false,
         "rules": {
             "recommended": true,
             "suspicious": {
@@ -32,19 +32,5 @@
             "quoteStyle": "double"
         }
     }
-  },
-  "linter": {
-    "enabled": true,
-    "rules": {
-      "recommended": true,
-      "suspicious": {
-        "noArrayIndexKey": "off"
-      }
-    }
-  },
-  "javascript": {
-    "formatter": {
-      "quoteStyle": "double"
-    }
   }
-}
+  

@@ -1,3 +1,4 @@
+// src/services/StoryService.ts
 import { instance } from "../lib/axios";
 
 const StoryService = {
@@ -61,6 +62,23 @@ const StoryService = {
 			throw error;
 		}
 	},
+async getStoriesWithFilter(params: {
+  page: number;
+  limit: number;
+  status?: string;
+  category?: string;  
+  search?: string;
+  sortBy?: string;
+}) {
+  try {
+    const response = await instance.get("/story/newchapter", { params });
+    return response?.data;
+  } catch (error) {
+    console.error("Error fetching stories with filter:", error);
+    throw error;
+  }
+},
+
 };
 
 export default StoryService;

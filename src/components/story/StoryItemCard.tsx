@@ -1,3 +1,4 @@
+// src/components/story/StoryItemCard.tsx
 import { Image, Text } from "@mantine/core";
 import { Eye, X } from "lucide-react";
 import type { StoryItem } from "../../interfaces/Story.ts";
