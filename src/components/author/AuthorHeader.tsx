@@ -68,8 +68,9 @@ export function AuthorHeader({ authorId }: AuthorHeaderProps) {
         <Flex direction={{ base: "column", sm: "row" }} gap="xl" align="center">
           <Avatar
             src={author.avatarURL || ""}
-            size={140}
+            size={200}
             radius="full"
+			style={{ borderRadius: "50%" }}
             className="border-4 border-white"
           />
           <Stack
