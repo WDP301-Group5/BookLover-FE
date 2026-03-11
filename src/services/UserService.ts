@@ -290,17 +290,29 @@ const UserService = {
   },
 
   // Follow/unfollow author
-  async toggleFollow(authorId: string): Promise<{ status: "follow" | "unfollow"; followersCount: number }> {
-    try {
-      const res = await axiosClient.post("/user/follow", { authorId });
-      return res.data.data;
-    } catch (error: unknown) {
-      console.error("Error following author:", error);
-      if (axios.isAxiosError(error) && error.response) {
-        throw error.response?.data || error.message;
-      }
-      throw error instanceof Error ? error.message : "Unknown error";
-    }
+  async toggleFollow(authorId: string): Promise<{
+    status: "follow" | "unfollow";
+    followersCount: number;
+    followingCount: number;
+  }> {
+    const res = await axiosClient.post("/user/follow", { authorId });
+    return res.data.data;
+  },
+
+  /** GET followers list */
+  async getFollowers(authorId: string): Promise<AuthorPublicProfile[]> {
+    const res = await axiosClient.get("/user/followers", {
+      params: { userId: authorId }, // backend yêu cầu userId
+    });
+    return res.data.data;
+  },
+
+  /** Check if current user follows an author */
+  async checkFollowStatus(authorId: string): Promise<"follow" | "unfollow"> {
+    const res = await axiosClient.get("/user/follow/status", {
+      params: { authorId },
+    });
+    return res.data.status;
   },
 };
 

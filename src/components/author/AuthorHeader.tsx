@@ -1,14 +1,16 @@
 import { Avatar, Button, Flex, Group, Stack, Text } from "@mantine/core";
-import { Book, Check, Users } from "lucide-react";
+import { Book, Check, UserCheck, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { AuthorPublicProfile } from "../../services/UserService";
 import UserService from "../../services/UserService";
 
 interface AuthorHeaderProps {
   authorId: string;
+  authorData?: AuthorPublicProfile | null;
+  setAuthorData?: (data: AuthorPublicProfile) => void;
 }
 
-export function AuthorHeader({ authorId }: AuthorHeaderProps) {
+export function AuthorHeader({ authorId, authorData, setAuthorData }: AuthorHeaderProps) {
   const [author, setAuthor] = useState<AuthorPublicProfile>({
     _id: "",
     username: "",
@@ -29,30 +31,37 @@ export function AuthorHeader({ authorId }: AuthorHeaderProps) {
       try {
         const data = await UserService.getPublicProfile(authorId);
         setAuthor(data);
+        setAuthorData?.(data);
       } catch (err) {
         console.error(err);
       }
     }
 
     fetchAuthor();
-  }, [authorId]);
+  }, [authorId, setAuthorData]);
 
   const handleFollow = async () => {
-    if (!authorId) return;
+    if (!authorId || !authorData) return;
     setLoadingFollow(true);
+
     try {
       const data = await UserService.toggleFollow(authorId);
-      setAuthor((prev) => ({
-        ...prev,
+
+      // Cập nhật parent state
+      setAuthorData({
+        ...authorData,
         isFollowing: data.status === "follow",
         followersCount: data.followersCount,
-      }));
+        followingCount: data.followingCount,
+      });
     } catch (err) {
       console.error(err);
     } finally {
       setLoadingFollow(false);
     }
   };
+
+  if (!authorData) return null;
 
   return (
     <div
@@ -100,7 +109,7 @@ export function AuthorHeader({ authorId }: AuthorHeaderProps) {
                   {author.followingCount}
                 </Text>
                 <Group gap="xs">
-                  <Users size={20} />
+                  <UserCheck size={20} />
                   <Text>Đang theo dõi</Text>
                 </Group>
               </Flex>
