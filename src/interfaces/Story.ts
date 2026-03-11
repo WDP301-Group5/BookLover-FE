@@ -21,6 +21,7 @@ export interface Story {
   views: number;
   stars: number;
   rates: number;
+  chapters?: number;
   followers: number;
   createdAt: string;
   updatedAt: string;
