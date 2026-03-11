@@ -190,7 +190,7 @@
                   e.preventDefault();
                   setSelectedGenre(null);
                   setSelectedTopic(null);
-                  setCategoryFilter("Tất cả");
+                  setCategoryFilter("");
                 }}
               >
                 Tất cả
