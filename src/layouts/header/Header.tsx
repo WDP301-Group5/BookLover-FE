@@ -1,5 +1,4 @@
 import { Menu as MantineMenu, useMantineColorScheme } from "@mantine/core";
-import { notifications } from "@mantine/notifications";
 import {
   BookOpen,
   ChevronDown,
@@ -15,13 +14,14 @@ import {
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useUserStore } from "../../stores/useUserStore";
+import { showSuccess } from "../../utils/notifications";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
-  const isDark = colorScheme === 'dark';
+  const isDark = colorScheme === "dark";
   const { user, isLoggedIn, logout } = useUserStore();
 
   // Close mobile menu when resizing to desktop
@@ -38,12 +38,7 @@ const Header = () => {
 
   const handleLogout = () => {
     logout();
-    notifications.show({
-      title: "Đăng xuất thành công",
-      message: "Hẹn gặp lại bạn!",
-      color: "blue",
-      autoClose: 3000,
-    });
+    showSuccess("Hẹn gặp lại bạn!", "Đăng xuất thành công");
     navigate("/");
   };
 
@@ -249,20 +244,20 @@ const Header = () => {
             {/* Account Dropdown */}
             <MantineMenu shadow="md" width={224} position="bottom-end">
               <MantineMenu.Target>
-                <button className='hidden sm:flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors duration-200 cursor-pointer'>
+                <button className="hidden sm:flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors duration-200 cursor-pointer">
                   {isLoggedIn ? (
                     <img
-                      src={user?.avatarURL || '/images/default-avatar.png'}
-                      alt='avatar'
-                      className='w-8 h-8 rounded-full object-cover border'
+                      src={user?.avatarURL || "/images/default-avatar.png"}
+                      alt="avatar"
+                      className="w-8 h-8 rounded-full object-cover border"
                     />
                   ) : (
-                    <div className='w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs'>
-                      ?
+                    <div className="text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                      Đăng nhập
                     </div>
                   )}
 
-                  <ChevronDown className='w-4 h-4 text-gray-600 dark:text-gray-300' />
+                  <ChevronDown className="w-4 h-4 text-gray-600 dark:text-gray-300" />
                 </button>
               </MantineMenu.Target>
 
@@ -456,19 +451,19 @@ const Header = () => {
                 <Zap className="w-4 h-4 fill-blue-600 dark:fill-blue-400" />
                 Mua gói cao cấp
               </Link>
-              <div className='space-y-1'>
-                <div className='px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
-                 {isLoggedIn ? (
-                  <img
-                    src={user?.avatarURL || '/images/default-avatar.png'}
-                    alt='avatar'
-                    className='w-8 h-8 rounded-full object-cover border'
-                  />
-                ) : (
-                  <div className='w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs'>
-                    ?
-                  </div>
-                )}
+              <div className="space-y-1">
+                <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  {isLoggedIn ? (
+                    <img
+                      src={user?.avatarURL || "/images/default-avatar.png"}
+                      alt="avatar"
+                      className="w-8 h-8 rounded-full object-cover border"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs">
+                      ?
+                    </div>
+                  )}
                 </div>
                 {isLoggedIn ? (
                   <>

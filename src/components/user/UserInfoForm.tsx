@@ -10,7 +10,7 @@ import {
   TextInput,
   Title,
 } from "@mantine/core";
-import { Bell, Book, Lock, Pencil, Save, User, X } from "lucide-react";
+import { Bell, Book, BookCheck, Lock, Pencil, Save, User, UserRoundPlus, Users, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import AvatarUploader from "./AvatarUploader";
@@ -19,12 +19,13 @@ import style from "./style.module.scss";
 import UserService from "../../services/UserService";
 import { useUserStore } from "../../stores/useUserStore";
 import { showError, showSuccess } from "../../utils/notifications";
-
-import AuthorFollow from "./user-navbar/AuthorFollow";
 import ChangePassword from "./user-navbar/ChangePassword";
 import ListStoryFollowed from "./user-navbar/ListStoryFollowed";
 import MyStory from "./user-navbar/MyStory";
 import Notification from "./user-navbar/Notification";
+import { useNavigate } from "react-router-dom";
+import Followers from "./user-navbar/Followers";
+import { FollowingTab } from "../author/FollowingTab";
 
 const SIDEBAR_MENU = [
   { key: "info", label: "Thông tin cá nhân", icon: <User size={18} /> },
@@ -32,12 +33,17 @@ const SIDEBAR_MENU = [
   {
     key: "following-stories",
     label: "Truyện đang theo dõi",
-    icon: <Book size={18} />,
+    icon: <BookCheck size={18} />,
   },
   {
-    key: "following-authors",
-    label: "Tác giả đang theo dõi",
-    icon: <User size={18} />,
+    key: "followers",
+    label: "Người theo dõi",
+    icon: <Users size={18} />,
+  },
+  {
+    key: "following",
+    label: "Đang theo dõi",
+    icon: <UserRoundPlus size={18} />,
   },
   { key: "notifications", label: "Thông báo", icon: <Bell size={18} /> },
   { key: "change-password", label: "Đổi mật khẩu", icon: <Lock size={18} /> },
@@ -45,7 +51,7 @@ const SIDEBAR_MENU = [
 
 export default function UserInfoForm() {
   const { user, updateUser } = useUserStore();
-
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("info");
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -116,8 +122,9 @@ export default function UserInfoForm() {
   const TAB_CONTENT: Record<string, React.ReactNode> = {
     "my-stories": <MyStory />,
     "following-stories": <ListStoryFollowed />,
-    "following-authors": <AuthorFollow />,
-    notifications: <Notification />,
+    "following": <FollowingTab authorId={user.id} layout="compact" showTitle />,
+    "followers": <Followers authorId={user.id} layout="compact" showTitle />,
+    "notifications": <Notification />,
     "change-password": <ChangePassword />,
   };
 
@@ -126,7 +133,6 @@ export default function UserInfoForm() {
       {/* LEFT SIDEBAR */}
       <Box className={style.left}>
         <AvatarUploader />
-
         <SidebarNav activeTab={activeTab} onChangeTab={setActiveTab} />
       </Box>
 
@@ -137,15 +143,28 @@ export default function UserInfoForm() {
         {activeTab === "info" ? (
           <>
             {!editMode && (
-              <Button
-                variant="subtle"
-                color="blue"
-                leftSection={<Pencil size={18} />}
-                className={style.editBtn}
-                onClick={() => setEditMode(true)}
-              >
-                Chỉnh sửa
-              </Button>
+              <Group position="apart" mb="md">
+                <Button
+                  variant="subtle"
+                  color="blue"
+                  leftSection={<Pencil size={18} />}
+                  className={style.editBtn}
+                  onClick={() => setEditMode(true)}
+                >
+                  Chỉnh sửa
+                </Button>
+
+                {/* Nút điều hướng sang trang author-profile */}
+                {(user.role === "author" || user.role === "user") && (
+                  <Button
+                    variant="outline"
+                    color="green"
+                    onClick={() => navigate(`/author-profile/${user.id}`)}
+                  >
+                    Xem trang tác giả
+                  </Button>
+                )}
+              </Group>
             )}
 
             <Title order={3} className={style.sectionTitle}>
@@ -204,15 +223,15 @@ export default function UserInfoForm() {
                     value={user.followersCount != null ? String(user.followersCount) : "-"}
                   />
                   <DisplayItem
-                    label="Tác giả đang theo dõi"
+                    label="Đang theo dõi"
                     value={
-                      user.followingAuthorsCount != null
-                        ? String(user.followingAuthorsCount)
+                      user.followingCount != null
+                        ? String(user.followingCount)
                         : "-"
                     }
                   />
                   <DisplayItem
-                    label="Các câu chuyện đang theo dõi"
+                    label="Truyện đang theo dõi"
                     value={
                       user.followingStoriesCount != null
                         ? String(user.followingStoriesCount)

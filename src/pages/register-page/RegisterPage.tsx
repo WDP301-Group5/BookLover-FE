@@ -9,6 +9,7 @@ import {
   Text,
   TextInput,
   Title,
+  Group,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { showSuccess, showError } from "../../utils/notifications";
@@ -16,11 +17,15 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import classes from "./RegisterPage.module.css";
 import UserService from "../../services/UserService";
+import TermsModal from "../../components/modals/TermsModal";
+import PrivacyPolicyModal from "../../components/modals/PrivacyPolicyModal";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [termsOpened, setTermsOpened] = useState(false);
+  const [privacyOpened, setPrivacyOpened] = useState(false);
 
   const form = useForm({
     initialValues: {
@@ -28,7 +33,7 @@ export default function RegisterPage() {
       name: "",
       password: "",
       confirmPassword: "",
-      terms: true,
+      terms: false,
     },
 
     validate: {
@@ -142,14 +147,45 @@ export default function RegisterPage() {
               radius="md"
             />
 
-            <Checkbox
-              label="Tôi chấp nhận điều khoản sử dụng"
-              checked={form.values.terms}
-              onChange={(event) =>
-                form.setFieldValue("terms", event.currentTarget.checked)
-              }
-              error={form.errors.terms}
-            />
+            <Group align="flex-start" gap="xs">
+              <Checkbox
+                checked={form.values.terms}
+                onChange={(event) =>
+                  form.setFieldValue("terms", event.currentTarget.checked)
+                }
+              />
+              <Stack gap={0} flex={1}>
+                <Text size="sm">
+                  Tôi đã đọc và chấp nhận{" "}
+                  <Anchor
+                    component="button"
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setTermsOpened(true);
+                    }}
+                  >
+                    điều khoản dịch vụ
+                  </Anchor>{" "}
+                  và{" "}
+                  <Anchor
+                    component="button"
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setPrivacyOpened(true);
+                    }}
+                  >
+                    chính sách bảo mật
+                  </Anchor>
+                </Text>
+                {form.errors.terms && (
+                  <Text size="xs" c="red">
+                    {form.errors.terms}
+                  </Text>
+                )}
+              </Stack>
+            </Group>
           </Stack>
 
           <Button fullWidth mt="xl" radius="md" type="submit" loading={loading}>
@@ -157,6 +193,13 @@ export default function RegisterPage() {
           </Button>
         </form>
       </Paper>
+
+      {/* Modals */}
+      <TermsModal opened={termsOpened} onClose={() => setTermsOpened(false)} />
+      <PrivacyPolicyModal
+        opened={privacyOpened}
+        onClose={() => setPrivacyOpened(false)}
+      />
     </Container>
   );
 }

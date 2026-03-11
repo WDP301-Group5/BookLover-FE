@@ -30,6 +30,15 @@ export const ChapterPageService = {
     return res.data;
   },
 
+  async createChaptersBatch(data: FormData): Promise<any> {
+    const res = await instance.post("/chapter/batch", data, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return res.data;
+  },
+
   async getChapterByChapterNumber(
     storySlug: string,
     chapterNumber: number,
@@ -53,7 +62,7 @@ export const ChapterPageService = {
     const res = await instance.post(`/chapter/buy/${chapterId}`, {
       currentStone,
     });
-    console.log("res", res)
+    console.log("res", res);
     return res.data;
   },
 };
