@@ -11,7 +11,7 @@ import {
   Title,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { notifications } from "@mantine/notifications";
+import { showSuccess, showError } from "../../utils/notifications";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import classes from "./RegisterPage.module.css";
@@ -54,14 +54,10 @@ export default function RegisterPage() {
       });
 
       if (response.success) {
-        notifications.show({
-          title: "Đăng ký thành công!",
-          message:
-            response.message ||
-            "Vui lòng kiểm tra email để xác thực tài khoản.",
-          color: "green",
-          autoClose: 5000,
-        });
+        showSuccess(
+          response.message || "Vui lòng kiểm tra email để xác thực tài khoản.",
+          "Đăng ký thành công!",
+        );
 
         navigate("/verify-email", { replace: true });
       }
@@ -74,12 +70,7 @@ export default function RegisterPage() {
         errorMessage = err;
       }
 
-      notifications.show({
-        title: "Đăng ký thất bại",
-        message: errorMessage,
-        color: "red",
-        autoClose: 3000,
-      });
+      showError(errorMessage, "Đăng ký thất bại");
     } finally {
       setLoading(false);
     }

@@ -1,8 +1,9 @@
 // src/hooks/useStory.ts
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { keepPreviousData } from "@tanstack/react-query"; 
 import StoryService from "../services/StoryService";
-import type { Story, StoryItem } from "../interfaces/Story";
+import { showError, showSuccess } from "../utils/notifications";
+import type { Story } from "../interfaces/Story";
 
 export const useRecommendStory = () => {
   return useQuery({
@@ -23,6 +24,36 @@ export const useTop10Story = (type: "m" | "w" | "d" = "m") => {
     queryKey: ["topStory", type],
     queryFn: () => StoryService.getTop10Story(type),
   });
+};
+
+export const useMyStories = () => {
+	return useQuery({
+		queryKey: ["my-stories"],
+		queryFn: () => StoryService.getMyStories(),
+	});
+};
+
+export const useStoryDetail = (slug?: string) => {
+	return useQuery({
+		queryKey: ["story", slug],
+		queryFn: () => StoryService.getStoryBySlug(slug as string),
+		enabled: !!slug,
+	});
+};
+
+export const useCreateStory = () => {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: StoryService.createStory,
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["stories"] });
+			queryClient.invalidateQueries({ queryKey: ["my-stories"] });
+			showSuccess("Tạo truyện thành công");
+		},
+		onError: (error: Error) => {
+			showError(error.message || "Lỗi khi tạo truyện");
+		},
+	});
 };
 
 export interface StoryQueryParams {

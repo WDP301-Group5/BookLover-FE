@@ -5,6 +5,8 @@ export interface Chapter {
 	storyId: string;
 	chapterNumber: number;
 	title: string;
+	isPremium: boolean;
+	price: number;
 	contentURL?: string;
 	status?: "draft" | "active" | "inactive" | "pending" | "rejected" | "banned";
 	views?: number;

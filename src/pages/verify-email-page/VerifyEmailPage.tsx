@@ -13,7 +13,7 @@ import {
 import { IconCheck, IconX } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { notifications } from "@mantine/notifications";
+import { showSuccess, showError, showWarning } from "../../utils/notifications";
 import UserService from "../../services/UserService";
 
 export default function VerifyEmailPage() {
@@ -74,12 +74,7 @@ export default function VerifyEmailPage() {
 
   const handleResendEmail = async () => {
     if (!email.trim()) {
-      notifications.show({
-        title: "Lỗi",
-        message: "Vui lòng nhập địa chỉ email.",
-        color: "orange",
-        autoClose: 3000,
-      });
+      showWarning("Vui lòng nhập địa chỉ email.", "Lỗi");
       return;
     }
 
@@ -92,14 +87,11 @@ export default function VerifyEmailPage() {
         setResendCooldown(response.nextResendIn);
       }
 
-      notifications.show({
-        title: "Thành công",
-        message:
-          response.message ||
+      showSuccess(
+        response.message ||
           "Email xác thực đã được gửi. Vui lòng kiểm tra email của bạn.",
-        color: "green",
-        autoClose: 3000,
-      });
+        "Thành công",
+      );
       setEmail("");
     } catch (err: unknown) {
       let errorMessage = "Không thể gửi lại email xác thực. Vui lòng thử lại.";
@@ -108,12 +100,7 @@ export default function VerifyEmailPage() {
       } else if (typeof err === "string") {
         errorMessage = err;
       }
-      notifications.show({
-        title: "Lỗi",
-        message: errorMessage,
-        color: "red",
-        autoClose: 3000,
-      });
+      showError(errorMessage, "Lỗi");
     } finally {
       setResendLoading(false);
     }

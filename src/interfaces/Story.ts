@@ -1,6 +1,7 @@
 // src/interfaces/Story.ts
 export interface Story {
   _id: string;
+  id: string;
   title: string;
   slug: string;
   image: string;
