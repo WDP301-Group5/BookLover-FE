@@ -1,17 +1,17 @@
-import { SimpleGrid, Stack, Title, Text, Loader } from "@mantine/core";
+import { SimpleGrid, Text, Loader, Stack, Title } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import type { AuthorPublicProfile } from "../../services/UserService";
-import UserService from "../../services/UserService";
-import { UserFollowCard } from "../user/UserFollowCard";
+import type { AuthorPublicProfile } from "../../../services/UserService";
+import UserService from "../../../services/UserService";
+import { UserFollowCard } from "../UserFollowCard";
 
-interface FollowingTabProps {
+interface FollowersProps {
   authorId?: string;
   setAuthorData?: (data: AuthorPublicProfile) => void;
 }
 
-export function FollowingTab({ authorId }: FollowingTabProps) {
-  const [following, setFollowing] = useState<AuthorPublicProfile[]>([]);
+export default function Followers({ authorId }: FollowersProps) {
+  const [followers, setFollowers] = useState<AuthorPublicProfile[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -19,39 +19,35 @@ export function FollowingTab({ authorId }: FollowingTabProps) {
   useEffect(() => {
     if (!authorId) return;
 
-    const fetchFollowing = async () => {
+    const fetchFollowers = async () => {
       try {
         setLoading(true);
-        setError(null);
-
-        const data = await UserService.getFollowing(authorId, 1);
-        setFollowing(data);
+        const data = await UserService.getFollowers(authorId, 1);
+        setFollowers(data);
       } catch (err) {
         console.error(err);
-        setError("Có lỗi xảy ra khi lấy danh sách đang theo dõi");
+        setError("Có lỗi xảy ra khi lấy danh sách người theo dõi");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchFollowing();
+    fetchFollowers();
   }, [authorId]);
 
   const handleFollowToggle = async (id: string) => {
     try {
       const res = await UserService.toggleFollow(id);
 
-      setFollowing((prev) =>
+      setFollowers((prev) =>
         prev.map((f) =>
           f._id === id
             ? {
                 ...f,
                 relationship: {
                   amIFollowing: res.relationship.amIFollowing,
-                  followsMe: f.relationship?.followsMe ?? false,
-                  isMutual:
-                    res.relationship.amIFollowing &&
-                    (f.relationship?.followsMe ?? false),
+                  followsMe: f.relationship?.followsMe ?? true,
+                  isMutual: res.relationship.amIFollowing && (f.relationship?.followsMe ?? true),
                 },
               }
             : f
@@ -68,26 +64,23 @@ export function FollowingTab({ authorId }: FollowingTabProps) {
 
   if (loading) return <Loader size="lg" />;
   if (error) return <Text c="red">{error}</Text>;
-  if (!following || following.length === 0) {
-    return <Text>Chưa theo dõi ai.</Text>;
-  }
+  if (!followers || followers.length === 0) return <Text>Chưa có người theo dõi.</Text>;
 
   return (
     <Stack gap="xl" className="max-w-6xl mx-auto px-4">
-      <Title order={3}>Đang theo dõi</Title>
-
+      <Title order={3}>Người theo dõi</Title>
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="lg">
-        {following.map((f) => (
+        {followers.map((f) => (
           <UserFollowCard
             key={f._id}
             displayName={f.fullName}
-            username={f.username || ""}
+            username={f.username}
             avatarUrl={f.avatarURL || ""}
             backgroundUrl={f.backgroundURL || ""}
             stats={{
-              works: f.storiesCount || 0,
+              works: f.storiesCount,
               readingLists: 0,
-              followers: f.followersCount || 0,
+              followers: f.followersCount,
             }}
             showFollowButton
             isFollowing={!!f.relationship?.amIFollowing}
