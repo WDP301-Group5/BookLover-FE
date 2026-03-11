@@ -3,8 +3,8 @@ import { Book, UserCheck, UserPlus, Users } from "lucide-react";
 
 interface UserFollowCardProps {
   displayName: string;
-  username: string;
-  avatarUrl: string;
+  username?: string;
+  avatarUrl?: string;
   backgroundUrl?: string;
   stats: {
     works: number;
@@ -20,8 +20,8 @@ interface UserFollowCardProps {
 export function UserFollowCard({
   displayName,
   username,
-  avatarUrl,
-  backgroundUrl,
+  avatarUrl = "",
+  backgroundUrl = "",
   stats,
   showFollowButton = true,
   isFollowing = false,
@@ -34,69 +34,80 @@ export function UserFollowCard({
       padding="lg"
       radius="xl"
       withBorder
-      className="relative hover:shadow-md transition-shadow duration-300 bg-white cursor-pointer"
-      sx={{ overflow: "visible" }}
+      className="relative cursor-pointer bg-white transition-shadow duration-300 hover:shadow-md"
+      style={{ overflow: "visible" }}
+      onClick={onClickProfile}
     >
-      {/* Background */}
-      {backgroundUrl && (
+      {backgroundUrl ? (
         <Box
-          sx={{
+          style={{
             position: "absolute",
-            top: 40,
             left: "50%",
             transform: "translateX(-50%)",
-            width: 140,
-            height: 40,
+            width: 200,
+            height: 100,
             borderRadius: 20,
             backgroundImage: `url(${backgroundUrl})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
             zIndex: 0,
-            "&::after": {
-              content: '""',
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
-              backgroundColor: "rgba(0,0,0,0.3)",
-              borderRadius: 20,
-            },
           }}
-        />
-      )}
+        >
+          <Box
+            style={{
+              position: "absolute",
+              inset: 0,
+              backgroundColor: "rgba(0,0,0,0.25)",
+              borderRadius: 20,
+            }}
+          />
+        </Box>
+      ) : null}
 
-      <Stack align="center" gap={0} sx={{ mt: 20, position: "relative", zIndex: 1 }}>
-        {/* Avatar */}
+      <Stack align="center" gap={0} style={{ marginTop: 20, position: "relative", zIndex: 1 }}>
         <Avatar
           src={avatarUrl}
           size={100}
           radius="xl"
-          sx={{ border: "4px solid white", position: "relative", zIndex: 2 }}
-          onClick={onClickProfile}
+          style={{
+            border: "4px solid white",
+            position: "relative",
+            zIndex: 2,
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClickProfile?.();
+          }}
         />
 
-        <div className="text-center mt-2" onClick={onClickProfile}>
+        <div
+          className="mt-2 text-center"
+          onClick={(e) => {
+            e.stopPropagation();
+            onClickProfile?.();
+          }}
+        >
           <Text fw={800} size="xl" lineClamp={1}>
             {displayName}
           </Text>
           <Text c="dimmed" size="sm">
-            @{username}
+            @{username || "unknown"}
           </Text>
         </div>
 
         {showFollowButton && (
           <Button
-            leftSection={<UserPlus size={16} />}
+            leftSection={
+              isFollowing ? <UserCheck size={16} /> : <UserPlus size={16} />
+            }
             variant={isFollowing ? "light" : "filled"}
             color="cyan"
             size="md"
-            radius="full"
-			fontSize="sm"
+            radius="xl"
             fullWidth
-            className="mt-2"
+            className="mt-3"
             onClick={(e) => {
-              e.stopPropagation(); // tránh click card
+              e.stopPropagation();
               onFollowToggle?.();
             }}
           >
@@ -104,14 +115,13 @@ export function UserFollowCard({
           </Button>
         )}
 
-        {/* Stats */}
         <Group grow justify="center" mt="lg" className="w-full">
           <div className="flex flex-col items-center">
             <Text fw={700} size="lg" className="leading-none">
               {stats.works}
             </Text>
             <Tooltip label="Tác phẩm" withArrow>
-              <Book size={16} className="text-gray-500 cursor-pointer" />
+              <Book size={16} className="cursor-pointer text-gray-500" />
             </Tooltip>
           </div>
 
@@ -120,7 +130,7 @@ export function UserFollowCard({
               {stats.readingLists}
             </Text>
             <Tooltip label="Đang theo dõi" withArrow>
-              <UserCheck size={16} className="text-gray-500 cursor-pointer" />
+              <UserCheck size={16} className="cursor-pointer text-gray-500" />
             </Tooltip>
           </div>
 
@@ -129,7 +139,7 @@ export function UserFollowCard({
               {stats.followers}
             </Text>
             <Tooltip label="Người theo dõi" withArrow>
-              <Users size={16} className="text-gray-500 cursor-pointer" />
+              <Users size={16} className="cursor-pointer text-gray-500" />
             </Tooltip>
           </div>
         </Group>

@@ -1,8 +1,9 @@
 import { Avatar, Button, Flex, Group, Stack, Text } from "@mantine/core";
 import { Book, Check, UserCheck, Users } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { AuthorPublicProfile } from "../../services/UserService";
 import UserService from "../../services/UserService";
+import { showError } from "../../utils/notifications";
 
 interface AuthorHeaderProps {
   authorId: string;
@@ -10,50 +11,66 @@ interface AuthorHeaderProps {
   setAuthorData?: (data: AuthorPublicProfile) => void;
 }
 
-export function AuthorHeader({ authorId, authorData, setAuthorData }: AuthorHeaderProps) {
-  const [author, setAuthor] = useState<AuthorPublicProfile>({
-    _id: "",
-    username: "",
-    fullName: "",
-    avatarURL: "",
-    backgroundURL: "",
-    followersCount: 0,
-    followingCount: 0,
-    storiesCount: 0,
-    isFollowing: false,
-  });
+export function AuthorHeader({
+  authorId,
+  authorData,
+  setAuthorData,
+}: AuthorHeaderProps) {
   const [loadingFollow, setLoadingFollow] = useState(false);
+  const [localAuthor, setLocalAuthor] = useState<AuthorPublicProfile | null>(
+    authorData || null
+  );
+
+  const currentUserId = useMemo(() => {
+    try {
+      const store = localStorage.getItem("user-store");
+      if (!store) return null;
+      return JSON.parse(store).state.user.id ?? null;
+    } catch {
+      return null;
+    }
+  }, []);
 
   useEffect(() => {
     if (!authorId) return;
 
     async function fetchAuthor() {
       try {
-        const data = await UserService.getPublicProfile(authorId);
-        setAuthor(data);
-        setAuthorData?.(data);
+        const res = await UserService.getPublicProfile(authorId);
+
+        const profile: AuthorPublicProfile = {
+          ...res.profile,
+          stories: res.stories ?? [],
+          relationship: res.relationship,
+          isSelf: res.relationship?.isSelf ?? false,
+        };
+
+        setLocalAuthor(profile);
+        setAuthorData?.(profile);
       } catch (err) {
-        console.error(err);
+        console.error("Error fetching author:", err);
       }
     }
 
     fetchAuthor();
   }, [authorId, setAuthorData]);
 
+  if (!localAuthor) return null;
+
+  const isFollowing = !!localAuthor.relationship?.amIFollowing;
+
   const handleFollow = async () => {
-    if (!authorId || !authorData) return;
+    if (!authorId) return;
+
+    if (currentUserId === authorId) {
+      showError("Không thể theo dõi bản thân");
+      return;
+    }
+
     setLoadingFollow(true);
-
     try {
-      const data = await UserService.toggleFollow(authorId);
-
-      // Cập nhật parent state
-      setAuthorData({
-        ...authorData,
-        isFollowing: data.status === "follow",
-        followersCount: data.followersCount,
-        followingCount: data.followingCount,
-      });
+      await UserService.toggleFollow(authorId);
+      window.location.reload();
     } catch (err) {
       console.error(err);
     } finally {
@@ -61,61 +78,60 @@ export function AuthorHeader({ authorId, authorData, setAuthorData }: AuthorHead
     }
   };
 
-  if (!authorData) return null;
-
   return (
     <div
       className="relative py-12"
       style={{
-        backgroundImage: `url(${author.backgroundURL || ""})`,
+        backgroundImage: `url(${localAuthor.backgroundURL || ""})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
     >
-      <div className="absolute inset-0 bg-black/50"></div>
+      <div className="absolute inset-0 bg-black/50" />
+
       <div className="relative max-w-6xl mx-auto px-4">
         <Flex direction={{ base: "column", sm: "row" }} gap="xl" align="center">
           <Avatar
-            src={author.avatarURL || ""}
+            src={localAuthor.avatarURL || ""}
             size={200}
             radius="full"
-			style={{ borderRadius: "50%" }}
+            style={{ borderRadius: "50%" }}
             className="border-4 border-white"
           />
-          <Stack
-            gap="md"
-            align={{ base: "center", sm: "start" }}
-            className="text-white"
-          >
+
+          <Stack gap="md" align="start" className="text-white">
             <Text size="xl" fw={800}>
-              {author.penName}
+              {localAuthor.penName || localAuthor.fullName}
             </Text>
-            <Text size="lg" opacity={0.9}>
-              @{author.username}
+
+            <Text size="lg" c="rgba(255,255,255,0.9)">
+              @{localAuthor.username || ""}
             </Text>
 
             <Group gap="xl" mt="lg">
               <Flex direction="column" align="center" gap="4">
                 <Text fw={700} size="lg">
-                  {author.storiesCount}
+                  {localAuthor.storiesCount || 0}
                 </Text>
                 <Group gap="xs">
                   <Book size={20} />
                   <Text>Tác phẩm</Text>
                 </Group>
               </Flex>
+
               <Flex direction="column" align="center" gap="4">
                 <Text fw={700} size="lg">
-                  {author.followingCount}
+                  {localAuthor.followingCount || 0}
                 </Text>
                 <Group gap="xs">
                   <UserCheck size={20} />
                   <Text>Đang theo dõi</Text>
                 </Group>
               </Flex>
+
               <Flex direction="column" align="center" gap="4">
                 <Text fw={700} size="lg">
-                  {author.followersCount}
+                  {localAuthor.followersCount || 0}
                 </Text>
                 <Group gap="xs">
                   <Users size={20} />
@@ -124,23 +140,23 @@ export function AuthorHeader({ authorId, authorData, setAuthorData }: AuthorHead
               </Flex>
             </Group>
 
-            <Button
-              size="sm"
-              variant="filled"
-              color={author.isFollowing ? "blue" : "gray"}
-              leftSection={
-                author.isFollowing ? <Check size={16} /> : <Users size={16} />
-              }
-              loading={loadingFollow}
-              onClick={handleFollow}
-              className={`rounded-md px-4 py-1 ${
-                author.isFollowing
-                  ? "bg-blue-600 hover:bg-blue-700 text-white"
-                  : "bg-white/90 text-blue-600 hover:bg-white"
-              }`}
-            >
-              {author.isFollowing ? "Đang theo dõi" : "Theo dõi"}
-            </Button>
+            {!localAuthor.isSelf && (
+              <Button
+                size="sm"
+                variant="filled"
+                color={isFollowing ? "blue" : "gray"}
+                leftSection={isFollowing ? <Check size={16} /> : <Users size={16} />}
+                loading={loadingFollow}
+                onClick={handleFollow}
+                className={`rounded-md px-4 py-1 ${
+                  isFollowing
+                    ? "bg-blue-600 hover:bg-blue-700 text-white"
+                    : "bg-white/90 text-blue-600 hover:bg-white"
+                }`}
+              >
+                {isFollowing ? "Đang theo dõi" : "Theo dõi"}
+              </Button>
+            )}
           </Stack>
         </Flex>
       </div>

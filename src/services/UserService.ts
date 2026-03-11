@@ -64,19 +64,47 @@ export interface UpdateProfileRequest {
   bio?: string;
 }
 
+export interface UserRelationship {
+  amIFollowing: boolean;
+  followsMe: boolean;
+  isMutual: boolean;
+  isSelf?: boolean;
+}
+
 export interface AuthorPublicProfile {
   _id: string;
-  username: string;
+  id?: string;
+  username?: string;
   fullName: string;
   nickName?: string;
   penName?: string;
+  bio?: string;
   avatarURL?: string;
   backgroundURL?: string;
   vipLevel?: number;
   followersCount: number;
-  followingCount: number;
+  followingCount?: number;
   storiesCount: number;
-  isFollowing?: boolean; // trạng thái follow của user hiện tại
+  totalViews?: number;
+  totalVotes?: number;
+  isSelf?: boolean;
+  stories?: AuthorStory[];
+  relationship?: UserRelationship;
+}
+
+export interface AuthorStory {
+  _id: string;
+  title: string;
+  slug: string;
+  image: string;
+  description?: string;
+  views: number;
+  stars: number;
+  rates: number;
+  followers: number;
+  isPremium: boolean;
+  isFinish: boolean;
+  chapterNumber: number;
 }
 
 const UserService = {
@@ -276,43 +304,37 @@ const UserService = {
     }
   },
 
-  async getPublicProfile(authorId: string): Promise<AuthorPublicProfile> {
-    try {
-      const res = await axiosClient.get(`/user/${authorId}/public`);
-      return res.data.data;
-    } catch (error: unknown) {
-      console.error("Error fetching public profile:", error);
-      if (axios.isAxiosError(error) && error.response) {
-        throw error.response?.data || error.message;
-      }
-      throw error instanceof Error ? error.message : "Unknown error";
-    }
-  },
-
-  // Follow/unfollow author
-  async toggleFollow(authorId: string): Promise<{
-    status: "follow" | "unfollow";
-    followersCount: number;
-    followingCount: number;
+  async getPublicProfile(authorId: string): Promise<{
+    profile: AuthorPublicProfile;
+    stories: AuthorStory[];
+    relationship: UserRelationship;
   }> {
-    const res = await axiosClient.post("/user/follow", { authorId });
+    const res = await axiosClient.get(`/user/${authorId}/profile`);
     return res.data.data;
   },
 
-  /** GET followers list */
-  async getFollowers(authorId: string): Promise<AuthorPublicProfile[]> {
-    const res = await axiosClient.get("/user/followers", {
-      params: { userId: authorId }, // backend yêu cầu userId
-    });
+  async toggleFollow(
+    authorId: string
+  ): Promise<{
+    status: "follow" | "unfollow";
+    relationship: UserRelationship;
+  }> {
+    const res = await axiosClient.post(`/user/${authorId}/follow`);
     return res.data.data;
   },
 
-  /** Check if current user follows an author */
-  async checkFollowStatus(authorId: string): Promise<"follow" | "unfollow"> {
-    const res = await axiosClient.get("/user/follow/status", {
-      params: { authorId },
+  async getFollowers(authorId: string, page = 1): Promise<AuthorPublicProfile[]> {
+    const res = await axiosClient.get(`/user/${authorId}/followers`, {
+      params: { page },
     });
-    return res.data.status;
+    return res.data.data.followers;
+  },
+
+  async getFollowing(authorId: string, page = 1): Promise<AuthorPublicProfile[]> {
+    const res = await axiosClient.get(`/user/${authorId}/following`, {
+      params: { page },
+    });
+    return res.data.data.following;
   },
 };
 

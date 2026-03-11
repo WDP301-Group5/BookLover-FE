@@ -7,52 +7,35 @@ import { UserFollowCard } from "../user/UserFollowCard";
 
 interface FollowingTabProps {
   authorId?: string;
-  setAuthorData?: React.Dispatch<
-    React.SetStateAction<AuthorPublicProfile | null>
-  >;
+  setAuthorData?: (data: AuthorPublicProfile) => void;
 }
 
-// Hàm lấy current userId từ localStorage
-function getCurrentUserId(): string | null {
-  try {
-    const store = localStorage.getItem("user-store");
-    if (!store) return null;
-    return JSON.parse(store).state.user.id ?? null;
-  } catch {
-    return null;
-  }
-}
-
-export function FollowingTab({ authorId, setAuthorData }: FollowingTabProps) {
+export function FollowingTab({ authorId }: FollowingTabProps) {
   const [following, setFollowing] = useState<AuthorPublicProfile[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const currentUserId = getCurrentUserId();
 
   useEffect(() => {
-    const fetchFollowing = async () => {
-      const userId = getCurrentUserId();
-      if (!userId) return setError("Không tìm thấy user hiện tại");
+    if (!authorId) return;
 
+    const fetchFollowing = async () => {
       try {
         setLoading(true);
-        const data = await UserService.getFollowers(userId);
-        // tất cả là đang follow
-        setFollowing(
-          data.map((f) => ({ ...f, isFollowing: f.isFollowing ?? true })),
-        );
-      } catch (err: any) {
-        setError(
-          err.message || "Có lỗi xảy ra khi lấy danh sách đang theo dõi",
-        );
+        setError(null);
+
+        const data = await UserService.getFollowing(authorId, 1);
+        setFollowing(data);
+      } catch (err) {
+        console.error(err);
+        setError("Có lỗi xảy ra khi lấy danh sách đang theo dõi");
       } finally {
         setLoading(false);
       }
     };
 
     fetchFollowing();
-  }, []);
+  }, [authorId]);
 
   const handleFollowToggle = async (id: string) => {
     try {
@@ -63,55 +46,51 @@ export function FollowingTab({ authorId, setAuthorData }: FollowingTabProps) {
           f._id === id
             ? {
                 ...f,
-                isFollowing: res.status === "follow",
-                followersCount: res.followersCount,
+                relationship: {
+                  amIFollowing: res.relationship.amIFollowing,
+                  followsMe: f.relationship?.followsMe ?? false,
+                  isMutual:
+                    res.relationship.amIFollowing &&
+                    (f.relationship?.followsMe ?? false),
+                },
               }
-            : f,
-        ),
+            : f
+        )
       );
-
-      // Update parent authorData nếu id trùng authorId
-      if (id === authorId) {
-        setAuthorData?.((prev) => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            isFollowing: res.status === "follow",
-            followersCount: res.followersCount,
-            followingCount: res.followingCount,
-          };
-        });
-      }
     } catch (err) {
       console.error(err);
     }
   };
 
-  const handleGoProfile = (authorId: string) =>
-    navigate(`/author-profile/${authorId}`);
+  const handleGoProfile = (userId: string) => {
+    navigate(`/author-profile/${userId}`);
+  };
 
   if (loading) return <Loader size="lg" />;
-  if (error) return <Text color="red">{error}</Text>;
-  if (following.length === 0) return <Text>Chưa theo dõi ai.</Text>;
+  if (error) return <Text c="red">{error}</Text>;
+  if (!following || following.length === 0) {
+    return <Text>Chưa theo dõi ai.</Text>;
+  }
 
   return (
     <Stack gap="xl" className="max-w-6xl mx-auto px-4">
       <Title order={3}>Đang theo dõi</Title>
+
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="lg">
         {following.map((f) => (
           <UserFollowCard
             key={f._id}
             displayName={f.fullName}
-            username={f.username}
+            username={f.username || ""}
             avatarUrl={f.avatarURL || ""}
             backgroundUrl={f.backgroundURL || ""}
             stats={{
-              works: f.storiesCount,
+              works: f.storiesCount || 0,
               readingLists: 0,
-              followers: f.followersCount,
+              followers: f.followersCount || 0,
             }}
             showFollowButton
-            isFollowing={f.isFollowing}
+            isFollowing={!!f.relationship?.amIFollowing}
             onFollowToggle={() => handleFollowToggle(f._id)}
             onClickProfile={() => handleGoProfile(f._id)}
           />

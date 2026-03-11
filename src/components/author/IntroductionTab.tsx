@@ -1,40 +1,33 @@
 import { Divider, Grid, ScrollArea, Stack, Text, Title } from "@mantine/core";
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import UserService from "../../services/UserService";
 import AuthorStoryCard from "../story/AuthorStoryCard";
-
-interface Story {
-  _id: string;
-  title: string;
-  slug: string;
-  image: string;
-  description: string;
-  views: number;
-  stars: number;
-  rates: number;
-  followers: number;
-  isPremium: boolean;
-  isFinish: boolean;
-}
-
-interface AuthorProfile {
-  fullName: string;
-  bio?: string;
-  stories: Story[];
-}
+import type { AuthorPublicProfile } from "../../services/UserService";
+import UserService from "../../services/UserService";
 
 export function IntroductionTab() {
-  const { authorId } = useParams();
-  const [author, setAuthor] = useState<AuthorProfile | null>(null);
+  const { authorId } = useParams<{ authorId: string }>();
+  const [author, setAuthor] = useState<AuthorPublicProfile | null>(null);
 
   useEffect(() => {
     if (!authorId) return;
 
     const fetchAuthor = async () => {
       try {
-        const data = await UserService.getPublicProfile(authorId);
-        setAuthor(data);
+        const res = await UserService.getPublicProfile(authorId);
+
+        const mergedAuthor: AuthorPublicProfile = {
+          ...res.profile,
+          stories: (res.stories ?? []).map((story) => ({
+            ...story,
+            chapterNumber: story.chapterNumber ?? 0,
+          })),
+          relationship: res.relationship,
+          totalViews: res.profile.totalViews,
+          totalVotes: res.profile.totalVotes,
+        };
+
+        setAuthor(mergedAuthor);
       } catch (error) {
         console.error("Error loading author:", error);
       }
@@ -54,7 +47,7 @@ export function IntroductionTab() {
             lh={1.8}
             className="text-gray-700 whitespace-pre-line"
           >
-            {author.bio}
+            {author.bio || "Chưa có thông tin giới thiệu."}
           </Text>
           <Divider />
         </Stack>
@@ -62,13 +55,19 @@ export function IntroductionTab() {
 
       <Grid.Col span={{ base: 12, md: 8 }}>
         <Stack gap="xl">
-          <Title order={3}>Truyện của {author.fullName}</Title>
+          <Title order={3}>
+            Truyện của {author.penName || author.fullName}
+          </Title>
 
           <ScrollArea h={{ base: "auto", md: "none" }} type="auto">
             <Stack gap="md">
-              {author.stories?.map((story) => (
-                <AuthorStoryCard key={story._id} story={story} />
-              ))}
+              {author.stories?.length ? (
+                author.stories.map((story) => (
+                  <AuthorStoryCard key={story._id} story={story} />
+                ))
+              ) : (
+                <Text>Chưa có truyện nào.</Text>
+              )}
             </Stack>
           </ScrollArea>
         </Stack>
