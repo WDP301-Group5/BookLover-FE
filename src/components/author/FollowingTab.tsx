@@ -7,14 +7,29 @@ import { UserFollowCard } from "../user/UserFollowCard";
 
 interface FollowingTabProps {
   authorId?: string;
-  setAuthorData?: (data: AuthorPublicProfile) => void;
+  layout?: "profile" | "compact";
+  showTitle?: boolean;
 }
 
-export function FollowingTab({ authorId }: FollowingTabProps) {
+export function FollowingTab({
+  authorId,
+  layout = "profile",
+  showTitle = true,
+}: FollowingTabProps) {
   const [following, setFollowing] = useState<AuthorPublicProfile[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  const gridCols =
+    layout === "profile"
+      ? { base: 1, sm: 2, lg: 4 }
+      : { base: 1, sm: 2, lg: 3 };
+
+  const spacing = layout === "profile" ? "lg" : "md";
+  const stackGap = layout === "profile" ? "xl" : "md";
+  const wrapperClass =
+    layout === "profile" ? "max-w-6xl mx-auto px-4" : "";
 
   useEffect(() => {
     if (!authorId) return;
@@ -39,24 +54,8 @@ export function FollowingTab({ authorId }: FollowingTabProps) {
 
   const handleFollowToggle = async (id: string) => {
     try {
-      const res = await UserService.toggleFollow(id);
-
-      setFollowing((prev) =>
-        prev.map((f) =>
-          f._id === id
-            ? {
-                ...f,
-                relationship: {
-                  amIFollowing: res.relationship.amIFollowing,
-                  followsMe: f.relationship?.followsMe ?? false,
-                  isMutual:
-                    res.relationship.amIFollowing &&
-                    (f.relationship?.followsMe ?? false),
-                },
-              }
-            : f
-        )
-      );
+      await UserService.toggleFollow(id);
+      window.location.reload();
     } catch (err) {
       console.error(err);
     }
@@ -73,10 +72,10 @@ export function FollowingTab({ authorId }: FollowingTabProps) {
   }
 
   return (
-    <Stack gap="xl" className="max-w-6xl mx-auto px-4">
-      <Title order={3}>Đang theo dõi</Title>
+    <Stack gap={stackGap} className={wrapperClass}>
+      {showTitle && <Title order={3}>Đang theo dõi</Title>}
 
-      <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="lg">
+      <SimpleGrid cols={gridCols} spacing={spacing}>
         {following.map((f) => (
           <UserFollowCard
             key={f._id}

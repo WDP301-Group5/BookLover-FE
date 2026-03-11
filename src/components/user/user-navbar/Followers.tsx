@@ -7,14 +7,29 @@ import { UserFollowCard } from "../UserFollowCard";
 
 interface FollowersProps {
   authorId?: string;
-  setAuthorData?: (data: AuthorPublicProfile) => void;
+  layout?: "profile" | "compact";
+  showTitle?: boolean;
 }
 
-export default function Followers({ authorId }: FollowersProps) {
+export default function Followers({
+  authorId,
+  layout = "profile",
+  showTitle = true,
+}: FollowersProps) {
   const [followers, setFollowers] = useState<AuthorPublicProfile[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  const gridCols =
+    layout === "profile"
+      ? { base: 1, sm: 2, lg: 4 }
+      : { base: 1, sm: 2, lg: 3 };
+
+  const spacing = layout === "profile" ? "lg" : "md";
+  const stackGap = layout === "profile" ? "xl" : "md";
+  const wrapperClass =
+    layout === "profile" ? "max-w-6xl mx-auto px-4" : "";
 
   useEffect(() => {
     if (!authorId) return;
@@ -22,6 +37,8 @@ export default function Followers({ authorId }: FollowersProps) {
     const fetchFollowers = async () => {
       try {
         setLoading(true);
+        setError(null);
+
         const data = await UserService.getFollowers(authorId, 1);
         setFollowers(data);
       } catch (err) {
@@ -37,22 +54,8 @@ export default function Followers({ authorId }: FollowersProps) {
 
   const handleFollowToggle = async (id: string) => {
     try {
-      const res = await UserService.toggleFollow(id);
-
-      setFollowers((prev) =>
-        prev.map((f) =>
-          f._id === id
-            ? {
-                ...f,
-                relationship: {
-                  amIFollowing: res.relationship.amIFollowing,
-                  followsMe: f.relationship?.followsMe ?? true,
-                  isMutual: res.relationship.amIFollowing && (f.relationship?.followsMe ?? true),
-                },
-              }
-            : f
-        )
-      );
+      await UserService.toggleFollow(id);
+      window.location.reload();
     } catch (err) {
       console.error(err);
     }
@@ -64,23 +67,26 @@ export default function Followers({ authorId }: FollowersProps) {
 
   if (loading) return <Loader size="lg" />;
   if (error) return <Text c="red">{error}</Text>;
-  if (!followers || followers.length === 0) return <Text>Chưa có người theo dõi.</Text>;
+  if (!followers || followers.length === 0) {
+    return <Text>Chưa có người theo dõi.</Text>;
+  }
 
   return (
-    <Stack gap="xl" className="max-w-6xl mx-auto px-4">
-      <Title order={3}>Người theo dõi</Title>
-      <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="lg">
+    <Stack gap={stackGap} className={wrapperClass}>
+      {showTitle && <Title order={3}>Người theo dõi</Title>}
+
+      <SimpleGrid cols={gridCols} spacing={spacing}>
         {followers.map((f) => (
           <UserFollowCard
             key={f._id}
             displayName={f.fullName}
-            username={f.username}
+            username={f.username || ""}
             avatarUrl={f.avatarURL || ""}
             backgroundUrl={f.backgroundURL || ""}
             stats={{
-              works: f.storiesCount,
+              works: f.storiesCount || 0,
               readingLists: 0,
-              followers: f.followersCount,
+              followers: f.followersCount || 0,
             }}
             showFollowButton
             isFollowing={!!f.relationship?.amIFollowing}
