@@ -32,7 +32,7 @@ import {
 import type { FC } from "react";
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-
+import { useUserStore } from "../../stores/useUserStore";
 import RequireLoginModal from "../../components/Modal/RequireLoginModal";
 import { useChaptersByStory } from "../../hooks/useChapter";
 import { useStoryDetail } from "../../hooks/useStory";
@@ -53,7 +53,7 @@ const StoryDetailPage: FC = () => {
 	const [followed, { toggle }] = useDisclosure(false);
 	const [hoverRating, setHoverRating] = useState<number | null>(null);
 	const [loginModalOpened, setLoginModalOpened] = useState(false);
-	const isLoggedIn = false;
+	const isLoggedIn = useUserStore((state) => state.isLoggedIn);
 	const navigate = useNavigate();
 
 	const viewData = useMemo(() => {
@@ -63,10 +63,6 @@ const StoryDetailPage: FC = () => {
 			title: story.title,
 			breadcrumbs: [
 				{ label: "Trang chủ", href: "/" },
-				...(story.topics || []).map((t) => ({
-					label: t,
-					href: `/the-loai/${slugify(t)}`,
-				})),
 			],
 			coverUrl: story.image,
 			authorId: story.author?.id || "",
@@ -190,7 +186,7 @@ const StoryDetailPage: FC = () => {
 								<Text size="sm" fw={500}>
 									Thể loại:
 								</Text>
-								{genres.map((g) => (
+								{genres.map((g: string) => (
 									<Badge key={g} size="xs" variant="light">
 										{g}
 									</Badge>
@@ -344,6 +340,7 @@ const StoryDetailPage: FC = () => {
 								setLoginModalOpened(true);
 								return;
 							}
+							toggle();
 						}}
 					>
 						Gửi bình luận
