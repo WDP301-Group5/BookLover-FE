@@ -97,6 +97,23 @@ const StoryService = {
 		});
 		return res.data;
 	},
+async getStoriesWithFilter(params: {
+  page: number;
+  limit: number;
+  status?: string;
+  category?: string;  
+  search?: string;
+  sortBy?: string;
+}) {
+  try {
+    const response = await instance.get("/story/search", { params });
+    return response?.data;
+  } catch (error) {
+    console.error("Error fetching stories with filter:", error);
+    throw error;
+  }
+},
+
 };
 
 export default StoryService;

@@ -15,6 +15,7 @@ import { AdminRoute } from "./admin";
 import ForgotPasswordPage from "../pages/forgot-password/ForgotPasswordPage";
 import ResetPasswordPage from "../pages/reset-password/ResetPasswordPage";
 import ChapterPage from "../pages/chapter-page/ChapterPage";
+import SearchStoryPage from "../pages/search-story-page/SearchStoryPage";
 
 const routes = createBrowserRouter([
   AdminRoute,
@@ -47,7 +48,7 @@ const routes = createBrowserRouter([
         element: <ResetPasswordPage />,
       },
       {
-        path: "author-profile",
+        path: "author-profile/:authorId",
         element: <AuthorProfile />,
       },
       {
@@ -57,6 +58,10 @@ const routes = createBrowserRouter([
       {
         path: "purchase/vip-plan",
         element: <BuyVipPlanPage />,
+      },
+      {
+        path: "search",
+        element: <SearchStoryPage />, 
       },
       {
         path: "story/:slug",
