@@ -47,7 +47,7 @@ const routes = createBrowserRouter([
         element: <ResetPasswordPage />,
       },
       {
-        path: "author-profile",
+        path: "author-profile/:authorId",
         element: <AuthorProfile />,
       },
       {
