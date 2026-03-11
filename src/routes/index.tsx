@@ -12,13 +12,20 @@ import StoryDetailPage from "../pages/story-detail-page/StoryDetailPage";
 import UserProfile from "../pages/user-profile/UserProfile";
 import VerifyEmailPage from "../pages/verify-email-page/VerifyEmailPage";
 import { AdminRoute } from "./admin";
+import { AuthorRoute } from "./author";
 import ForgotPasswordPage from "../pages/forgot-password/ForgotPasswordPage";
 import ResetPasswordPage from "../pages/reset-password/ResetPasswordPage";
 import ChapterPage from "../pages/chapter-page/ChapterPage";
 import SearchStoryPage from "../pages/search-story-page/SearchStoryPage";
+import { UnauthorizedPage } from "../pages/unauthorized-page/UnauthorizedPage";
 
 const routes = createBrowserRouter([
   AdminRoute,
+  AuthorRoute,
+  {
+    path: "/unauthorized",
+    element: <UnauthorizedPage />,
+  },
   {
     path: "/",
     element: <Layout />,
@@ -61,7 +68,7 @@ const routes = createBrowserRouter([
       },
       {
         path: "search",
-        element: <SearchStoryPage />, 
+        element: <SearchStoryPage />,
       },
       {
         path: "story/:slug",

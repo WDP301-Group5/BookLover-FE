@@ -60,7 +60,10 @@ export default function LoginPage() {
         localStorage.setItem("token", response.accessToken);
 
         // Update user store
-        setUser(response.user);
+        setUser({
+          ...(response.user as any),
+          spiritStones: (response.user as any)?.spiritStones ?? 0,
+        });
 
         // Show success notification
         showSuccess(
@@ -68,8 +71,14 @@ export default function LoginPage() {
           "Đăng nhập thành công",
         );
 
-        // Redirect to home page
-        navigate("/", { replace: true });
+        // Redirect based on user role
+        if (response.user.role === "admin") {
+          navigate("/admin/dashboard", { replace: true });
+        } else if (response.user.role === "author") {
+          navigate("/", { replace: true });
+        } else {
+          navigate("/", { replace: true });
+        }
       }
     } catch (err: unknown) {
       let errorMessage = "Đăng nhập thất bại. Vui lòng thử lại.";
@@ -112,7 +121,10 @@ export default function LoginPage() {
         localStorage.setItem("token", response.accessToken);
 
         // Update user store
-        setUser(response.user);
+        setUser({
+          ...(response.user as any),
+          spiritStones: (response.user as any)?.spiritStones ?? 0,
+        });
 
         // Show success notification
         showSuccess(
@@ -120,8 +132,14 @@ export default function LoginPage() {
           "Đăng nhập thành công",
         );
 
-        // Redirect to home page
-        navigate("/", { replace: true });
+        // Redirect based on user role
+        if (response.user.role === "admin") {
+          navigate("/admin/dashboard", { replace: true });
+        } else if (response.user.role === "author") {
+          navigate("/author", { replace: true });
+        } else {
+          navigate("/", { replace: true });
+        }
       }
     } catch (err: unknown) {
       let errorMessage = "Đăng nhập Google thất bại. Vui lòng thử lại.";

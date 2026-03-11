@@ -7,6 +7,8 @@ import "@mantine/notifications/styles.css";
 import "@mantine/nprogress/styles.css";
 import "@mantine/core/styles.css";
 import "@mantine/carousel/styles.css";
+import "@mantine/dropzone/styles.css";
+import "@mantine/tiptap/styles.css";
 import { MantineProvider } from "@mantine/core";
 import { DatesProvider } from "@mantine/dates";
 import { ModalsProvider } from "@mantine/modals";
@@ -20,43 +22,43 @@ import routes from "./routes";
 import { appTheme } from "./styles/theme";
 
 const queryClient = new QueryClient({
-	defaultOptions: {
-		queries: {
-			staleTime: 1000,
-		},
-	},
+  defaultOptions: {
+    queries: {
+      staleTime: 1000,
+    },
+  },
 });
 
 const colorScheme =
-	localStorage.getItem("mantine-color-scheme-value") &&
-	localStorage.getItem("mantine-color-scheme-value") === "dark"
-		? "dark"
-		: "light";
+  localStorage.getItem("mantine-color-scheme-value") &&
+  localStorage.getItem("mantine-color-scheme-value") === "dark"
+    ? "dark"
+    : "light";
 
 createRoot(document.getElementById("root")!).render(
-	<StrictMode>
-		{/* khong can quan tam */}
-		<GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-			<QueryClientProvider client={queryClient}>
-				{/* provider cua thu vien ui */}
-				<MantineProvider theme={appTheme} defaultColorScheme={colorScheme}>
-					<ModalsProvider>
-						<NavigationProgress />
-						{/* toast thong bao */}
-						<Notifications position="top-right" zIndex={1000} />
-						{/* routes */}
-						<DatesProvider
-							settings={{
-								locale: "vn",
-								firstDayOfWeek: 1,
-								timezone: "Asia/Ho_Chi_Minh",
-							}}
-						>
-							<RouterProvider router={routes} />
-						</DatesProvider>
-					</ModalsProvider>
-				</MantineProvider>
-			</QueryClientProvider>
-		</GoogleOAuthProvider>
-	</StrictMode>,
+  <StrictMode>
+    {/* khong can quan tam */}
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <QueryClientProvider client={queryClient}>
+        {/* provider cua thu vien ui */}
+        <MantineProvider theme={appTheme} defaultColorScheme={colorScheme}>
+          <ModalsProvider>
+            <NavigationProgress />
+            {/* toast thong bao */}
+            <Notifications position="top-right" zIndex={1000} />
+            {/* routes */}
+            <DatesProvider
+              settings={{
+                locale: "vn",
+                firstDayOfWeek: 1,
+                timezone: "Asia/Ho_Chi_Minh",
+              }}
+            >
+              <RouterProvider router={routes} />
+            </DatesProvider>
+          </ModalsProvider>
+        </MantineProvider>
+      </QueryClientProvider>
+    </GoogleOAuthProvider>
+  </StrictMode>,
 );

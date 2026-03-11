@@ -21,12 +21,14 @@ const AvatarUploader = () => {
       setLoading(true);
 
       const updatedUser = await UserService.updateProfile(
-        type === "avatar" ? { avatarFile: file } : { backgroundFile: file }
+        type === "avatar" ? { avatarFile: file } : { backgroundFile: file },
       );
 
       updateUser(updatedUser);
       showSuccess(
-        type === "avatar" ? "Cập nhật avatar thành công 🎉" : "Cập nhật background thành công 🎉"
+        type === "avatar"
+          ? "Avatar updated successfully"
+          : "Background updated successfully",
       );
       if (type === "avatar") {
         setAvatarModal(false);
@@ -61,7 +63,10 @@ const AvatarUploader = () => {
       </div>
 
       {/* Avatar */}
-      <div className={style.avatarContainer} onClick={() => setAvatarModal(true)}>
+      <div
+        className={style.avatarContainer}
+        onClick={() => setAvatarModal(true)}
+      >
         <Avatar
           src={user?.avatarURL || undefined}
           size={140}
@@ -71,7 +76,11 @@ const AvatarUploader = () => {
       </div>
 
       {/* Avatar Modal */}
-      <Modal opened={avatarModal} onClose={() => setAvatarModal(false)} title="Tải avatar mới">
+      <Modal
+        opened={avatarModal}
+        onClose={() => setAvatarModal(false)}
+        title="Tải avatar mới"
+      >
         <Dropzone
           multiple={false}
           onDrop={(files) => handleUpload(files, "avatar")}
@@ -96,7 +105,11 @@ const AvatarUploader = () => {
       </Modal>
 
       {/* Background Modal */}
-      <Modal opened={bgModal} onClose={() => setBgModal(false)} title="Tải background mới">
+      <Modal
+        opened={bgModal}
+        onClose={() => setBgModal(false)}
+        title="Tải background mới"
+      >
         <Dropzone
           multiple={false}
           onDrop={(files) => handleUpload(files, "background")}

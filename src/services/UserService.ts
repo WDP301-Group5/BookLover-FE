@@ -290,7 +290,9 @@ const UserService = {
   },
 
   // Follow/unfollow author
-  async toggleFollow(authorId: string): Promise<{ status: "follow" | "unfollow"; followersCount: number }> {
+  async toggleFollow(
+    authorId: string,
+  ): Promise<{ status: "follow" | "unfollow"; followersCount: number }> {
     try {
       const res = await axiosClient.post("/user/follow", { authorId });
       return res.data.data;
@@ -300,6 +302,29 @@ const UserService = {
         throw error.response?.data || error.message;
       }
       throw error instanceof Error ? error.message : "Unknown error";
+    }
+  },
+
+  async changePassword(
+    currentPassword: string,
+    newPassword: string,
+    confirmPassword: string,
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      const response = await axiosClient.post("/user/change-password", {
+        currentPassword,
+        newPassword,
+        confirmPassword,
+      });
+      return response.data;
+    } catch (error: unknown) {
+      console.error("Lỗi thay đổi mật khẩu:", error);
+      if (axios.isAxiosError(error) && error.response) {
+        throw error.response?.data || error.message;
+      }
+      throw error instanceof Error
+        ? error.message
+        : "Có lỗi không xác định xảy ra";
     }
   },
 };
