@@ -56,13 +56,15 @@ export function AuthorHeader({ authorId }: AuthorHeaderProps) {
 
   return (
     <div
-      className="bg-gray-500 py-12"
+      className="relative py-12"
       style={{
         backgroundImage: `url(${author.backgroundURL || ""})`,
         backgroundSize: "cover",
+        backgroundPosition: "center",
       }}
     >
-      <div className="max-w-6xl mx-auto px-4">
+      <div className="absolute inset-0 bg-black/50"></div>
+      <div className="relative max-w-6xl mx-auto px-4">
         <Flex direction={{ base: "column", sm: "row" }} gap="xl" align="center">
           <Avatar
             src={author.avatarURL || ""}
@@ -76,7 +78,7 @@ export function AuthorHeader({ authorId }: AuthorHeaderProps) {
             className="text-white"
           >
             <Text size="xl" fw={800}>
-              {author.fullName}
+              {author.penName}
             </Text>
             <Text size="lg" opacity={0.9}>
               @{author.username}
