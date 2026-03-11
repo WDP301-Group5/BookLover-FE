@@ -252,8 +252,8 @@ const Header = () => {
                       className="w-8 h-8 rounded-full object-cover border"
                     />
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs">
-                      ?
+                    <div className="text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                      Đăng nhập
                     </div>
                   )}
 
