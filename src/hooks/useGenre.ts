@@ -1,3 +1,4 @@
+// src/hooks/useGenre.ts
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { GenreService } from "../services/GenreService";
 import { showError, showSuccess } from "../utils/notifications";
