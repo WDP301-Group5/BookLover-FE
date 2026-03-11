@@ -25,6 +25,7 @@ export interface Story {
   followers: number;
   createdAt: string;
   updatedAt: string;
+  author?: StoryAuthor | null;
 }
 
 export interface StoryItem {
@@ -55,4 +56,13 @@ export interface CensorLog {
   action: "approve" | "reject" | "ban" | "unban";
   reason?: string;
   createdAt: string;
+}
+
+export interface StoryAuthor {
+  id: string;
+  fullName?: string;
+  nickName?: string;
+  penName?: string;
+  username?: string;
+  avatarURL?: string;
 }

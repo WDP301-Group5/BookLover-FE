@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 import type { FC } from "react";
 import { useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useUserStore } from "../../stores/useUserStore";
 import RequireLoginModal from "../../components/Modal/RequireLoginModal";
 import { useChaptersByStory } from "../../hooks/useChapter";
@@ -54,6 +54,7 @@ const StoryDetailPage: FC = () => {
 	const [hoverRating, setHoverRating] = useState<number | null>(null);
 	const [loginModalOpened, setLoginModalOpened] = useState(false);
 	const isLoggedIn = useUserStore((state) => state.isLoggedIn);
+	const navigate = useNavigate();
 
 	const viewData = useMemo(() => {
 		if (!story) return null;
@@ -64,7 +65,12 @@ const StoryDetailPage: FC = () => {
 				{ label: "Trang chủ", href: "/" },
 			],
 			coverUrl: story.image,
-			author: story.author?.penName || story.author?.name || "Đang cập nhật",
+			authorId: story.author?.id || "",
+			author:
+				story.author?.penName ||
+				story.author?.nickName ||
+				story.author?.fullName ||
+				"Đang cập nhật",
 			status: story.status || "Đang tiến hành",
 			genres: story.topics || [],
 			views: story.views || 0,
@@ -110,6 +116,7 @@ const StoryDetailPage: FC = () => {
 		breadcrumbs,
 		coverUrl,
 		author,
+		authorId,
 		status,
 		genres,
 		views,
@@ -153,8 +160,16 @@ const StoryDetailPage: FC = () => {
 								<Text size="sm" fw={500}>
 									Tác giả:
 								</Text>
-								<Text size="sm">{author}</Text>
-							</Group>
+								<Anchor
+									size="sm"
+									onClick={() => {
+									if (authorId) navigate(`/author-profile/${authorId}`);
+									}}
+									style={{ cursor: authorId ? "pointer" : "default" }}
+								>
+									{author}
+								</Anchor>
+								</Group>
 
 							<Group gap={6}>
 								<Activity size={14} />
