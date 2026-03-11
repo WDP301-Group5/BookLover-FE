@@ -1,5 +1,5 @@
 import { Avatar, Button, Flex, Group, Stack, Text } from "@mantine/core";
-import { Book, Users } from "lucide-react";
+import { Book, Check, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { AuthorPublicProfile } from "../../services/UserService";
 import UserService from "../../services/UserService";
@@ -115,11 +115,19 @@ export function AuthorHeader({ authorId }: AuthorHeaderProps) {
             </Group>
 
             <Button
-              size="md"
-              leftSection={<Users size={18} />}
-              className={`mt-4 ${author.isFollowing ? "bg-gray-400 hover:bg-gray-500" : "bg-blue-600 hover:bg-blue-700"}`}
+              size="sm"
+              variant="filled"
+              color={author.isFollowing ? "blue" : "gray"}
+              leftSection={
+                author.isFollowing ? <Check size={16} /> : <Users size={16} />
+              }
               loading={loadingFollow}
               onClick={handleFollow}
+              className={`rounded-md px-4 py-1 ${
+                author.isFollowing
+                  ? "bg-blue-600 hover:bg-blue-700 text-white"
+                  : "bg-white/90 text-blue-600 hover:bg-white"
+              }`}
             >
               {author.isFollowing ? "Đang theo dõi" : "Theo dõi"}
             </Button>
