@@ -195,17 +195,10 @@ const Header = () => {
                 </MantineMenu.Item>
                 <MantineMenu.Item
                   component={Link}
-                  to="/author/drafts"
+                  to="/author/my-stories"
                   className="text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
-                  Bản nháp của tôi
-                </MantineMenu.Item>
-                <MantineMenu.Item
-                  component={Link}
-                  to="/author/published"
-                  className="text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                  Truyện đã đăng
+                  Truyện của tôi
                 </MantineMenu.Item>
                 <MantineMenu.Divider className="border-gray-200 dark:border-gray-700" />
                 <MantineMenu.Item

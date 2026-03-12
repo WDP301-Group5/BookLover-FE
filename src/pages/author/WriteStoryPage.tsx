@@ -1,15 +1,15 @@
 import {
+  ActionIcon,
   Box,
   Button,
-  Checkbox,
   Container,
   Divider,
   FileButton,
   Grid,
   Group,
   Image,
-  MultiSelect,
   Paper,
+  Select,
   Stack,
   Switch,
   TagsInput,
@@ -17,39 +17,15 @@ import {
   Textarea,
   TextInput,
   Title,
-  Tooltip,
   UnstyledButton,
 } from "@mantine/core";
-import { useForm } from "@mantine/form";
-import { zod4Resolver } from "mantine-form-zod-resolver";
-import { BookOpen, ChevronLeft, ImageIcon, Send, Save } from "lucide-react";
+import { ArrowLeft, ImageIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { z } from "zod";
 import type { Topic } from "../../interfaces/Topic";
 import { AuthorService } from "../../services/AuthorService";
 import { TopicService } from "../../services/TopicService";
 import { showError, showSuccess } from "../../utils/notifications.tsx";
-
-const writeStorySchema = z.object({
-  title: z
-    .string()
-    .min(3, "Tiêu đề phải có ít nhất 3 ký tự")
-    .max(200, "Tiêu đề không được vượt quá 200 ký tự"),
-  description: z
-    .string()
-    .min(20, "Mô tả phải có ít nhất 20 ký tự")
-    .max(2000, "Mô tả không được vượt quá 2000 ký tự"),
-  topics: z.array(z.string()).min(1, "Vui lòng chọn ít nhất 1 thể loại"),
-  tags: z.array(z.string()).optional(),
-  isPremium: z.boolean().optional(),
-  isFinish: z.boolean().optional(),
-  confirmCopyright: z
-    .boolean()
-    .refine((v) => v === true, "Bạn phải xác nhận quyền sở hữu tác phẩm"),
-});
-
-type WriteStoryFormValues = z.infer<typeof writeStorySchema>;
 
 export default function WriteStoryPage() {
   const navigate = useNavigate();
@@ -58,27 +34,26 @@ export default function WriteStoryPage() {
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [coverError, setCoverError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [submittedAction, setSubmittedAction] = useState<"draft" | "pending">(
-    "draft",
-  );
   const resetRef = useRef<() => void>(null);
 
-  const form = useForm<WriteStoryFormValues>({
-    initialValues: {
-      title: "",
-      description: "",
-      topics: [],
-      tags: [],
-      isPremium: false,
-      isFinish: false,
-      confirmCopyright: false,
-    },
-    validate: zod4Resolver(writeStorySchema),
-  });
+  // Form state
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState<string | null>(null);
+  const [tags, setTags] = useState<string[]>([]);
+  const [isPremium, setIsPremium] = useState(false);
+
+  // Validation errors
+  const [titleError, setTitleError] = useState<string | null>(null);
+  const [descriptionError, setDescriptionError] = useState<string | null>(null);
+  const [categoryError, setCategoryError] = useState<string | null>(null);
 
   useEffect(() => {
     TopicService.getTopics()
-      .then(setTopics)
+      .then((data) => {
+        if (Array.isArray(data)) setTopics(data);
+        else setTopics([]);
+      })
       .catch(() => showError("Không thể tải danh sách thể loại"));
   }, []);
 
@@ -107,39 +82,54 @@ export default function WriteStoryPage() {
     resetRef.current?.();
   };
 
-  const handleSubmit = async (
-    values: WriteStoryFormValues,
-    status: "draft" | "pending",
-  ) => {
-    if (!coverImage) {
-      setCoverError("Vui lòng chọn ảnh bìa cho truyện");
-      return;
+  const handleContinue = async () => {
+    // Validate required fields
+    let hasError = false;
+    if (!title.trim()) {
+      setTitleError("Tiêu đề không được để trống");
+      hasError = true;
+    } else {
+      setTitleError(null);
     }
+    if (!description.trim()) {
+      setDescriptionError("Mô tả / Tóm tắt không được để trống");
+      hasError = true;
+    } else {
+      setDescriptionError(null);
+    }
+    if (!category) {
+      setCategoryError("Vui lòng chọn thể loại");
+      hasError = true;
+    } else {
+      setCategoryError(null);
+    }
+    if (!coverImage) {
+      setCoverError("Vui lòng thêm ảnh bìa cho truyện");
+      hasError = true;
+    }
+    if (hasError) return;
+
     setLoading(true);
     try {
       const formData = new FormData();
-      formData.append("title", values.title);
-      formData.append("description", values.description);
-      for (const topicId of values.topics) {
-        formData.append("topics", topicId);
-      }
-      for (const tag of values.tags ?? []) {
+      formData.append("title", title.trim());
+      formData.append("description", description.trim());
+      if (category) formData.append("topics", category);
+      for (const tag of tags) {
         formData.append("tags", tag);
       }
-      formData.append("isPremium", String(values.isPremium ?? false));
-      formData.append("isFinish", String(values.isFinish ?? false));
-      formData.append("status", status);
-      formData.append("image", coverImage);
+      formData.append("isPremium", isPremium ? "true" : "false");
+      formData.append("isFinish", "false");
+      formData.append("status", "draft");
+      if (coverImage) {
+        formData.append("image", coverImage);
+      }
 
       const story = await AuthorService.createStory(formData);
-
       showSuccess(
-        status === "draft"
-          ? "Truyện đã được lưu vào nháp!"
-          : "Truyện đã được gửi lên để duyệt! Admin sẽ xem xét trong thời gian sớm nhất.",
-        status === "draft" ? "Lưu nháp thành công" : "Gửi duyệt thành công",
+        "Tác phẩm đã được tạo. Bắt đầu viết chương đầu tiên!",
+        "Tạo tác phẩm thành công",
       );
-
       navigate(`/author/story/${story.slug}/write-chapter`);
     } catch {
       showError("Có lỗi xảy ra khi tạo truyện. Vui lòng thử lại.");
@@ -148,328 +138,265 @@ export default function WriteStoryPage() {
     }
   };
 
-  const topicOptions = topics.map((t) => ({ value: t._id, label: t.name }));
+  const topicOptions = Array.isArray(topics)
+    ? topics.map((t) => ({ value: t._id, label: t.name }))
+    : [];
 
   return (
-    <Box className="min-h-screen bg-[#f8f4ef]">
-      {/* Sticky header */}
+    <Box className="min-h-screen bg-[#f3f3f3]">
+      {/* ── Header ── */}
       <Box
-        className="sticky top-0 z-10 bg-white border-b border-gray-200"
-        style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}
+        style={{
+          borderBottom: "1px solid #dfdfdf",
+          backgroundColor: "white",
+        }}
       >
-        <Container size="xl">
-          <Group justify="space-between" py="sm">
-            <Group gap="xs">
-              <Tooltip label="Quay lại">
-                <UnstyledButton
-                  onClick={() => navigate(-1)}
-                  className="flex items-center text-gray-500 hover:text-gray-800 transition-colors"
-                >
-                  <ChevronLeft size={20} />
-                </UnstyledButton>
-              </Tooltip>
-              <Group gap={6}>
-                <BookOpen size={20} className="text-blue-500" />
-                <Text fw={600} size="sm" c="dimmed">
-                  Tạo tác phẩm mới
-                </Text>
-              </Group>
-            </Group>
-            <Group gap="sm">
-              <Button
-                variant="outline"
+        <Container size="xl" py="sm">
+          <Group justify="space-between" align="center">
+            <Group align="center" gap="sm">
+              <ActionIcon
+                variant="subtle"
+                size="lg"
+                onClick={() => navigate("/author/my-stories")}
                 color="gray"
-                leftSection={<Save size={16} />}
-                loading={loading && submittedAction === "draft"}
-                onClick={() => {
-                  setSubmittedAction("draft");
-                  form.onSubmit((v) => handleSubmit(v, "draft"))();
-                }}
               >
-                Lưu nháp
-              </Button>
+                <ArrowLeft size={20} />
+              </ActionIcon>
+              <Stack gap={0}>
+                <Text size="xs" c="dimmed">
+                  Thêm thông tin tác phẩm
+                </Text>
+                <Title order={3} size="h4" fw={600}>
+                  {title || "Tác phẩm chưa đặt tên"}
+                </Title>
+              </Stack>
+            </Group>
+
+            <Group gap="xs">
               <Button
-                color="blue"
-                leftSection={<Send size={16} />}
-                loading={loading && submittedAction === "pending"}
-                onClick={() => {
-                  setSubmittedAction("pending");
-                  form.onSubmit((v) => handleSubmit(v, "pending"))();
-                }}
+                variant="subtle"
+                color="gray"
+                onClick={() => navigate("/author/my-stories")}
               >
-                Gửi duyệt
+                Hủy
+              </Button>
+              <Button color="orange" loading={loading} onClick={handleContinue}>
+                Tiếp tục
               </Button>
             </Group>
           </Group>
         </Container>
       </Box>
 
+      {/* ── Body ── */}
       <Container size="xl" py="xl">
-        <Stack gap="xs" mb="xl">
-          <Title order={2} fw={700}>
-            Thêm tác phẩm mới
-          </Title>
-          <Text c="dimmed" size="sm">
-            Điền đầy đủ thông tin bên dưới để tạo tác phẩm của bạn. Tác phẩm mới
-            cần được admin duyệt trước khi hiển thị công khai.
-          </Text>
-        </Stack>
+        <Paper withBorder p={{ base: "md", md: "xl" }} radius="sm" bg="white">
+          <Grid gutter="xl" align="start">
+            {/* Left: Cover image */}
+            <Grid.Col span={{ base: 12, md: 4 }}>
+              <Stack align="center" gap="xs">
+                <Text size="sm" fw={600} c="dimmed">
+                  Ảnh bìa{" "}
+                  <Text span c="red">
+                    *
+                  </Text>
+                </Text>
+                <FileButton
+                  resetRef={resetRef}
+                  onChange={handleCoverChange}
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                >
+                  {(props) => (
+                    <UnstyledButton
+                      {...props}
+                      style={{
+                        width: 220,
+                        maxWidth: "100%",
+                        aspectRatio: "2 / 3",
+                        borderRadius: 2,
+                        overflow: "hidden",
+                        background: "#ececec",
+                        border: coverError
+                          ? "1.5px solid var(--mantine-color-red-6)"
+                          : "1px solid #d5d5d5",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {coverPreview ? (
+                        <Image
+                          src={coverPreview}
+                          alt="Ảnh bìa truyện"
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                          }}
+                        />
+                      ) : (
+                        <Stack align="center" gap={6}>
+                          <Box
+                            style={{
+                              width: 48,
+                              height: 48,
+                              borderRadius: 6,
+                              background: "#7d7d7d",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <ImageIcon size={26} color="#fff" />
+                          </Box>
+                          <Text size="sm" c="dimmed">
+                            Thêm ảnh bìa
+                          </Text>
+                        </Stack>
+                      )}
+                    </UnstyledButton>
+                  )}
+                </FileButton>
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-          }}
-        >
-          <Grid gutter="xl">
-            {/* Left column – story information */}
-            <Grid.Col span={{ base: 12, md: 7 }}>
-              <Stack gap="lg">
-                <Paper withBorder p="xl" radius="md" bg="white">
-                  <Stack gap="md">
-                    <Title order={4} fw={600}>
-                      Thông tin tác phẩm
-                    </Title>
-                    <Divider />
+                {coverPreview && (
+                  <Button
+                    variant="subtle"
+                    color="red"
+                    size="xs"
+                    onClick={handleRemoveCover}
+                  >
+                    Xóa ảnh bìa
+                  </Button>
+                )}
 
+                {coverError && (
+                  <Text size="xs" c="red" ta="center">
+                    {coverError}
+                  </Text>
+                )}
+              </Stack>
+            </Grid.Col>
+
+            {/* Right: Story Details */}
+            <Grid.Col span={{ base: 12, md: 8 }}>
+              <Stack gap={0}>
+                <Box pb="sm">
+                  <Text fw={600} size="md">
+                    Thông tin tác phẩm
+                  </Text>
+                  <Box
+                    mt={8}
+                    style={{ width: 122, height: 3, background: "#f97316" }}
+                  />
+                </Box>
+
+                <Divider mb="md" />
+
+                <Stack gap="sm">
+                  {/* Title */}
+                  <Box>
+                    <Text fw={600} size="sm" mb={6}>
+                      Tiêu đề{" "}
+                      <Text span c="red">
+                        *
+                      </Text>
+                    </Text>
                     <TextInput
-                      label="Tiêu đề tác phẩm"
-                      placeholder="Nhập tiêu đề hấp dẫn cho câu chuyện của bạn..."
-                      required
-                      size="md"
-                      {...form.getInputProps("title")}
+                      placeholder="Nhập tiêu đề tác phẩm"
+                      radius={2}
+                      value={title}
+                      onChange={(e) => {
+                        setTitle(e.currentTarget.value);
+                        if (e.currentTarget.value.trim()) setTitleError(null);
+                      }}
+                      error={titleError}
                     />
+                  </Box>
 
+                  {/* Description */}
+                  <Box>
+                    <Text fw={600} size="sm" mb={6}>
+                      Mô tả / Tóm tắt{" "}
+                      <Text span c="red">
+                        *
+                      </Text>
+                    </Text>
                     <Textarea
-                      label="Mô tả / Tóm tắt"
-                      placeholder="Hãy viết một đoạn tóm tắt ngắn gọn, thu hút độc giả muốn đọc câu chuyện của bạn..."
-                      required
+                      placeholder="Mô tả nội dung truyện..."
                       minRows={5}
-                      maxRows={12}
-                      autosize
-                      size="md"
-                      {...form.getInputProps("description")}
+                      radius={2}
+                      value={description}
+                      onChange={(e) => {
+                        setDescription(e.currentTarget.value);
+                        if (e.currentTarget.value.trim())
+                          setDescriptionError(null);
+                      }}
+                      error={descriptionError}
                     />
+                  </Box>
 
-                    <MultiSelect
-                      label="Thể loại"
-                      placeholder="Chọn thể loại phù hợp..."
-                      required
+                  <Divider my={4} />
+
+                  {/* Category */}
+                  <Box>
+                    <Text fw={600} size="sm" mb={6}>
+                      Thể loại{" "}
+                      <Text span c="red">
+                        *
+                      </Text>
+                    </Text>
+                    <Select
+                      placeholder="Chọn thể loại"
                       data={topicOptions}
                       searchable
                       clearable
-                      maxValues={5}
-                      size="md"
-                      {...form.getInputProps("topics")}
+                      radius={2}
+                      value={category}
+                      onChange={(val) => {
+                        setCategory(val);
+                        if (val) setCategoryError(null);
+                      }}
+                      error={categoryError}
                     />
+                  </Box>
 
+                  <Divider my={4} />
+
+                  {/* Tags */}
+                  <Box>
+                    <Text fw={600} size="sm" mb={6}>
+                      Thẻ (Tags)
+                    </Text>
                     <TagsInput
-                      label="Tags (từ khóa)"
-                      placeholder="Thêm từ khóa rồi nhấn Enter..."
-                      description="Tối đa 10 từ khóa giúp độc giả tìm thấy tác phẩm của bạn"
-                      maxTags={10}
-                      size="md"
-                      {...form.getInputProps("tags")}
+                      placeholder="Thêm thẻ"
+                      maxTags={25}
+                      radius={2}
+                      value={tags}
+                      onChange={setTags}
                     />
-                  </Stack>
-                </Paper>
-              </Stack>
-            </Grid.Col>
+                  </Box>
 
-            {/* Right column – cover image and options */}
-            <Grid.Col span={{ base: 12, md: 5 }}>
-              <Stack gap="lg">
-                {/* Cover image upload */}
-                <Paper withBorder p="xl" radius="md" bg="white">
-                  <Stack gap="md">
-                    <Title order={4} fw={600}>
-                      Ảnh bìa
-                    </Title>
-                    <Divider />
+                  <Divider my={4} />
 
-                    {coverPreview ? (
-                      <Stack gap="sm" align="center">
-                        <Box
-                          style={{
-                            width: "100%",
-                            maxWidth: 240,
-                            aspectRatio: "2/3",
-                            borderRadius: 8,
-                            overflow: "hidden",
-                            position: "relative",
-                          }}
-                        >
-                          <Image
-                            src={coverPreview}
-                            alt="Ảnh bìa"
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
-                            }}
-                          />
-                        </Box>
-                        <Group gap="xs">
-                          <FileButton
-                            resetRef={resetRef}
-                            onChange={handleCoverChange}
-                            accept="image/png,image/jpeg,image/webp,image/gif"
-                          >
-                            {(props) => (
-                              <Button
-                                {...props}
-                                variant="outline"
-                                size="xs"
-                                color="blue"
-                              >
-                                Thay ảnh
-                              </Button>
-                            )}
-                          </FileButton>
-                          <Button
-                            variant="subtle"
-                            size="xs"
-                            color="red"
-                            onClick={handleRemoveCover}
-                          >
-                            Xóa
-                          </Button>
-                        </Group>
-                      </Stack>
-                    ) : (
-                      <FileButton
-                        resetRef={resetRef}
-                        onChange={handleCoverChange}
-                        accept="image/png,image/jpeg,image/webp,image/gif"
-                      >
-                        {(props) => (
-                          <UnstyledButton
-                            {...props}
-                            style={{
-                              width: "100%",
-                              aspectRatio: "2/3",
-                              border: "2px dashed #bfdbfe",
-                              borderRadius: 8,
-                              display: "flex",
-                              flexDirection: "column",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              cursor: "pointer",
-                              background: "#f0f9ff",
-                              transition: "border-color 0.2s, background 0.2s",
-                            }}
-                            className="hover:border-blue-400 hover:bg-blue-50"
-                          >
-                            <Stack align="center" gap="xs">
-                              <ImageIcon size={36} className="text-blue-300" />
-                              <Text size="sm" fw={500} c="dimmed" ta="center">
-                                Nhấp để tải ảnh bìa lên
-                              </Text>
-                              <Text size="xs" c="dimmed" ta="center">
-                                JPG, PNG, WEBP hoặc GIF
-                                <br />
-                                Tối đa 5MB
-                              </Text>
-                            </Stack>
-                          </UnstyledButton>
-                        )}
-                      </FileButton>
-                    )}
-
-                    {coverError && (
-                      <Text size="xs" c="red">
-                        {coverError}
+                  {/* Premium toggle */}
+                  <Box>
+                    <Group justify="space-between" align="center" mb={4}>
+                      <Text fw={600} size="sm">
+                        Có phải trả phí
                       </Text>
-                    )}
+                      <Switch
+                        checked={isPremium}
+                        onChange={(e) => setIsPremium(e.currentTarget.checked)}
+                      />
+                    </Group>
+                  </Box>
 
-                    <Text size="xs" c="dimmed">
-                      Tỉ lệ khuyến nghị: 2:3 (ví dụ: 400x600px)
-                    </Text>
-                  </Stack>
-                </Paper>
-
-                {/* Settings */}
-                <Paper withBorder p="xl" radius="md" bg="white">
-                  <Stack gap="md">
-                    <Title order={4} fw={600}>
-                      Tùy chọn
-                    </Title>
-                    <Divider />
-
-                    <Switch
-                      label="Truyện VIP (Premium)"
-                      description="Chỉ thành viên VIP mới có thể đọc"
-                      size="sm"
-                      color="blue"
-                      checked={form.values.isPremium}
-                      onChange={(e) =>
-                        form.setFieldValue("isPremium", e.currentTarget.checked)
-                      }
-                    />
-
-                    <Switch
-                      label="Truyện đã hoàn thành"
-                      description="Đánh dấu khi bạn đã viết xong tác phẩm"
-                      size="sm"
-                      color="blue"
-                      checked={form.values.isFinish}
-                      onChange={(e) =>
-                        form.setFieldValue("isFinish", e.currentTarget.checked)
-                      }
-                    />
-
-                    <Divider />
-
-                    <Checkbox
-                      label={
-                        <Text size="sm">
-                          Tôi xác nhận đây là tác phẩm gốc của tôi và tôi có đầy
-                          đủ quyền để đăng tải nội dung này. Tôi đồng ý tuân thủ{" "}
-                          <Text component="span" c="blue" fw={500}>
-                            Điều khoản sử dụng
-                          </Text>{" "}
-                          của nền tảng.
-                        </Text>
-                      }
-                      size="sm"
-                      color="blue"
-                      {...form.getInputProps("confirmCopyright", {
-                        type: "checkbox",
-                      })}
-                    />
-                    {form.errors.confirmCopyright && (
-                      <Text size="xs" c="red">
-                        {form.errors.confirmCopyright}
-                      </Text>
-                    )}
-                  </Stack>
-                </Paper>
-
-                {/* Submit info box */}
-                <Paper
-                  withBorder
-                  p="md"
-                  radius="md"
-                  bg="blue.0"
-                  style={{ borderColor: "#bfdbfe" }}
-                >
-                  <Stack gap={4}>
-                    <Text size="sm" fw={600} c="blue.8">
-                      Lưu nháp vs Gửi duyệt
-                    </Text>
-                    <Text size="xs" c="dimmed">
-                      <strong>Lưu nháp:</strong> Chỉ bạn mới xem được, có thể
-                      chỉnh sửa bất cứ lúc nào.
-                    </Text>
-                    <Text size="xs" c="dimmed">
-                      <strong>Gửi duyệt:</strong> Gửi cho admin xét duyệt. Sau
-                      khi được duyệt, truyện sẽ hiển thị công khai.
-                    </Text>
-                  </Stack>
-                </Paper>
+                  <Divider my={4} />
+                </Stack>
               </Stack>
             </Grid.Col>
           </Grid>
-        </form>
+        </Paper>
       </Container>
     </Box>
   );
