@@ -1,7 +1,8 @@
 // src/hooks/useStory.ts
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { keepPreviousData } from "@tanstack/react-query"; 
+import { keepPreviousData } from "@tanstack/react-query";
 import StoryService from "../services/StoryService";
+import { AuthorService } from "../services/AuthorService";
 import type { Story } from "../interfaces/Story";
 import { showError, showSuccess } from "../utils/notifications";
 import axios from "axios";
@@ -28,33 +29,61 @@ export const useTop10Story = (type: "m" | "w" | "d" = "m") => {
 };
 
 export const useStoryDetail = (slug?: string) => {
-	return useQuery({
-		queryKey: ["story", slug],
-		queryFn: () => StoryService.getStoryBySlug(slug as string),
-		enabled: !!slug,
-	});
+  return useQuery({
+    queryKey: ["story", slug],
+    queryFn: () => StoryService.getStoryBySlug(slug as string),
+    enabled: !!slug,
+  });
 };
 
 export const useCreateStory = () => {
-	const queryClient = useQueryClient();
-	return useMutation({
-		mutationFn: StoryService.createStory,
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["stories"] });
-			queryClient.invalidateQueries({ queryKey: ["my-stories"] });
-			showSuccess("Tạo truyện thành công");
-		},
-		onError: (error: Error) => {
-			showError(error.message || "Lỗi khi tạo truyện");
-		},
-	});
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: StoryService.createStory,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["stories"] });
+      queryClient.invalidateQueries({ queryKey: ["my-stories"] });
+      showSuccess("Tạo truyện thành công");
+    },
+    onError: (error: Error) => {
+      showError(error.message || "Lỗi khi tạo truyện");
+    },
+  });
 };
 
 export const useMyStories = () => {
-	return useQuery({
-		queryKey: ["my-stories"],
-		queryFn: () => StoryService.getMyStories(),
-	});
+  return useQuery({
+    queryKey: ["my-stories"],
+    queryFn: () => StoryService.getMyStories(),
+  });
+};
+
+export const useDeleteStory = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => AuthorService.deleteStory(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["my-stories"] });
+      showSuccess("Xóa truyện thành công");
+    },
+    onError: (error: Error) => {
+      showError(error.message || "Lỗi khi xóa truyện");
+    },
+  });
+};
+
+export const useUpdateStory = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<Story> }) =>
+      AuthorService.updateStory(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["my-stories"] });
+    },
+    onError: (error: Error) => {
+      showError(error.message || "Lỗi khi cập nhật truyện");
+    },
+  });
 };
 
 export interface StoryQueryParams {

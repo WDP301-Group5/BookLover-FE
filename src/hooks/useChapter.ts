@@ -1,12 +1,21 @@
 // src/hooks/useChapterPage.ts
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChapterPageService } from "../services/ChapterService";
+import { AuthorService } from "../services/AuthorService";
 import { showError, showSuccess } from "../utils/notifications";
 
 export const useChaptersByStory = (storyId: string) => {
   return useQuery({
     queryKey: ["chapters", storyId],
     queryFn: () => ChapterPageService.getChaptersByStory(storyId),
+    enabled: !!storyId,
+  });
+};
+
+export const useChaptersByStoryForAuthor = (storyId: string) => {
+  return useQuery({
+    queryKey: ["author-chapters", storyId],
+    queryFn: () => AuthorService.getChaptersByStoryForAuthor(storyId),
     enabled: !!storyId,
   });
 };
@@ -26,24 +35,37 @@ export const useChapterByChapterNumber = (
   return useQuery({
     queryKey: ["chapter", storySlug, chapterNumber],
     queryFn: () =>
-      ChapterPageService.getChapterByChapterNumber(
-        storySlug,
-        chapterNumber,
-      ),
+      ChapterPageService.getChapterByChapterNumber(storySlug, chapterNumber),
     enabled: !!storySlug && !!chapterNumber,
   });
 };
 
 export const useCreateChapter = () => {
-	const queryClient = useQueryClient();
-	return useMutation({
-		mutationFn: ChapterPageService.createChapter,
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["chapters"] });
-			showSuccess("Tạo chương thành công");
-		},
-		onError: (error: Error) => {
-			showError(error.message || "Lỗi khi tạo chương");
-		},
-	});
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ChapterPageService.createChapter,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["chapters"] });
+      queryClient.invalidateQueries({ queryKey: ["author-chapters"] });
+      showSuccess("Tạo chương thành công");
+    },
+    onError: (error: Error) => {
+      showError(error.message || "Lỗi khi tạo chương");
+    },
+  });
+};
+
+export const useUpdateChapter = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, formData }: { id: string; formData: FormData }) =>
+      AuthorService.updateChapter(id, formData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["chapters"] });
+      queryClient.invalidateQueries({ queryKey: ["author-chapters"] });
+    },
+    onError: (error: Error) => {
+      showError(error.message || "Lỗi khi cập nhật chương");
+    },
+  });
 };

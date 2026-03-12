@@ -1,26 +1,20 @@
-import {
+﻿import {
   Box,
   Button,
   Container,
-  Divider,
-  Group,
   Loader,
-  Paper,
-  Radio,
   Stack,
   Text,
-  TextInput,
-  Title,
-  Tooltip,
-  UnstyledButton,
-  NumberInput,
-  Badge,
-  Alert,
-  FileInput,
-  Table,
   ActionIcon,
-  SegmentedControl,
-  Modal,
+  Group,
+  Menu,
+  NumberInput,
+  Radio,
+  Divider,
+  Image,
+  Popover,
+  Badge,
+  TextInput,
 } from "@mantine/core";
 import {
   ChapterContentInput,
@@ -29,29 +23,24 @@ import {
 import { useForm } from "@mantine/form";
 import { zod4Resolver } from "mantine-form-zod-resolver";
 import {
-  BookOpen,
   ChevronLeft,
-  Save,
+  ChevronDown,
   Send,
-  Info,
-  Layers,
+  Save,
+  MoreVertical,
   Plus,
-  Trash2,
-  FileText,
+  Check,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { z } from "zod";
 import type { Story } from "../../interfaces/Story";
+import type { Chapter } from "../../interfaces/Chapter";
 import { AuthorService } from "../../services/AuthorService";
-import { ChapterPageService } from "../../services/ChapterService";
 import { showError, showSuccess } from "../../utils/notifications.tsx";
+import PublishStoryModal from "../../components/author/PublishStoryModal.tsx";
 
 const writeChapterSchema = z.object({
-  chapterNumber: z
-    .number({ error: "Số chương không hợp lệ" })
-    .int("Số chương phải là số nguyên")
-    .min(1, "Số chương phải lớn hơn 0"),
   title: z
     .string()
     .min(1, "Tiêu đề chương không được để trống")
@@ -66,52 +55,44 @@ const writeChapterSchema = z.object({
 
 type WriteChapterFormValues = z.infer<typeof writeChapterSchema>;
 
-interface BatchChapterInput {
-  id: string;
-  chapterNumber: number;
-  title: string;
-  chapterType: "free" | "vip";
-  price: number | null;
-  inputMode: "file" | "rte";
-  file: File | null;
-  content: string | null;
+const statusLabel: Record<string, string> = {
+  draft: "Bản nháp",
+  pending: "Chờ duyệt",
+  active: "Đã duyệt",
+  rejected: "Bị từ chối",
+  banned: "Bị cấm",
+};
+
+function formatDate(dateStr?: string) {
+  if (!dateStr) return "";
+  return new Date(dateStr).toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 export default function WriteChapterPage() {
   const navigate = useNavigate();
   const { storySlug } = useParams<{ storySlug: string }>();
   const [story, setStory] = useState<Story | null>(null);
+  const [chapters, setChapters] = useState<Chapter[]>([]);
   const [storyLoading, setStoryLoading] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [submittedAction, setSubmittedAction] = useState<"draft" | "pending">(
-    "draft",
-  );
+  const [saved, setSaved] = useState(false);
+  const [selectedChapterIndex, setSelectedChapterIndex] = useState<
+    number | null
+  >(null);
+  const [chapterListOpened, setChapterListOpened] = useState(false);
   const [contentPayload, setContentPayload] = useState<ContentPayload | null>(
     null,
   );
   const [contentError, setContentError] = useState<string | undefined>();
-
-  // Batch mode
-  const [mode, setMode] = useState<"single" | "batch">("single");
-  const [batchChapters, setBatchChapters] = useState<BatchChapterInput[]>([
-    {
-      id: "0",
-      chapterNumber: 1,
-      title: "",
-      chapterType: "free",
-      price: null,
-      inputMode: "file",
-      file: null,
-      content: null,
-    },
-  ]);
-  const [batchErrors, setBatchErrors] = useState<{ [key: string]: string }>({});
-  const [editingChapterId, setEditingChapterId] = useState<string | null>(null);
-  const [modalContent, setModalContent] = useState<string | null>(null);
+  const [editorInitialContent, setEditorInitialContent] = useState<string>("");
+  const [publishModalOpened, setPublishModalOpened] = useState(false);
 
   const form = useForm<WriteChapterFormValues>({
     initialValues: {
-      chapterNumber: 1,
       title: "",
       chapterType: "free",
       price: 1,
@@ -119,316 +100,195 @@ export default function WriteChapterPage() {
     validate: zod4Resolver(writeChapterSchema),
   });
 
+  const nextChapterNumber = useMemo(() => {
+    if (chapters.length === 0) return 1;
+    return Math.max(...chapters.map((c) => c.chapterNumber)) + 1;
+  }, [chapters]);
+
+  // Word count from content
+  const wordCount = useMemo(() => {
+    if (!contentPayload || contentPayload.mode !== "editor") return 0;
+    const plain = contentPayload.html.replace(/<[^>]+>/g, " ").trim();
+    return plain ? plain.split(/\s+/).filter(Boolean).length : 0;
+  }, [contentPayload]);
+
+  const currentChapterTitle =
+    form.values.title ||
+    `Chương ${selectedChapterIndex !== null ? chapters[selectedChapterIndex]?.chapterNumber : nextChapterNumber}`;
+
+  const loadChapters = useCallback(async (storyId: string) => {
+    const chapterList =
+      await AuthorService.getChaptersByStoryForAuthor(storyId);
+    setChapters(chapterList);
+    return chapterList;
+  }, []);
+
   useEffect(() => {
     if (!storySlug) return;
     setStoryLoading(true);
     AuthorService.getStoryBySlug(storySlug)
       .then((data) => {
         setStory(data);
-        // Pre-select chapter type based on story's isPremium setting
-        if (data.isPremium) {
-          form.setFieldValue("chapterType", "vip");
-        }
-        // Suggest next chapter number
-        return AuthorService.getChaptersByStory(data._id);
-      })
-      .then((chapters) => {
-        if (chapters.length > 0) {
-          const maxNum = Math.max(...chapters.map((c) => c.chapterNumber));
-          form.setFieldValue("chapterNumber", maxNum + 1);
-        }
+        return loadChapters(data._id);
       })
       .catch(() => {
         showError("Không thể tải thông tin tác phẩm");
         navigate(-1);
       })
       .finally(() => setStoryLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [storySlug]);
+  }, [storySlug, loadChapters, navigate]);
 
-  // Batch mode handlers
-  const addBatchChapter = () => {
-    const newId = Date.now().toString();
-    const maxChapterNumber = Math.max(
-      ...batchChapters.map((c) => c.chapterNumber),
-      0,
-    );
-    const newChapter: BatchChapterInput = {
-      id: newId,
-      chapterNumber: maxChapterNumber + 1,
-      title: "",
+  const handleNewPart = () => {
+    setSelectedChapterIndex(null);
+    form.setValues({
+      title: `Chương ${nextChapterNumber}`,
       chapterType: "free",
-      price: null,
-      inputMode: "file",
-      file: null,
-      content: null,
-    };
-    setBatchChapters([...batchChapters, newChapter]);
-  };
-
-  const removeBatchChapter = (id: string) => {
-    if (batchChapters.length === 1) {
-      showError("Phải có ít nhất 1 chương");
-      return;
-    }
-    setBatchChapters(batchChapters.filter((c) => c.id !== id));
-    const newErrors = { ...batchErrors };
-    delete newErrors[`${id}-chapterNumber`];
-    delete newErrors[`${id}-title`];
-    delete newErrors[`${id}-file`];
-    delete newErrors[`${id}-content`];
-    setBatchErrors(newErrors);
-  };
-
-  const updateBatchChapter = (
-    id: string,
-    field: keyof BatchChapterInput,
-    value: any,
-  ) => {
-    setBatchChapters(
-      batchChapters.map((c) => (c.id === id ? { ...c, [field]: value } : c)),
-    );
-    const errorKey = `${id}-${field}`;
-    if (batchErrors[errorKey]) {
-      const newErrors = { ...batchErrors };
-      delete newErrors[errorKey];
-      setBatchErrors(newErrors);
-    }
-  };
-
-  const validateBatchChapters = (): boolean => {
-    const newErrors: { [key: string]: string } = {};
-    let isValid = true;
-
-    batchChapters.forEach((chapter) => {
-      if (!chapter.chapterNumber) {
-        newErrors[`${chapter.id}-chapterNumber`] = "Số chương là bắt buộc";
-        isValid = false;
-      }
-      if (!chapter.title) {
-        newErrors[`${chapter.id}-title`] = "Tiêu đề không được để trống";
-        isValid = false;
-      }
-
-      // Validate based on input mode
-      if (chapter.inputMode === "file") {
-        if (!chapter.file) {
-          newErrors[`${chapter.id}-file`] = "Vui lòng chọn file";
-          isValid = false;
-        } else {
-          const allowedTypes = [
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "application/pdf",
-            "text/plain",
-            "application/msword",
-          ];
-          if (!allowedTypes.includes(chapter.file.type)) {
-            newErrors[`${chapter.id}-file`] =
-              "Chỉ hỗ trợ .docx, .pdf, .txt, .doc";
-            isValid = false;
-          }
-          if (chapter.file.size > 50 * 1024 * 1024) {
-            newErrors[`${chapter.id}-file`] = "File không được vượt quá 50MB";
-            isValid = false;
-          }
-        }
-      } else if (chapter.inputMode === "rte") {
-        if (!chapter.content || chapter.content.trim() === "") {
-          newErrors[`${chapter.id}-content`] = "Vui lòng nhập nội dung";
-          isValid = false;
-        } else {
-          // Check word count (at least 50 words)
-          const plain = chapter.content.replace(/<[^>]+>/g, " ").trim();
-          const wc = plain ? plain.split(/\s+/).filter(Boolean).length : 0;
-          if (wc < 50) {
-            newErrors[`${chapter.id}-content`] = `Ít nhất 50 từ (hiện: ${wc})`;
-            isValid = false;
-          }
-        }
-      }
+      price: 1,
     });
-
-    setBatchErrors(newErrors);
-    return isValid;
+    setEditorInitialContent("");
+    setContentPayload(null);
+    setContentError(undefined);
+    setSaved(false);
+    setChapterListOpened(false);
   };
 
-  const openRTEModal = (chapterId: string) => {
-    const chapter = batchChapters.find((c) => c.id === chapterId);
-    if (chapter) {
-      setEditingChapterId(chapterId);
-      setModalContent(chapter.content || "<p></p>");
-    }
-  };
+  const handleSelectChapter = async (index: number) => {
+    const ch = chapters[index];
+    setSelectedChapterIndex(index);
+    form.setValues({
+      title: ch.title,
+      chapterType: ch.isPremium ? "vip" : "free",
+      price: ch.price || 1,
+    });
+    setContentError(undefined);
+    setSaved(false);
+    setChapterListOpened(false);
 
-  const closeRTEModal = () => {
-    setEditingChapterId(null);
-    setModalContent(null);
-  };
-
-  const saveRTEContent = () => {
-    if (editingChapterId && modalContent) {
-      updateBatchChapter(editingChapterId, "content", modalContent);
-    }
-    closeRTEModal();
-  };
-
-  const handleBatchSubmit = async () => {
-    if (!story) {
-      showError("Không thể tải thông tin truyện");
-      return;
-    }
-
-    if (!validateBatchChapters()) {
-      showError("Vui lòng kiểm tra và sửa các lỗi");
-      return;
-    }
-
-    setLoading(true);
+    // Fetch chapter content from the server
     try {
-      const formData = new FormData();
-      formData.append("storyId", story._id);
-
-      // Add files and collect chapters metadata
-      const chaptersData = batchChapters.map((chapter, index) => {
-        let fileIndex: number | undefined = undefined;
-
-        if (chapter.inputMode === "file" && chapter.file) {
-          // Get the index of this file within all files being uploaded
-          const fileCount = batchChapters
-            .slice(0, index)
-            .filter((c) => c.inputMode === "file" && c.file).length;
-          formData.append("files", chapter.file);
-          fileIndex = fileCount;
-        } else if (chapter.inputMode === "rte" && chapter.content) {
-          // Create an HTML file for RTE content
-          const blob = new Blob([chapter.content], { type: "text/html" });
-          const file = new File(
-            [blob],
-            `${chapter.title || "chapter"}-${chapter.id}.html`,
-            { type: "text/html" },
-          );
-          const fileCount = batchChapters
-            .slice(0, index)
-            .filter(
-              (c) => c.file || (c.inputMode === "rte" && c.content),
-            ).length;
-          formData.append("files", file);
-          fileIndex = fileCount;
-        }
-
-        return {
-          chapterNumber: chapter.chapterNumber,
-          title: chapter.title,
-          chapterType: chapter.chapterType,
-          price: chapter.chapterType === "vip" ? chapter.price : undefined,
-          fileIndex,
-        };
-      });
-
-      formData.append("chapters", JSON.stringify(chaptersData));
-
-      const result = await ChapterPageService.createChaptersBatch(formData);
-
-      showSuccess(
-        `Tạo thành công ${result.count} chương! Các chương đang chờ admin duyệt.`,
-        "được gửi để duyệt",
-      );
-
-      // Reset form
-      setBatchChapters([
-        {
-          id: "0",
-          chapterNumber: 1,
-          title: "",
-          chapterType: "free",
-          price: null,
-          inputMode: "file",
-          file: null,
-          content: null,
-        },
-      ]);
-      setBatchErrors({});
-
-      // Redirect after a delay
-      setTimeout(() => {
-        navigate(`/story/${story.slug}`);
-      }, 1500);
-    } catch (error: any) {
-      console.error("Batch upload error:", error);
-      showError(
-        error.response?.data?.error ||
-          error.response?.data?.message ||
-          "Có lỗi xảy ra khi tạo chương",
-      );
-    } finally {
-      setLoading(false);
+      const fullChapter = await AuthorService.getChapterById(ch.id);
+      const html = fullChapter.contentURL ?? "";
+      setEditorInitialContent(html);
+      setContentPayload({ mode: "editor", html });
+    } catch {
+      setEditorInitialContent("");
+      setContentPayload(null);
     }
   };
 
-  const handleSubmit = async (
+  const buildFormData = (
     values: WriteChapterFormValues,
     status: "draft" | "pending",
-  ) => {
-    if (!story) return;
+  ): FormData | null => {
+    if (!story) return null;
 
-    // Validate content
     if (!contentPayload) {
       setContentError("Vui lòng nhập nội dung chương");
-      return;
+      return null;
     }
     if (contentPayload.mode === "editor") {
-      // Strip HTML tags to get plain text for word count
       const plain = contentPayload.html.replace(/<[^>]+>/g, " ").trim();
       const wc = plain ? plain.split(/\s+/).filter(Boolean).length : 0;
       if (wc < 50) {
         setContentError(
           `Nội dung chương phải có ít nhất 50 từ (hiện tại: ${wc} từ)`,
         );
-        return;
+        return null;
       }
     }
     setContentError(undefined);
 
+    const formData = new FormData();
+    formData.append("storyId", story._id);
+    formData.append(
+      "chapterNumber",
+      String(
+        selectedChapterIndex !== null
+          ? chapters[selectedChapterIndex].chapterNumber
+          : nextChapterNumber,
+      ),
+    );
+    formData.append("title", values.title);
+    formData.append("status", status);
+
+    if (contentPayload.mode === "editor") {
+      const blob = new Blob([contentPayload.html], { type: "text/html" });
+      formData.append("file", blob, `${values.title}.html`);
+    } else {
+      formData.append("file", contentPayload.file);
+    }
+
+    formData.append("chapterType", values.chapterType);
+
+    if (values.chapterType === "vip") {
+      const priceVal = values.price as number | undefined;
+      if (!priceVal || !Number.isInteger(priceVal) || priceVal < 1) {
+        showError("Giá chương phải là số nguyên dương (>=1)");
+        return null;
+      }
+      formData.append("price", String(priceVal));
+    }
+    return formData;
+  };
+
+  const handleSave = async () => {
+    const result = form.validate();
+    if (result.hasErrors) return;
+
+    const formData = buildFormData(form.values, "draft");
+    if (!formData || !story) return;
+
     setLoading(true);
     try {
-      const formData = new FormData();
-      formData.append("storyId", story._id);
-      formData.append("chapterNumber", String(values.chapterNumber));
-      formData.append("title", values.title);
-
-      if (contentPayload.mode === "editor") {
-        const blob = new Blob([contentPayload.html], { type: "text/html" });
-        formData.append("file", blob, `${values.title}.html`);
+      if (selectedChapterIndex !== null) {
+        // Update existing chapter
+        const chapterId = chapters[selectedChapterIndex].id;
+        await AuthorService.updateChapter(chapterId, formData);
       } else {
-        formData.append("file", contentPayload.file);
+        // Create new chapter
+        await AuthorService.createChapter(formData);
       }
 
-      // Append chapter type
-      formData.append("chapterType", values.chapterType);
+      showSuccess("Chương đã được lưu nháp!");
+      setSaved(true);
 
-      // Append price when chapter is VIP and validate
-      if (values.chapterType === "vip") {
-        const priceVal = values.price as number | undefined;
-        if (!priceVal || !Number.isInteger(priceVal) || priceVal < 1) {
-          setLoading(false);
-          showError("Giá chương phải là số nguyên dương (>=1)");
-          return;
-        }
-        formData.append("price", String(priceVal));
+      const updatedChapters = await loadChapters(story._id);
+      // If we just created a new chapter, select it
+      if (selectedChapterIndex === null) {
+        const newIdx = updatedChapters.findIndex(
+          (c) => c.chapterNumber === nextChapterNumber,
+        );
+        if (newIdx !== -1) setSelectedChapterIndex(newIdx);
+      }
+    } catch {
+      showError("Có lỗi xảy ra khi lưu chương. Vui lòng thử lại.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePublishClick = async () => {
+    const result = form.validate();
+    if (result.hasErrors) return;
+
+    const formData = buildFormData(form.values, "draft");
+    if (!formData || !story) return;
+
+    // First save current chapter as draft
+    setLoading(true);
+    try {
+      if (selectedChapterIndex !== null) {
+        const chapterId = chapters[selectedChapterIndex].id;
+        await AuthorService.updateChapter(chapterId, formData);
+      } else {
+        await AuthorService.createChapter(formData);
       }
 
-      formData.append("status", status);
+      setSaved(true);
+      await loadChapters(story._id);
 
-      await AuthorService.createChapter(formData);
-
-      showSuccess(
-        status === "draft"
-          ? "Chương đã được lưu vào nháp!"
-          : "Chương đã được gửi để duyệt! Admin sẽ xem xét trong thời gian sớm nhất.",
-        status === "draft" ? "Lưu nháp thành công" : "Gửi duyệt thành công",
-      );
-
-      navigate(`/story/${story.slug}`);
+      // Then open publish modal
+      setPublishModalOpened(true);
     } catch {
       showError("Có lỗi xảy ra khi lưu chương. Vui lòng thử lại.");
     } finally {
@@ -450,479 +310,262 @@ export default function WriteChapterPage() {
   }
 
   return (
-    <Box className="min-h-screen bg-[#f8f4ef]">
-      {/* Sticky header */}
+    <Box className="min-h-screen bg-[#f3f3f3]">
+      {/* ── Header ── */}
       <Box
-        className="sticky top-0 z-10 bg-white border-b border-gray-200"
-        style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}
+        style={{
+          borderBottom: "1px solid #dfdfdf",
+          backgroundColor: "white",
+        }}
       >
-        <Container size="xl">
-          <Group justify="space-between" py="sm">
-            <Group gap="xs">
-              <Tooltip label="Quay lại tác phẩm">
-                <UnstyledButton
-                  onClick={() => navigate(-1)}
-                  className="flex items-center text-gray-500 hover:text-gray-800 transition-colors"
-                >
-                  <ChevronLeft size={20} />
-                </UnstyledButton>
-              </Tooltip>
-              <Group gap={6}>
-                <BookOpen size={20} className="text-blue-500" />
-                <Stack gap={0}>
-                  <Text size="xs" c="dimmed">
-                    Đang viết chương cho
-                  </Text>
-                  <Text fw={600} size="sm" lineClamp={1} maw={300}>
-                    {story?.title ?? "..."}
-                  </Text>
-                </Stack>
-              </Group>
-              {story?.isPremium && (
-                <Badge color="blue" variant="light" size="sm">
-                  VIP
-                </Badge>
+        <Container size="xl" py={8}>
+          <Group justify="space-between" align="center">
+            {/* Left: Back + Story info + Chapter dropdown */}
+            <Group align="center" gap="sm">
+              <ActionIcon
+                variant="subtle"
+                size="lg"
+                onClick={() => navigate(`/author/my-stories`)}
+                color="gray"
+              >
+                <ChevronLeft size={20} />
+              </ActionIcon>
+
+              {/* Story thumbnail */}
+              {story?.image && (
+                <Image
+                  src={story.image}
+                  alt={story.title}
+                  w={36}
+                  h={48}
+                  radius={4}
+                  fit="cover"
+                  style={{ flexShrink: 0 }}
+                />
               )}
+
+              {/* Story title + Chapter dropdown */}
+              <Stack gap={0}>
+                <Popover
+                  opened={chapterListOpened}
+                  onChange={setChapterListOpened}
+                  position="bottom-start"
+                  shadow="md"
+                  width={320}
+                >
+                  <Popover.Target>
+                    <Group
+                      gap={4}
+                      style={{ cursor: "pointer" }}
+                      onClick={() => setChapterListOpened((o) => !o)}
+                    >
+                      <Text size="xs" c="blue" fw={500}>
+                        {story?.title ?? "Truyện"}
+                      </Text>
+                      <ChevronDown
+                        size={12}
+                        color="var(--mantine-color-blue-6)"
+                      />
+                    </Group>
+                  </Popover.Target>
+
+                  <Popover.Dropdown p={0}>
+                    <Stack gap={0}>
+                      {chapters.map((ch, idx) => (
+                        <Group
+                          key={ch.id}
+                          justify="space-between"
+                          px="md"
+                          py="sm"
+                          onClick={() => handleSelectChapter(idx)}
+                          style={{
+                            cursor: "pointer",
+                            backgroundColor:
+                              selectedChapterIndex === idx
+                                ? "#f0f9ff"
+                                : undefined,
+                            borderBottom: "1px solid #f0f0f0",
+                          }}
+                          className="hover:bg-gray-50"
+                        >
+                          <Stack gap={2}>
+                            <Text size="sm" fw={500} lineClamp={1}>
+                              {ch.title || `Chương ${ch.chapterNumber}`}
+                            </Text>
+                            <Text size="xs" c="dimmed">
+                              {statusLabel[ch.status ?? "draft"] ?? "Bản nháp"}{" "}
+                              - {formatDate(ch.createdAt)}
+                            </Text>
+                          </Stack>
+                          {selectedChapterIndex === idx && (
+                            <Check
+                              size={18}
+                              color="var(--mantine-color-teal-6)"
+                            />
+                          )}
+                        </Group>
+                      ))}
+
+                      <Box px="md" py="sm">
+                        <Button
+                          fullWidth
+                          color="orange"
+                          size="xs"
+                          leftSection={<Plus size={14} />}
+                          onClick={handleNewPart}
+                        >
+                          Chương mới
+                        </Button>
+                      </Box>
+                    </Stack>
+                  </Popover.Dropdown>
+                </Popover>
+
+                <Text fw={600} size="sm" lineClamp={1}>
+                  {currentChapterTitle}
+                </Text>
+
+                <Group gap={6}>
+                  <Badge size="xs" variant="light" color="gray">
+                    {selectedChapterIndex !== null
+                      ? (statusLabel[
+                          chapters[selectedChapterIndex]?.status ?? "draft"
+                        ] ?? "Bản nháp")
+                      : "Bản nháp"}
+                  </Badge>
+                  <Text size="xs" c="dimmed">
+                    ({wordCount} từ)
+                  </Text>
+                  {saved && (
+                    <Text size="xs" c="teal" fw={500}>
+                      Đã lưu
+                    </Text>
+                  )}
+                </Group>
+              </Stack>
             </Group>
 
-            {mode === "single" && (
-              <Group gap="sm">
-                <Button
-                  variant="light"
-                  color="violet"
-                  leftSection={<Layers size={16} />}
-                  onClick={() => setMode("batch")}
-                >
-                  Batch upload
-                </Button>
-                <Button
-                  variant="outline"
-                  color="gray"
-                  leftSection={<Save size={16} />}
-                  loading={loading && submittedAction === "draft"}
-                  onClick={() => {
-                    setSubmittedAction("draft");
-                    form.onSubmit((v) => handleSubmit(v, "draft"))();
-                  }}
-                >
-                  Lưu nháp
-                </Button>
-                <Button
-                  color="blue"
-                  leftSection={<Send size={16} />}
-                  loading={loading && submittedAction === "pending"}
-                  onClick={() => {
-                    setSubmittedAction("pending");
-                    form.onSubmit((v) => handleSubmit(v, "pending"))();
-                  }}
-                >
-                  Gửi duyệt
-                </Button>
-              </Group>
-            )}
+            {/* Right: Action buttons */}
+            <Group gap="xs">
+              <Button
+                color="orange"
+                size="sm"
+                loading={loading}
+                leftSection={<Send size={14} />}
+                onClick={handlePublishClick}
+              >
+                Đăng
+              </Button>
+              <Button
+                variant="outline"
+                color="dark"
+                size="sm"
+                leftSection={<Save size={14} />}
+                onClick={handleSave}
+                loading={loading}
+              >
+                Lưu
+              </Button>
 
-            {mode === "batch" && (
-              <Group gap="sm">
-                <Button
-                  variant="outline"
-                  color="gray"
-                  onClick={() => setMode("single")}
-                >
-                  Về chế độ thường
-                </Button>
-                <Button
-                  color="blue"
-                  leftSection={<Send size={16} />}
-                  loading={loading}
-                  onClick={handleBatchSubmit}
-                >
-                  Tải lên {batchChapters.length} chương
-                </Button>
-              </Group>
-            )}
+              {/* More menu: chapter settings */}
+              <Menu shadow="md" width={280} position="bottom-end">
+                <Menu.Target>
+                  <ActionIcon variant="subtle" color="gray" size="lg">
+                    <MoreVertical size={20} />
+                  </ActionIcon>
+                </Menu.Target>
+
+                <Menu.Dropdown>
+                  <Menu.Label>Cài đặt chương</Menu.Label>
+
+                  <Menu.Item closeMenuOnClick={false}>
+                    <Text size="xs" fw={500} mb="xs" c="dimmed">
+                      Loại chương
+                    </Text>
+                    <Radio.Group
+                      value={form.values.chapterType}
+                      onChange={(val) =>
+                        form.setFieldValue("chapterType", val as "free" | "vip")
+                      }
+                      size="xs"
+                    >
+                      <Group>
+                        <Radio value="free" label="Miễn phí" />
+                        <Radio value="vip" label="Trả phí" />
+                      </Group>
+                    </Radio.Group>
+                  </Menu.Item>
+
+                  <Divider my="xs" />
+
+                  {form.values.chapterType === "vip" && (
+                    <Menu.Item closeMenuOnClick={false}>
+                      <Text size="xs" fw={500} mb="xs" c="dimmed">
+                        Giá chương (Stone)
+                      </Text>
+                      <NumberInput
+                        placeholder="1"
+                        min={1}
+                        step={1}
+                        size="xs"
+                        {...form.getInputProps("price")}
+                      />
+                    </Menu.Item>
+                  )}
+                </Menu.Dropdown>
+              </Menu>
+            </Group>
           </Group>
         </Container>
       </Box>
 
-      <Container size="xl" py="xl">
-        {/* Single mode */}
-        {mode === "single" && (
-          <form onSubmit={(e) => e.preventDefault()}>
-            <Stack gap="lg">
-              {/* Chapter metadata */}
-              <Paper withBorder p="xl" radius="md" bg="white">
-                <Stack gap="md">
-                  <Group gap="xs">
-                    <Layers size={18} className="text-blue-500" />
-                    <Title order={4} fw={600}>
-                      Thông tin chương
-                    </Title>
-                  </Group>
-                  <Divider />
-
-                  <Group align="flex-start" gap="md">
-                    <NumberInput
-                      label="Số chương"
-                      placeholder="1"
-                      required
-                      min={1}
-                      w={120}
-                      size="md"
-                      {...form.getInputProps("chapterNumber")}
-                    />
-                    <TextInput
-                      label="Tiêu đề chương"
-                      placeholder="Ví dụ: Khởi đầu cuộc hành trình..."
-                      required
-                      style={{ flex: 1 }}
-                      size="md"
-                      {...form.getInputProps("title")}
-                    />
-                    {form.values.chapterType === "vip" && (
-                      <NumberInput
-                        label="Giá (Stone)"
-                        placeholder="1"
-                        required={form.values.chapterType === "vip"}
-                        min={1}
-                        step={1}
-                        w={160}
-                        size="md"
-                        {...form.getInputProps("price")}
-                      />
-                    )}
-                  </Group>
-
-                  <Stack gap={4}>
-                    <Text size="sm" fw={500}>
-                      Loại chương
-                    </Text>
-                    <Radio.Group {...form.getInputProps("chapterType")}>
-                      <Group gap="lg">
-                        <Radio
-                          value="free"
-                          label="Miễn phí"
-                          color="blue"
-                          disabled={story?.isPremium}
-                        />
-                        <Radio value="vip" label="VIP (Premium)" color="blue" />
-                      </Group>
-                    </Radio.Group>
-                    {story?.isPremium && (
-                      <Text size="xs" c="dimmed">
-                        Tác phẩm này được đánh dấu VIP nên tất cả chương đều yêu
-                        cầu VIP.
-                      </Text>
-                    )}
-                  </Stack>
-                </Stack>
-              </Paper>
-
-              {/* Chapter content */}
-              <Paper withBorder p="xl" radius="md" bg="white">
-                <Stack gap="md">
-                  <Title order={4} fw={600}>
-                    Nội dung chương
-                  </Title>
-                  <Divider />
-
-                  <ChapterContentInput
-                    onChange={(payload) => {
-                      setContentPayload(payload);
-                      if (payload) setContentError(undefined);
-                    }}
-                    error={contentError}
-                  />
-                </Stack>
-              </Paper>
-
-              {/* Writing tips */}
-              <Alert
-                icon={<Info size={16} />}
-                color="blue"
-                variant="light"
-                radius="md"
-              >
-                <Stack gap={4}>
-                  <Text size="sm" fw={600}>
-                    Mẹo viết chương
-                  </Text>
-                  <Text size="xs" c="dimmed">
-                    Lưu nháp để tiếp tục viết sau. Khi gửi duyệt, chương sẽ được
-                    admin xem xét trước khi công khai cho độc giả.
-                  </Text>
-                </Stack>
-              </Alert>
-            </Stack>
-          </form>
-        )}
-
-        {/* Batch mode */}
-        {mode === "batch" && (
+      {/* ── Content Area ── */}
+      <Container size="md" py="xl">
+        <form onSubmit={(e) => e.preventDefault()}>
           <Stack gap="lg">
-            {/* Info Alert */}
-            <Alert icon={<Info size={16} />} color="blue">
-              <Stack gap="xs">
-                <Text fw={500}>Hướng dẫn tải lên batch:</Text>
-                <Text size="sm">• Tối đa 50 chương mỗi lần</Text>
-                <Text size="sm">
-                  • File hỗ trợ: .docx, .pdf, .txt (tối đa 50MB mỗi file)
-                </Text>
-                <Text size="sm">• Số chương phải là duy nhất</Text>
-                <Text size="sm">
-                  • Các chương sẽ được gửi ngay để admin duyệt
-                </Text>
-              </Stack>
-            </Alert>
+            {/* Chapter title input - centered, clean */}
+            <TextInput
+              placeholder="Tiêu đề chương..."
+              variant="unstyled"
+              size="xl"
+              styles={{
+                input: {
+                  textAlign: "center",
+                  fontSize: 24,
+                  fontWeight: 600,
+                  color: "#333",
+                  border: "none",
+                  background: "transparent",
+                },
+              }}
+              {...form.getInputProps("title")}
+            />
 
-            {/* Batch Chapters Table */}
-            <Paper withBorder p="md">
-              <Stack gap="md">
-                <Group justify="space-between">
-                  <Title order={3}>
-                    Danh sách chương ({batchChapters.length})
-                  </Title>
-                  <Button
-                    leftSection={<Plus size={18} />}
-                    onClick={addBatchChapter}
-                    variant="light"
-                  >
-                    Thêm chương
-                  </Button>
-                </Group>
-
-                <div style={{ overflowX: "auto" }}>
-                  <Table striped highlightOnHover>
-                    <Table.Thead>
-                      <Table.Tr>
-                        <Table.Th w="8%">Số chương</Table.Th>
-                        <Table.Th w="20%">Tiêu đề</Table.Th>
-                        <Table.Th w="10%">Loại</Table.Th>
-                        <Table.Th w="10%">Giá</Table.Th>
-                        <Table.Th w="10%">Nhập</Table.Th>
-                        <Table.Th w="32%">Nội dung</Table.Th>
-                        <Table.Th w="10%">Hành động</Table.Th>
-                      </Table.Tr>
-                    </Table.Thead>
-                    <Table.Tbody>
-                      {batchChapters.map((chapter) => (
-                        <Table.Tr key={chapter.id}>
-                          {/* Chapter Number */}
-                          <Table.Td>
-                            <NumberInput
-                              value={chapter.chapterNumber}
-                              onChange={(val) =>
-                                updateBatchChapter(
-                                  chapter.id,
-                                  "chapterNumber",
-                                  Number(val),
-                                )
-                              }
-                              min={1}
-                              size="sm"
-                              error={
-                                !!batchErrors[`${chapter.id}-chapterNumber`]
-                              }
-                            />
-                            {batchErrors[`${chapter.id}-chapterNumber`] && (
-                              <Text c="red" size="xs">
-                                {batchErrors[`${chapter.id}-chapterNumber`]}
-                              </Text>
-                            )}
-                          </Table.Td>
-
-                          {/* Title */}
-                          <Table.Td>
-                            <TextInput
-                              value={chapter.title}
-                              onChange={(e) =>
-                                updateBatchChapter(
-                                  chapter.id,
-                                  "title",
-                                  e.currentTarget.value,
-                                )
-                              }
-                              placeholder="Tiêu đề chương"
-                              size="sm"
-                              error={!!batchErrors[`${chapter.id}-title`]}
-                            />
-                            {batchErrors[`${chapter.id}-title`] && (
-                              <Text c="red" size="xs">
-                                {batchErrors[`${chapter.id}-title`]}
-                              </Text>
-                            )}
-                          </Table.Td>
-
-                          {/* Chapter Type */}
-                          <Table.Td>
-                            <Radio.Group
-                              value={chapter.chapterType}
-                              onChange={(val) =>
-                                updateBatchChapter(
-                                  chapter.id,
-                                  "chapterType",
-                                  val as "free" | "vip",
-                                )
-                              }
-                            >
-                              <Radio value="free" label="Miễn phí" size="sm" />
-                              <Radio value="vip" label="VIP" size="sm" />
-                            </Radio.Group>
-                          </Table.Td>
-
-                          {/* Price */}
-                          <Table.Td>
-                            <NumberInput
-                              value={
-                                chapter.chapterType === "vip"
-                                  ? chapter.price || ""
-                                  : ""
-                              }
-                              onChange={(val) =>
-                                updateBatchChapter(
-                                  chapter.id,
-                                  "price",
-                                  Number(val) || null,
-                                )
-                              }
-                              placeholder="Giá"
-                              min={1}
-                              size="sm"
-                              disabled={chapter.chapterType === "free"}
-                            />
-                          </Table.Td>
-
-                          {/* Input Mode Toggle */}
-                          <Table.Td>
-                            <SegmentedControl
-                              value={chapter.inputMode}
-                              onChange={(val) =>
-                                updateBatchChapter(
-                                  chapter.id,
-                                  "inputMode",
-                                  val as "file" | "rte",
-                                )
-                              }
-                              data={[
-                                { label: "File", value: "file" },
-                                { label: "RTE", value: "rte" },
-                              ]}
-                              size="sm"
-                            />
-                          </Table.Td>
-
-                          {/* Content Input */}
-                          <Table.Td>
-                            {chapter.inputMode === "file" ? (
-                              <Group gap="xs">
-                                <FileInput
-                                  value={chapter.file}
-                                  onChange={(file) =>
-                                    updateBatchChapter(chapter.id, "file", file)
-                                  }
-                                  placeholder="Chọn file"
-                                  size="sm"
-                                  accept=".docx,.pdf,.txt,.doc"
-                                  error={!!batchErrors[`${chapter.id}-file`]}
-                                  clearable
-                                />
-                                {chapter.file && (
-                                  <Tooltip label={chapter.file.name}>
-                                    <Badge variant="light" size="sm">
-                                      <FileText size={12} />{" "}
-                                      {chapter.file.name.substring(0, 10)}...
-                                    </Badge>
-                                  </Tooltip>
-                                )}
-                              </Group>
-                            ) : (
-                              <Group gap="xs" justify="space-between">
-                                <Button
-                                  variant="light"
-                                  size="sm"
-                                  onClick={() => openRTEModal(chapter.id)}
-                                  fullWidth
-                                >
-                                  {chapter.content
-                                    ? "Chỉnh sửa"
-                                    : "Nhập nội dung"}
-                                </Button>
-                                {chapter.content && (
-                                  <Badge
-                                    color="green"
-                                    variant="light"
-                                    size="sm"
-                                  >
-                                    ✓
-                                  </Badge>
-                                )}
-                              </Group>
-                            )}
-                            {batchErrors[`${chapter.id}-file`] &&
-                              chapter.inputMode === "file" && (
-                                <Text c="red" size="xs">
-                                  {batchErrors[`${chapter.id}-file`]}
-                                </Text>
-                              )}
-                            {batchErrors[`${chapter.id}-content`] &&
-                              chapter.inputMode === "rte" && (
-                                <Text c="red" size="xs">
-                                  {batchErrors[`${chapter.id}-content`]}
-                                </Text>
-                              )}
-                          </Table.Td>
-
-                          {/* Actions */}
-                          <Table.Td>
-                            <Tooltip label="Xóa chương">
-                              <ActionIcon
-                                color="red"
-                                variant="light"
-                                onClick={() => removeBatchChapter(chapter.id)}
-                                disabled={batchChapters.length === 1}
-                                size="sm"
-                              >
-                                <Trash2 size={14} />
-                              </ActionIcon>
-                            </Tooltip>
-                          </Table.Td>
-                        </Table.Tr>
-                      ))}
-                    </Table.Tbody>
-                  </Table>
-                </div>
-              </Stack>
-            </Paper>
+            {/* Chapter content editor */}
+            <Box className="bg-white rounded-lg border border-gray-200" p="md">
+              <ChapterContentInput
+                onChange={(payload) => {
+                  setContentPayload(payload);
+                  if (payload) setContentError(undefined);
+                  setSaved(false);
+                }}
+                initialContent={editorInitialContent}
+                error={contentError}
+              />
+            </Box>
           </Stack>
-        )}
+        </form>
       </Container>
 
-      {/* RTE Modal for Batch Chapter Editing */}
-      <Modal
-        opened={editingChapterId !== null}
-        onClose={closeRTEModal}
-        title="Chỉnh sửa nội dung chương"
-        size="xl"
-        centered
-      >
-        <Stack gap="md">
-          {modalContent !== null && (
-            <ChapterContentInput
-              initialContent={modalContent}
-              onChange={(payload) => {
-                if (payload && payload.mode === "editor") {
-                  setModalContent(payload.html);
-                }
-              }}
-            />
-          )}
-          <Group justify="flex-end">
-            <Button variant="outline" onClick={closeRTEModal}>
-              Hủy
-            </Button>
-            <Button onClick={saveRTEContent}>Lưu lại</Button>
-          </Group>
-        </Stack>
-      </Modal>
+      {/* ── Publish Modal ── */}
+      {story && (
+        <PublishStoryModal
+          opened={publishModalOpened}
+          onClose={() => setPublishModalOpened(false)}
+          story={story}
+          currentChapterTitle={currentChapterTitle}
+        />
+      )}
     </Box>
   );
 }
