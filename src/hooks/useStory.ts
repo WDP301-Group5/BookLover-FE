@@ -5,6 +5,7 @@ import StoryService from "../services/StoryService";
 import { AuthorService } from "../services/AuthorService";
 import type { Story } from "../interfaces/Story";
 import { showError, showSuccess } from "../utils/notifications";
+import axios from "axios";
 
 export const useRecommendStory = () => {
   return useQuery({
