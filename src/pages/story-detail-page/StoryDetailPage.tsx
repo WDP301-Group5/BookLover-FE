@@ -65,7 +65,7 @@ const StoryDetailPage: FC = () => {
 				{ label: "Trang chủ", href: "/" },
 			],
 			coverUrl: story.image,
-			authorId: story.author?.id || "",
+			authorId: story.author?._id || "",
 			author:
 				story.author?.penName ||
 				story.author?.nickName ||
