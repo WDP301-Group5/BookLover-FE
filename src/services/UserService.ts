@@ -359,6 +359,36 @@ const UserService = {
         : "Có lỗi không xác định xảy ra";
     }
   },
+
+  async searchUsers(query: string): Promise<AuthorPublicProfile[]> {
+    if (!query || query.trim() === "") return [];
+
+    try {
+      const res = await axiosClient.get("/user/search", { params: { q: query } });
+
+      const mapped: AuthorPublicProfile[] = res.data.data.map((u: any) => ({
+        _id: u.id || u._id,
+        id: u.id || u._id,
+        username: u.username,
+        penName: u.penName,
+        fullName: u.fullName,
+        avatarURL: u.avatarURL || "/default-avatar.png",
+        followersCount: u.followersCount || 0,
+        storiesCount: u.storiesCount || 0,
+        vipLevel: u.vipLevel || 0,
+        relationship: {
+          amIFollowing: false,
+          followsMe: false,
+          isMutual: false,
+        },
+      }));
+
+      return mapped;
+    } catch (error) {
+      console.error("Error searching users:", error);
+      throw error;
+    }
+  },
 };
 
 export default UserService;
