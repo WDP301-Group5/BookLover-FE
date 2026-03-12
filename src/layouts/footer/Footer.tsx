@@ -1,6 +1,9 @@
 import { Anchor, Group, Text } from "@mantine/core";
 import classes from "./FooterCentered.module.css";
 import { Link } from "react-router-dom";
+import { useState } from "react";
+import TermsModal from "../../components/modals/TermsModal";
+import PrivacyPolicyModal from "../../components/modals/PrivacyPolicyModal";
 
 interface FooterLink {
   link: string;
@@ -49,13 +52,16 @@ const footerSections: FooterSection[] = [
 
 const bottomLinks: FooterLink[] = [
   { link: "/terms", label: "Điều khoản" },
-  { link: "/privacy", label: "Quyền riêng tư" },
+  { link: "/private-policy", label: "Chính sách bảo mật" },
   { link: "/payment-policy", label: "Chính sách thanh toán" },
   { link: "/help", label: "Trợ giúp" },
   { link: "/contact", label: "Liên hệ" },
 ];
 
 export default function FooterCentered() {
+  const [termsOpened, setTermsOpened] = useState(false);
+  const [privacyOpened, setPrivacyOpened] = useState(false);
+
   return (
     <footer className={classes.footer}>
       <div className={classes.container}>
@@ -88,24 +94,64 @@ export default function FooterCentered() {
         <div className={classes.bottomSection}>
           <Group justify="space-between" align="center" wrap="wrap" gap="md">
             <Group gap="sm" wrap="wrap">
-              {bottomLinks.map((link) => (
-                <Anchor
-                  component={Link}
-                  key={link.label}
-                  to={link.link}
-                  c="dimmed"
-                  size="xs"
-                  className={classes.bottomLink}
-                >
-                  {link.label}
-                </Anchor>
-              ))}
+              {bottomLinks.map((link) => {
+                if (link.label === "Điều khoản") {
+                  return (
+                    <Anchor
+                      key={link.label}
+                      component="button"
+                      onClick={() => setTermsOpened(true)}
+                      c="dimmed"
+                      size="xs"
+                      className={classes.bottomLink}
+                    >
+                      {link.label}
+                    </Anchor>
+                  );
+                }
+                if (link.label === "Chính sách bảo mật") {
+                  return (
+                    <Anchor
+                      key={link.label}
+                      component="button"
+                      onClick={() => setPrivacyOpened(true)}
+                      c="dimmed"
+                      size="xs"
+                      className={classes.bottomLink}
+                    >
+                      {link.label}
+                    </Anchor>
+                  );
+                }
+                return (
+                  <Anchor
+                    component={Link}
+                    key={link.label}
+                    to={link.link}
+                    c="dimmed"
+                    size="xs"
+                    className={classes.bottomLink}
+                  >
+                    {link.label}
+                  </Anchor>
+                );
+              })}
             </Group>
             <Text c="dimmed" size="xs">
               &copy; {new Date().getFullYear()} BookLover. Bảo lưu mọi quyền.
             </Text>
           </Group>
         </div>
+
+        {/* Modals */}
+        <TermsModal
+          opened={termsOpened}
+          onClose={() => setTermsOpened(false)}
+        />
+        <PrivacyPolicyModal
+          opened={privacyOpened}
+          onClose={() => setPrivacyOpened(false)}
+        />
       </div>
     </footer>
   );

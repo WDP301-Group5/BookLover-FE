@@ -1,22 +1,22 @@
-import { SimpleGrid, Stack, Title, Text, Loader } from "@mantine/core";
+import { SimpleGrid, Text, Loader, Stack, Title } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import type { AuthorPublicProfile } from "../../services/UserService";
-import UserService from "../../services/UserService";
-import { UserFollowCard } from "../user/UserFollowCard";
+import type { AuthorPublicProfile } from "../../../services/UserService";
+import UserService from "../../../services/UserService";
+import { UserFollowCard } from "../UserFollowCard";
 
-interface FollowingTabProps {
+interface FollowersProps {
   authorId?: string;
   layout?: "profile" | "compact";
   showTitle?: boolean;
 }
 
-export function FollowingTab({
+export default function Followers({
   authorId,
   layout = "profile",
   showTitle = true,
-}: FollowingTabProps) {
-  const [following, setFollowing] = useState<AuthorPublicProfile[]>([]);
+}: FollowersProps) {
+  const [followers, setFollowers] = useState<AuthorPublicProfile[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -34,22 +34,22 @@ export function FollowingTab({
   useEffect(() => {
     if (!authorId) return;
 
-    const fetchFollowing = async () => {
+    const fetchFollowers = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        const data = await UserService.getFollowing(authorId, 1);
-        setFollowing(data);
+        const data = await UserService.getFollowers(authorId, 1);
+        setFollowers(data);
       } catch (err) {
         console.error(err);
-        setError("Có lỗi xảy ra khi lấy danh sách đang theo dõi");
+        setError("Có lỗi xảy ra khi lấy danh sách người theo dõi");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchFollowing();
+    fetchFollowers();
   }, [authorId]);
 
   const handleFollowToggle = async (id: string) => {
@@ -67,16 +67,16 @@ export function FollowingTab({
 
   if (loading) return <Loader size="lg" />;
   if (error) return <Text c="red">{error}</Text>;
-  if (!following || following.length === 0) {
-    return <Text>Chưa theo dõi ai.</Text>;
+  if (!followers || followers.length === 0) {
+    return <Text>Chưa có người theo dõi.</Text>;
   }
 
   return (
     <Stack gap={stackGap} className={wrapperClass}>
-      {showTitle && <Title order={3}>Đang theo dõi</Title>}
+      {showTitle && <Title order={3}>Người theo dõi</Title>}
 
       <SimpleGrid cols={gridCols} spacing={spacing}>
-        {following.map((f) => (
+        {followers.map((f) => (
           <UserFollowCard
             key={f._id}
             displayName={f.fullName}
