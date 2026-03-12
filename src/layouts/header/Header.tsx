@@ -1,13 +1,16 @@
-import { Menu as MantineMenu, useMantineColorScheme } from "@mantine/core";
+import { Box, Menu as MantineMenu, useMantineColorScheme } from "@mantine/core";
 import {
   BookOpen,
   ChevronDown,
   CircleDollarSignIcon,
+  History,
+  LogOut,
   Menu,
   Moon,
   PenLine,
   Search,
   Sun,
+  User,
   X,
   Zap,
 } from "lucide-react";
@@ -234,11 +237,11 @@ const Header = () => {
 
             {/* Premium Button */}
             <Link
-              to="/purchase/vip-plan"
+              to="/purchase/spirit-stone"
               className="hidden lg:flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 hover:bg-blue-100 dark:hover:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-lg transition-all duration-200 cursor-pointer shadow-sm hover:shadow"
             >
               <CircleDollarSignIcon />
-              Mua gói cao cấp
+              Nạp linh thạch
             </Link>
 
             {/* Account Dropdown */}
@@ -269,14 +272,31 @@ const Header = () => {
                       to="/user-profile"
                       className="text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                     >
-                      Trang cá nhân
+                      <Box className="flex gap-2">
+                        <User size={18} />
+                        Trang cá nhân
+                      </Box>
+                    </MantineMenu.Item>
+                    <MantineMenu.Divider className="border-gray-200 dark:border-gray-700" />
+                    <MantineMenu.Item
+                      component={Link}
+                      to="/history"
+                      className="text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      <Box className="flex gap-2">
+                        <History size={18} />
+                      Lịch sử của tôi
+                      </Box>
                     </MantineMenu.Item>
                     <MantineMenu.Divider className="border-gray-200 dark:border-gray-700" />
                     <MantineMenu.Item
                       onClick={handleLogout}
                       className="text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
                     >
-                      Đăng Xuất
+                      <Box className="flex gap-2">
+                        <LogOut size={18} />
+                        Đăng xuất
+                      </Box>
                     </MantineMenu.Item>
                   </>
                 ) : (
@@ -444,12 +464,12 @@ const Header = () => {
             {/* Action Buttons */}
             <div className="space-y-2 pt-4 border-t border-gray-200 dark:border-gray-700">
               <Link
-                to="/purchase/vip-plan"
+                to="/purchase/spirit-stone"
                 className="flex items-center justify-center gap-2 w-full px-4 py-2 text-sm font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 hover:bg-blue-100 dark:hover:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-lg transition-all duration-200 cursor-pointer"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <Zap className="w-4 h-4 fill-blue-600 dark:fill-blue-400" />
-                Mua gói cao cấp
+                Nạp linh thạch
               </Link>
               <div className="space-y-1">
                 <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -473,6 +493,12 @@ const Header = () => {
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       Trang cá nhân
+                    </Link>
+                    <Link to="/history"
+                      className="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Lịch sử của tôi
                     </Link>
                     <button
                       onClick={() => {

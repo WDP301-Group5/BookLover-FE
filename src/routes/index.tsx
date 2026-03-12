@@ -18,6 +18,7 @@ import ResetPasswordPage from "../pages/reset-password/ResetPasswordPage";
 import ChapterPage from "../pages/chapter-page/ChapterPage";
 import SearchStoryPage from "../pages/search-story-page/SearchStoryPage";
 import { UnauthorizedPage } from "../pages/unauthorized-page/UnauthorizedPage";
+import HistoryPage from "../pages/history-page/HistoryPage";
 
 const routes = createBrowserRouter([
   AdminRoute,
@@ -77,6 +78,10 @@ const routes = createBrowserRouter([
       {
         path: "truyen/:storySlug/chuong/:chapterNumber",
         element: <ChapterPage />,
+      },
+      {
+        path: "history",
+        element: <HistoryPage />,
       },
       // Routes below require the user to be authenticated with a valid token.
       {
