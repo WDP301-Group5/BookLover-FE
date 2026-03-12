@@ -18,7 +18,7 @@ import Underline from "@tiptap/extension-underline";
 import { useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { FileText, Upload, X } from "lucide-react";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { instance as axios } from "../../lib/axios";
 import { showError } from "../../utils/notifications";
 
@@ -93,6 +93,18 @@ export function ChapterContentInput({
       onChange({ mode: "editor", html: e.getHTML() });
     },
   });
+
+  // Update editor content when initialContent changes (e.g. switching chapters)
+  useEffect(() => {
+    if (editor && initialContent !== undefined) {
+      const currentHTML = editor.getHTML();
+      if (currentHTML !== initialContent) {
+        editor.commands.setContent(initialContent ?? "");
+        const plain = editor.getText();
+        setWords(wordCount(plain));
+      }
+    }
+  }, [initialContent, editor]);
 
   const handleModeChange = (val: string) => {
     const next = val as "editor" | "upload";
