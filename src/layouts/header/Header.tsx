@@ -18,6 +18,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useUserStore } from "../../stores/useUserStore";
 import { showSuccess } from "../../utils/notifications";
+import NotificationBell from "../../components/notification/NotificationBell";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -243,6 +244,9 @@ const Header = () => {
               <CircleDollarSignIcon />
               Nạp linh thạch
             </Link>
+
+            {/* Notification Bell */}
+            <NotificationBell />
 
             {/* Account Dropdown */}
             <MantineMenu shadow="md" width={224} position="bottom-end">
