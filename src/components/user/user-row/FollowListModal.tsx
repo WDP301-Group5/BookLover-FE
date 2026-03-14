@@ -2,7 +2,9 @@ import { Loader, Modal, ScrollArea, Stack, Text, Title } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FollowUserRow } from "./FollowUserRow";
-import UserService, { type AuthorPublicProfile } from "../../../services/UserService";
+import UserService, {
+  type AuthorPublicProfile,
+} from "../../../services/UserService";
 
 interface FollowListModalProps {
   opened: boolean;
@@ -10,6 +12,7 @@ interface FollowListModalProps {
   type: "followers" | "following";
   userId: string;
   title?: string;
+  onRelationsChanged?: () => void;
 }
 
 export function FollowListModal({
@@ -18,6 +21,7 @@ export function FollowListModal({
   type,
   userId,
   title,
+  onRelationsChanged,
 }: FollowListModalProps) {
   const [users, setUsers] = useState<AuthorPublicProfile[]>([]);
   const [loading, setLoading] = useState(false);
@@ -33,12 +37,13 @@ export function FollowListModal({
         setLoading(true);
         setError(null);
 
-        const data =
-          type === "followers"
-            ? await UserService.getFollowers(userId, 1)
-            : await UserService.getFollowing(userId, 1);
-
-        setUsers(data);
+        if (type === "followers") {
+          const data = await UserService.getFollowers(userId, 1);
+          setUsers(data.followers);
+        } else {
+          const data = await UserService.getFollowing(userId, 1);
+          setUsers(data.following);
+        }
       } catch (err) {
         console.error(err);
         setError("Không thể tải danh sách.");
@@ -52,6 +57,10 @@ export function FollowListModal({
 
   const handleToggleFollow = async (targetUserId: string) => {
     try {
+      const targetUser = users.find((u) => u._id === targetUserId);
+      if (!targetUser || targetUser.relationship?.isSelf) return;
+
+      const wasFollowing = !!targetUser.relationship?.amIFollowing;
       const res = await UserService.toggleFollow(targetUserId);
 
       setUsers((prev) =>
@@ -60,16 +69,24 @@ export function FollowListModal({
             ? {
                 ...u,
                 relationship: {
-                  amIFollowing: res.relationship.amIFollowing,
-                  followsMe: u.relationship?.followsMe ?? false,
-                  isMutual:
-                    res.relationship.amIFollowing &&
-                    (u.relationship?.followsMe ?? false),
+                  ...u.relationship,
+                  ...res.relationship,
                 },
+                followersCount: Math.max(
+                  0,
+                  (u.followersCount || 0) +
+                    (wasFollowing === res.relationship.amIFollowing
+                      ? 0
+                      : res.relationship.amIFollowing
+                        ? 1
+                        : -1),
+                ),
               }
-            : u
-        )
+            : u,
+        ),
       );
+
+      onRelationsChanged?.();
     } catch (err) {
       console.error(err);
     }
@@ -125,8 +142,8 @@ export function FollowListModal({
               <FollowUserRow
                 key={user._id}
                 displayName={user.penName || user.fullName}
-                username={user.username}
-                avatarUrl={user.avatarURL}
+                username={user.username || ""}
+                avatarUrl={user.avatarURL || "/default-avatar.png"}
                 storiesCount={user.storiesCount || 0}
                 followersCount={user.followersCount || 0}
                 isFollowing={!!user.relationship?.amIFollowing}
