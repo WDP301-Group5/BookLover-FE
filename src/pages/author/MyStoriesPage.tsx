@@ -15,12 +15,13 @@ import { BookPlus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import MyStoryCard from "../../components/story/MyStoryCard";
+import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 import {
   useDeleteStory,
   useMyStories,
   useUpdateStory,
 } from "../../hooks/useStory";
-import { showSuccess } from "../../utils/notifications";
+import { showSuccess, showError } from "../../utils/notifications";
 
 export default function MyStoriesPage() {
   const navigate = useNavigate();
@@ -35,6 +36,10 @@ export default function MyStoriesPage() {
   const [
     reviewModalOpened,
     { open: openReviewModal, close: closeReviewModal },
+  ] = useDisclosure(false);
+  const [
+    unpublishModalOpened,
+    { open: openUnpublishModal, close: closeUnpublishModal },
   ] = useDisclosure(false);
   const [selectedStoryId, setSelectedStoryId] = useState<string | null>(null);
 
@@ -84,6 +89,32 @@ export default function MyStoriesPage() {
     );
   };
 
+  const handleUnpublishClick = (id: string) => {
+    setSelectedStoryId(id);
+    openUnpublishModal();
+  };
+
+  const handleConfirmUnpublish = () => {
+    if (!selectedStoryId) return;
+    updateStory.mutate(
+      { id: selectedStoryId, data: { status: "private" } },
+      {
+        onSuccess: () => {
+          showSuccess("Truyện đã được hủy xuất bản");
+          closeUnpublishModal();
+          setSelectedStoryId(null);
+        },
+        onError: () => {
+          showError("Lỗi khi hủy xuất bản truyện");
+        },
+        onSettled: () => {
+          closeUnpublishModal();
+          setSelectedStoryId(null);
+        },
+      },
+    );
+  };
+
   const renderStoryList = (list: typeof allStories) => {
     if (isLoading) {
       return (
@@ -118,6 +149,7 @@ export default function MyStoriesPage() {
             story={story}
             onDelete={handleDeleteClick}
             onSubmitReview={handleSubmitReviewClick}
+            onUnpublish={handleUnpublishClick}
           />
         ))}
       </Stack>
@@ -130,7 +162,7 @@ export default function MyStoriesPage() {
       <Flex justify="space-between" align="center" mb="lg">
         <Title order={2}>Truyện của tôi</Title>
         <Button
-          color="orange"
+          color="blue"
           leftSection={<BookPlus size={16} />}
           onClick={() => navigate("/author/write-story")}
         >
@@ -206,6 +238,18 @@ export default function MyStoriesPage() {
           </Button>
         </Flex>
       </Modal>
+
+      {/* Modal xác nhận hủy xuất bản */}
+      <ConfirmDeleteModal
+        opened={unpublishModalOpened}
+        onClose={closeUnpublishModal}
+        onConfirm={handleConfirmUnpublish}
+        loading={updateStory.isPending}
+        title="Hủy xuất bản truyện"
+        message='Bạn có chắc muốn hủy xuất bản truyện này? Truyện sẽ chuyển sang trạng thái "Riêng tư" và không thể xuất bản lại.'
+        confirmText="Hủy xuất bản"
+        cancelText="Hủy"
+      />
     </Container>
   );
 }
