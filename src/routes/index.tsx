@@ -20,6 +20,7 @@ import SearchStoryPage from "../pages/search-story-page/SearchStoryPage";
 import { UnauthorizedPage } from "../pages/unauthorized-page/UnauthorizedPage";
 import HistoryPage from "../pages/history-page/HistoryPage";
 import NotificationPage from "../pages/notification-page/NotificationPage";
+import RankingPage from "../pages/ranking-page/RankingPage";
 
 const routes = createBrowserRouter([
   UserWriteStoryRoute,
@@ -85,6 +86,10 @@ const routes = createBrowserRouter([
       {
         path: "history",
         element: <HistoryPage />,
+      },
+       {
+        path: "ranking",
+        element: <RankingPage />,
       },
       {
         path: "/notifications",
