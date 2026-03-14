@@ -69,6 +69,7 @@ export interface UserRelationship {
   followsMe: boolean;
   isMutual: boolean;
   isSelf?: boolean;
+  notificationEnabled?: boolean;
 }
 
 export interface AuthorPublicProfile {
@@ -105,6 +106,14 @@ export interface AuthorStory {
   isPremium: boolean;
   isFinish: boolean;
   chapterNumber: number;
+}
+
+export interface FollowListResponse {
+  followers?: AuthorPublicProfile[];
+  following?: AuthorPublicProfile[];
+  total: number;
+  page: number;
+  pageSize: number;
 }
 
 const UserService = {
@@ -323,18 +332,28 @@ const UserService = {
     return res.data.data;
   },
 
-  async getFollowers(authorId: string, page = 1): Promise<AuthorPublicProfile[]> {
+  async getFollowers(authorId: string, page = 1): Promise<{
+    followers: AuthorPublicProfile[];
+    total: number;
+    page: number;
+    pageSize: number;
+  }> {
     const res = await axiosClient.get(`/user/${authorId}/followers`, {
       params: { page },
     });
-    return res.data.data.followers;
+    return res.data.data;
   },
 
-  async getFollowing(authorId: string, page = 1): Promise<AuthorPublicProfile[]> {
+  async getFollowing(authorId: string, page = 1): Promise<{
+    following: AuthorPublicProfile[];
+    total: number;
+    page: number;
+    pageSize: number;
+  }> {
     const res = await axiosClient.get(`/user/${authorId}/following`, {
       params: { page },
     });
-    return res.data.data.following;
+    return res.data.data;
   },
 
   async changePassword(
@@ -372,14 +391,20 @@ const UserService = {
         username: u.username,
         penName: u.penName,
         fullName: u.fullName,
+        nickName: u.nickName,
+        bio: u.bio,
         avatarURL: u.avatarURL || "/default-avatar.png",
+        backgroundURL: u.backgroundURL || "",
         followersCount: u.followersCount || 0,
+        followingCount: u.followingCount || 0,
         storiesCount: u.storiesCount || 0,
         vipLevel: u.vipLevel || 0,
         relationship: {
-          amIFollowing: false,
-          followsMe: false,
-          isMutual: false,
+          amIFollowing: !!u.relationship?.amIFollowing,
+          followsMe: !!u.relationship?.followsMe,
+          isMutual: !!u.relationship?.isMutual,
+          isSelf: !!u.relationship?.isSelf,
+          notificationEnabled: !!u.relationship?.notificationEnabled,
         },
       }));
 
@@ -388,7 +413,7 @@ const UserService = {
       console.error("Error searching users:", error);
       throw error;
     }
-  },
+  }
 };
 
 export default UserService;
