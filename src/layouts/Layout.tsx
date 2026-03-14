@@ -3,60 +3,64 @@ import { CircleArrowUp } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Outlet, ScrollRestoration, useNavigate } from "react-router-dom";
 import { setNavigate } from "../lib/navigation";
+import { useLogoutCleanup } from "../hooks/useLogoutCleanup";
 import Footer from "./footer/Footer";
 import Header from "./header/Header";
 
 const Layout = () => {
-	const navigate = useNavigate();
-	useEffect(() => {
-		setNavigate(navigate);
-	}, [navigate]);
+  const navigate = useNavigate();
 
-	const [showScrollTop, setShowScrollTop] = useState(false);
+  // Cleanup cache khi user logout
+  useLogoutCleanup();
+  useEffect(() => {
+    setNavigate(navigate);
+  }, [navigate]);
 
-	useEffect(() => {
-		const handleScroll = () => {
-			setShowScrollTop(window.scrollY > 0);
-		};
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
-		window.addEventListener("scroll", handleScroll);
-		handleScroll(); // Kiểm tra ngay khi load
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 0);
+    };
 
-		return () => {
-			window.removeEventListener("scroll", handleScroll);
-		};
-	}, []);
+    window.addEventListener("scroll", handleScroll);
+    handleScroll(); // Kiểm tra ngay khi load
 
-	return (
-		<AppShell transitionDuration={500} transitionTimingFunction="ease">
-			<ScrollRestoration />
-			{/* Main App */}
-			<AppShell.Main className="flex flex-col min-h-screen bg-white dark:bg-neutral-700">
-				<Header />
-				<div className="flex flex-1 justify-center">
-					<div className="max-w-[1080px] w-full">
-						<Outlet />
-					</div>
-				</div>
-				<Footer />
-			</AppShell.Main>
-			{showScrollTop && (
-				<AppShell.Footer
-					style={{ position: "relative" }}
-					className="fixed bottom-4 right-4 z-50"
-				>
-					<div className="fixed bottom-4 right-4 z-50">
-						<button
-							onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-							className="p-2 rounded-full hover:bg-gray-300 transition"
-						>
-							<CircleArrowUp />
-						</button>
-					</div>
-				</AppShell.Footer>
-			)}
-		</AppShell>
-	);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  return (
+    <AppShell transitionDuration={500} transitionTimingFunction="ease">
+      <ScrollRestoration />
+      {/* Main App */}
+      <AppShell.Main className="flex flex-col min-h-screen bg-white dark:bg-neutral-700">
+        <Header />
+        <div className="flex flex-1 justify-center">
+          <div className="max-w-[1080px] w-full">
+            <Outlet />
+          </div>
+        </div>
+        <Footer />
+      </AppShell.Main>
+      {showScrollTop && (
+        <AppShell.Footer
+          style={{ position: "relative" }}
+          className="fixed bottom-4 right-4 z-50"
+        >
+          <div className="fixed bottom-4 right-4 z-50">
+            <button
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              className="p-2 rounded-full hover:bg-gray-300 transition"
+            >
+              <CircleArrowUp />
+            </button>
+          </div>
+        </AppShell.Footer>
+      )}
+    </AppShell>
+  );
 };
 
 export default Layout;

@@ -12,7 +12,7 @@ import StoryDetailPage from "../pages/story-detail-page/StoryDetailPage";
 import UserProfile from "../pages/user-profile/UserProfile";
 import VerifyEmailPage from "../pages/verify-email-page/VerifyEmailPage";
 import { AdminRoute } from "./admin";
-import { AuthorRoute } from "./author";
+import { AuthorRoute, UserWriteStoryRoute, MyStoriesRoute } from "./author";
 import ForgotPasswordPage from "../pages/forgot-password/ForgotPasswordPage";
 import ResetPasswordPage from "../pages/reset-password/ResetPasswordPage";
 import ChapterPage from "../pages/chapter-page/ChapterPage";
@@ -22,6 +22,8 @@ import HistoryPage from "../pages/history-page/HistoryPage";
 import NotificationPage from "../pages/notification-page/NotificationPage";
 
 const routes = createBrowserRouter([
+  UserWriteStoryRoute,
+  MyStoriesRoute,
   AdminRoute,
   AuthorRoute,
   {

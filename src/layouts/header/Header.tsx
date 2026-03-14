@@ -232,7 +232,7 @@ const Header = () => {
             {/* Premium Button */}
             <Link
               to="/purchase/spirit-stone"
-              className="hidden lg:flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 hover:bg-blue-100 dark:hover:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-lg transition-all duration-200 cursor-pointer shadow-sm hover:shadow"
+              className="hidden md:flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 hover:bg-blue-100 dark:hover:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-lg transition-all duration-200 cursor-pointer shadow-sm hover:shadow"
             >
               <CircleDollarSignIcon />
               Nạp linh thạch
@@ -282,7 +282,7 @@ const Header = () => {
                     >
                       <Box className="flex gap-2">
                         <History size={18} />
-                      Lịch sử của tôi
+                        Lịch sử của tôi
                       </Box>
                     </MantineMenu.Item>
                     <MantineMenu.Divider className="border-gray-200 dark:border-gray-700" />
@@ -491,7 +491,8 @@ const Header = () => {
                     >
                       Trang cá nhân
                     </Link>
-                    <Link to="/history"
+                    <Link
+                      to="/history"
                       className="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
                       onClick={() => setMobileMenuOpen(false)}
                     >

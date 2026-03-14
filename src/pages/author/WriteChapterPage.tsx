@@ -32,7 +32,7 @@ import {
   Check,
 } from "lucide-react";
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import type { Story } from "../../interfaces/Story";
 import type { Chapter } from "../../interfaces/Chapter";
@@ -75,6 +75,8 @@ function formatDate(dateStr?: string) {
 export default function WriteChapterPage() {
   const navigate = useNavigate();
   const { storySlug } = useParams<{ storySlug: string }>();
+  const [searchParams] = useSearchParams();
+  const chapterParam = searchParams.get("chapter");
   const [story, setStory] = useState<Story | null>(null);
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [storyLoading, setStoryLoading] = useState(true);
@@ -89,6 +91,7 @@ export default function WriteChapterPage() {
   );
   const [contentError, setContentError] = useState<string | undefined>();
   const [editorInitialContent, setEditorInitialContent] = useState<string>("");
+  const [editorResetKey, setEditorResetKey] = useState(0);
   const [publishModalOpened, setPublishModalOpened] = useState(false);
 
   const form = useForm<WriteChapterFormValues>({
@@ -105,9 +108,13 @@ export default function WriteChapterPage() {
     return Math.max(...chapters.map((c) => c.chapterNumber)) + 1;
   }, [chapters]);
 
+  const generateChapterTitle = (partNumber: number) => {
+    if (story) return `Chương ${partNumber}`;
+  };
+
   // Word count from content
   const wordCount = useMemo(() => {
-    if (!contentPayload || contentPayload.mode !== "editor") return 0;
+    if (!contentPayload) return 0;
     const plain = contentPayload.html.replace(/<[^>]+>/g, " ").trim();
     return plain ? plain.split(/\s+/).filter(Boolean).length : 0;
   }, [contentPayload]);
@@ -123,57 +130,109 @@ export default function WriteChapterPage() {
     return chapterList;
   }, []);
 
+  const handleSelectChapter = useCallback(
+    async (index: number) => {
+      const ch = chapters[index];
+      setSelectedChapterIndex(index);
+      form.setValues({
+        title: ch.title,
+        chapterType: ch.isPremium ? "vip" : "free",
+        price: ch.price || 1,
+      });
+      setContentError(undefined);
+      setSaved(false);
+      setChapterListOpened(false);
+
+      // Fetch chapter content from the server
+      try {
+        const fullChapter = await AuthorService.getChapterById(ch.id);
+        const html = fullChapter.contentURL ?? "";
+        setEditorInitialContent(html);
+        setContentPayload({ mode: "editor", html });
+      } catch {
+        setEditorInitialContent("");
+        setContentPayload(null);
+      }
+    },
+    [chapters, form],
+  );
+
   useEffect(() => {
     if (!storySlug) return;
     setStoryLoading(true);
     AuthorService.getStoryBySlug(storySlug)
       .then((data) => {
         setStory(data);
-        return loadChapters(data._id);
+        return loadChapters(data._id).then((chapterList) => ({
+          story: data,
+          chapters: chapterList,
+        }));
+      })
+      .then(async ({ chapters: chapterList }) => {
+        // Select chapter from URL param, or start in new-chapter mode if no param
+        const targetNumber = chapterParam ? Number(chapterParam) : null;
+        const targetIdx =
+          targetNumber !== null
+            ? chapterList.findIndex((c) => c.chapterNumber === targetNumber)
+            : -1;
+        const idx = targetIdx !== -1 ? targetIdx : -1;
+
+        if (idx === -1) {
+          // No matching chapter or no param → new chapter mode, auto-fill title
+          const nextNum =
+            chapterList.length === 0
+              ? 1
+              : Math.max(...chapterList.map((c) => c.chapterNumber)) + 1;
+          form.setValues({
+            title: `Chương ${nextNum}`,
+            chapterType: "free",
+            price: 1,
+          });
+          return;
+        }
+
+        const ch = chapterList[idx];
+        setSelectedChapterIndex(idx);
+        form.setValues({
+          title: ch.title,
+          chapterType: ch.isPremium ? "vip" : "free",
+          price: ch.price || 1,
+        });
+        setContentError(undefined);
+        setSaved(false);
+        setChapterListOpened(false);
+
+        // Fetch chapter content from the server
+        try {
+          const fullChapter = await AuthorService.getChapterById(ch.id);
+          const html = fullChapter.contentURL ?? "";
+          setEditorInitialContent(html);
+          setContentPayload({ mode: "editor", html });
+        } catch {
+          setEditorInitialContent("");
+          setContentPayload(null);
+        }
       })
       .catch(() => {
         showError("Không thể tải thông tin tác phẩm");
         navigate(-1);
       })
       .finally(() => setStoryLoading(false));
-  }, [storySlug, loadChapters, navigate]);
+  }, [storySlug, chapterParam, loadChapters, navigate]);
 
   const handleNewPart = () => {
     setSelectedChapterIndex(null);
     form.setValues({
-      title: `Chương ${nextChapterNumber}`,
+      title: generateChapterTitle(nextChapterNumber),
       chapterType: "free",
       price: 1,
     });
     setEditorInitialContent("");
+    setEditorResetKey((k) => k + 1);
     setContentPayload(null);
     setContentError(undefined);
     setSaved(false);
     setChapterListOpened(false);
-  };
-
-  const handleSelectChapter = async (index: number) => {
-    const ch = chapters[index];
-    setSelectedChapterIndex(index);
-    form.setValues({
-      title: ch.title,
-      chapterType: ch.isPremium ? "vip" : "free",
-      price: ch.price || 1,
-    });
-    setContentError(undefined);
-    setSaved(false);
-    setChapterListOpened(false);
-
-    // Fetch chapter content from the server
-    try {
-      const fullChapter = await AuthorService.getChapterById(ch.id);
-      const html = fullChapter.contentURL ?? "";
-      setEditorInitialContent(html);
-      setContentPayload({ mode: "editor", html });
-    } catch {
-      setEditorInitialContent("");
-      setContentPayload(null);
-    }
   };
 
   const buildFormData = (
@@ -186,12 +245,12 @@ export default function WriteChapterPage() {
       setContentError("Vui lòng nhập nội dung chương");
       return null;
     }
-    if (contentPayload.mode === "editor") {
+    if (status === "pending" && contentPayload.mode === "editor") {
       const plain = contentPayload.html.replace(/<[^>]+>/g, " ").trim();
       const wc = plain ? plain.split(/\s+/).filter(Boolean).length : 0;
       if (wc < 50) {
         setContentError(
-          `Nội dung chương phải có ít nhất 50 từ (hiện tại: ${wc} từ)`,
+          `Nội dung chương phải có ít nhất 50 từ để đăng (hiện tại: ${wc} từ)`,
         );
         return null;
       }
@@ -211,12 +270,8 @@ export default function WriteChapterPage() {
     formData.append("title", values.title);
     formData.append("status", status);
 
-    if (contentPayload.mode === "editor") {
-      const blob = new Blob([contentPayload.html], { type: "text/html" });
-      formData.append("file", blob, `${values.title}.html`);
-    } else {
-      formData.append("file", contentPayload.file);
-    }
+    const blob = new Blob([contentPayload.html], { type: "text/html" });
+    formData.append("file", blob, `${values.title}.html`);
 
     formData.append("chapterType", values.chapterType);
 
@@ -310,7 +365,7 @@ export default function WriteChapterPage() {
   }
 
   return (
-    <Box className="min-h-screen bg-[#f3f3f3]">
+    <Box className="bg-[#f3f3f3]">
       {/* ── Header ── */}
       <Box
         style={{
@@ -406,6 +461,33 @@ export default function WriteChapterPage() {
                         </Group>
                       ))}
 
+                      {/* Virtual entry for unsaved new chapter */}
+                      {selectedChapterIndex === null && (
+                        <Group
+                          justify="space-between"
+                          px="md"
+                          py="sm"
+                          style={{
+                            backgroundColor: "#f0f9ff",
+                            borderBottom: "1px solid #f0f0f0",
+                          }}
+                        >
+                          <Stack gap={2}>
+                            <Text size="sm" fw={500} lineClamp={1}>
+                              {form.values.title ||
+                                `Chương ${nextChapterNumber}`}
+                            </Text>
+                            <Text size="xs" c="dimmed">
+                              Bản nháp - Chưa lưu
+                            </Text>
+                          </Stack>
+                          <Check
+                            size={18}
+                            color="var(--mantine-color-teal-6)"
+                          />
+                        </Group>
+                      )}
+
                       <Box px="md" py="sm">
                         <Button
                           fullWidth
@@ -448,7 +530,7 @@ export default function WriteChapterPage() {
             {/* Right: Action buttons */}
             <Group gap="xs">
               <Button
-                color="orange"
+                color="blue"
                 size="sm"
                 loading={loading}
                 leftSection={<Send size={14} />}
@@ -544,6 +626,7 @@ export default function WriteChapterPage() {
             {/* Chapter content editor */}
             <Box className="bg-white rounded-lg border border-gray-200" p="md">
               <ChapterContentInput
+                key={editorResetKey}
                 onChange={(payload) => {
                   setContentPayload(payload);
                   if (payload) setContentError(undefined);
