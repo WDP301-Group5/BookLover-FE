@@ -1,7 +1,12 @@
 // src/components/ProfilesTab.tsx
 import { useState, useEffect } from "react";
 import { Group, Text, Button, Avatar, Stack, Card } from "@mantine/core";
-import UserService, { type AuthorPublicProfile } from "../../services/UserService";
+import UserService, {
+  type AuthorPublicProfile,
+} from "../../services/UserService";
+import { showError, showSuccess } from "../../utils/notifications";
+import { useNavigate } from "react-router-dom";
+import { UserCheck, UserPlus } from "lucide-react";
 
 interface Props {
   searchTerm: string;
@@ -10,6 +15,7 @@ interface Props {
 const ProfilesTab = ({ searchTerm }: Props) => {
   const [users, setUsers] = useState<AuthorPublicProfile[]>([]);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!searchTerm) {
@@ -24,20 +30,48 @@ const ProfilesTab = ({ searchTerm }: Props) => {
   }, [searchTerm]);
 
   const handleToggleFollow = async (user: AuthorPublicProfile) => {
-    if (!user._id) return;
+    if (!user._id || user.relationship?.isSelf) return;
 
     try {
+      const wasFollowing = !!user.relationship?.amIFollowing;
       const res = await UserService.toggleFollow(user._id);
+
       setUsers((prev) =>
         prev.map((u) =>
           u._id === user._id
-            ? { ...u, relationship: res.relationship }
-            : u
-        )
+            ? {
+                ...u,
+                relationship: {
+                  ...u.relationship,
+                  ...res.relationship,
+                },
+                followersCount: Math.max(
+                  0,
+                  (u.followersCount || 0) +
+                    (res.relationship.amIFollowing
+                      ? wasFollowing
+                        ? 0
+                        : 1
+                      : -1),
+                ),
+              }
+            : u,
+        ),
       );
+
+      if (res.status === "follow") {
+        showSuccess(`Bạn đã theo dõi ${user.penName || user.username}`);
+      } else {
+        showSuccess(`Bạn đã bỏ theo dõi ${user.penName || user.username}`);
+      }
     } catch (error) {
       console.error("Error toggle follow:", error);
+      showError("Theo dõi thất bại");
     }
+  };
+
+  const handleGoProfile = (userId: string) => {
+    navigate(`/author-profile/${userId}`);
   };
 
   if (loading) {
@@ -72,9 +106,15 @@ const ProfilesTab = ({ searchTerm }: Props) => {
                   alt={user.username}
                   size={80}
                   radius="100"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => user._id && handleGoProfile(user._id)}
                 />
 
-                <Stack gap={5}>
+                <Stack
+                  gap={5}
+                  style={{ cursor: "pointer" }}
+                  onClick={() => user._id && handleGoProfile(user._id)}
+                >
                   <Text fw={700} size="lg" lh={1.1}>
                     {user.penName || user.username}
                   </Text>
@@ -96,32 +136,35 @@ const ProfilesTab = ({ searchTerm }: Props) => {
                 </Stack>
               </Group>
 
-              <Button
-                variant={user.relationship?.amIFollowing ? "outline" : "filled"}
-                color="blue"
-                size="md"
-                radius="xl"
-                leftSection={
-                  <Text fw={700}>
-                    {user.relationship?.amIFollowing ? "✓" : "+"}
-                  </Text>
-                }
-                ml="auto"
-                onClick={() => handleToggleFollow(user)}
-                styles={{
-                  root: {
-                    padding: "0 24px",
-                    height: 35,
-                    fontWeight: 600,
-                    minWidth: 120,
-                  },
-                  label: {
-                    color: user.relationship?.amIFollowing ? "blue" : "white",
-                  },
-                }}
-              >
-                {user.relationship?.amIFollowing ? "Đang theo dõi" : "Theo dõi"}
-              </Button>
+              {!user.relationship?.isSelf && (
+                <Button
+                  leftSection={
+                    user.relationship?.amIFollowing ? (
+                      <UserCheck size={16} />
+                    ) : (
+                      <UserPlus size={16} />
+                    )
+                  }
+                  variant={user.relationship?.amIFollowing ? "light" : "filled"}
+                  color="cyan"
+                  size="md"
+                  radius="xl"
+                  ml="auto"
+                  onClick={() => handleToggleFollow(user)}
+                  styles={{
+                    root: {
+                      minWidth: 145,
+                      height: 40,
+                      fontWeight: 600,
+                      paddingInline: 20,
+                    },
+                  }}
+                >
+                  {user.relationship?.amIFollowing
+                    ? "Đang theo dõi"
+                    : "Theo dõi"}
+                </Button>
+              )}
             </Group>
           </Card>
         ))

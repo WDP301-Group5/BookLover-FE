@@ -1,5 +1,5 @@
 import { Avatar, Button, Group, Stack, Text } from "@mantine/core";
-import { Check, Users } from "lucide-react";
+import { UserCheck, UserPlus } from "lucide-react";
 
 interface FollowUserRowProps {
   displayName: string;
@@ -49,13 +49,24 @@ export function FollowUserRow({
       </Group>
 
       <Button
-        variant={isFollowing ? "light" : "outline"}
-        color={isFollowing ? "teal" : "gray"}
-        radius="md"
-        leftSection={isFollowing ? <Check size={16} /> : <Users size={16} />}
+        leftSection={
+          isFollowing ? <UserCheck size={16} /> : <UserPlus size={16} />
+        }
+        variant={isFollowing ? "light" : "filled"}
+        color="cyan"
+        radius="xl"
+        size="md"
         onClick={(e) => {
           e.stopPropagation();
           onFollowToggle?.();
+        }}
+        styles={{
+          root: {
+            minWidth: 145,
+            height: 40,
+            fontWeight: 600,
+            paddingInline: 20,
+          },
         }}
       >
         {isFollowing ? "Đang theo dõi" : "Theo dõi"}
