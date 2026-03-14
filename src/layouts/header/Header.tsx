@@ -146,6 +146,13 @@ const Header = () => {
                 >
                   Cuộc thi
                 </MantineMenu.Item>
+                <MantineMenu.Item
+                  component={Link}
+                  to="/ranking"
+                  className="text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  Bảng xếp hạng
+                </MantineMenu.Item>
                 <MantineMenu.Divider className="border-gray-200 dark:border-gray-700" />
                 <MantineMenu.Item
                   component={Link}
