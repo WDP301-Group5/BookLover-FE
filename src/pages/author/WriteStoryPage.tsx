@@ -2,12 +2,14 @@ import {
   ActionIcon,
   Box,
   Button,
+  Combobox,
   Container,
   Divider,
   FileButton,
   Grid,
   Group,
   Image,
+  MenuDropdown,
   Paper,
   Select,
   Stack,
@@ -18,17 +20,24 @@ import {
   TextInput,
   Title,
   UnstyledButton,
+  useMantineColorScheme,
+  useMantineTheme,
 } from "@mantine/core";
 import { ArrowLeft, ImageIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { Topic } from "../../interfaces/Topic";
+import { useUserStore } from "../../stores/useUserStore";
 import { AuthorService } from "../../services/AuthorService";
 import { TopicService } from "../../services/TopicService";
 import { showError, showSuccess } from "../../utils/notifications.tsx";
 
 export default function WriteStoryPage() {
   const navigate = useNavigate();
+  const { updateUser } = useUserStore();
+  const theme = useMantineTheme();
+  const { colorScheme } = useMantineColorScheme();
+  const isDark = colorScheme === "dark";
   const [topics, setTopics] = useState<Topic[]>([]);
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
@@ -126,9 +135,13 @@ export default function WriteStoryPage() {
       }
 
       const story = await AuthorService.createStory(formData);
+
+      // Update user role to author
+      updateUser({ role: "author" });
+
       showSuccess(
         "Tác phẩm đã được tạo. Bắt đầu viết chương đầu tiên!",
-        "Tạo tác phẩm thành công",
+        "Tạo truyện thành công",
       );
       navigate(`/author/story/${story.slug}/write-chapter`);
     } catch {
@@ -143,17 +156,25 @@ export default function WriteStoryPage() {
     : [];
 
   return (
-    <Box className="min-h-screen bg-[#f3f3f3]">
+    <Box
+      style={{
+        backgroundColor: (isDark
+          ? theme.colors.dark[8]
+          : theme.colors.gray[0]) as string,
+      }}
+    >
       {/* ── Header ── */}
       <Box
         style={{
-          borderBottom: "1px solid #dfdfdf",
-          backgroundColor: "white",
+          borderBottom: `1px solid ${isDark ? theme.colors.dark[6] : theme.colors.gray[2]}`,
+          backgroundColor: (isDark
+            ? theme.colors.dark[7]
+            : theme.colors.white) as string,
         }}
       >
         <Container size="xl" py="sm">
-          <Group justify="space-between" align="center">
-            <Group align="center" gap="sm">
+          <Group justify="space-between" align="center" wrap="wrap">
+            <Group align="center" gap="sm" wrap="nowrap">
               <ActionIcon
                 variant="subtle"
                 size="lg"
@@ -162,25 +183,40 @@ export default function WriteStoryPage() {
               >
                 <ArrowLeft size={20} />
               </ActionIcon>
-              <Stack gap={0}>
+              <Stack gap={0} style={{ minWidth: 0, flex: 1 }}>
                 <Text size="xs" c="dimmed">
-                  Thêm thông tin tác phẩm
+                  Thêm thông tin truyện
                 </Text>
-                <Title order={3} size="h4" fw={600}>
+                <Title
+                  order={3}
+                  size="h4"
+                  fw={600}
+                  style={{
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
                   {title || "Tác phẩm chưa đặt tên"}
                 </Title>
               </Stack>
             </Group>
 
-            <Group gap="xs">
+            <Group gap="xs" wrap="wrap">
               <Button
                 variant="subtle"
                 color="gray"
                 onClick={() => navigate("/author/my-stories")}
+                size="sm"
               >
                 Hủy
               </Button>
-              <Button color="orange" loading={loading} onClick={handleContinue}>
+              <Button
+                color="blue"
+                loading={loading}
+                onClick={handleContinue}
+                size="sm"
+              >
                 Tiếp tục
               </Button>
             </Group>
@@ -189,9 +225,21 @@ export default function WriteStoryPage() {
       </Box>
 
       {/* ── Body ── */}
-      <Container size="xl" py="xl">
-        <Paper withBorder p={{ base: "md", md: "xl" }} radius="sm" bg="white">
-          <Grid gutter="xl" align="start">
+      <Container size="xl" py="md">
+        <Paper
+          withBorder
+          p={{ base: "md", md: "lg" }}
+          radius="sm"
+          style={{
+            backgroundColor: (isDark
+              ? theme.colors.dark[7]
+              : theme.colors.white) as string,
+            borderColor: (isDark
+              ? theme.colors.dark[6]
+              : theme.colors.gray[2]) as string,
+          }}
+        >
+          <Grid gutter="lg" align="start">
             {/* Left: Cover image */}
             <Grid.Col span={{ base: 12, md: 4 }}>
               <Stack align="center" gap="xs">
@@ -215,13 +263,17 @@ export default function WriteStoryPage() {
                         aspectRatio: "2 / 3",
                         borderRadius: 2,
                         overflow: "hidden",
-                        background: "#ececec",
+                        background: (isDark
+                          ? theme.colors.dark[6]
+                          : "#ececec") as string,
                         border: coverError
-                          ? "1.5px solid var(--mantine-color-red-6)"
-                          : "1px solid #d5d5d5",
+                          ? `1.5px solid ${theme.colors.red[6]}`
+                          : `1px solid ${isDark ? theme.colors.dark[5] : theme.colors.gray[3]}`,
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
                       }}
                     >
                       {coverPreview ? (
@@ -241,7 +293,9 @@ export default function WriteStoryPage() {
                               width: 48,
                               height: 48,
                               borderRadius: 6,
-                              background: "#7d7d7d",
+                              background: (isDark
+                                ? theme.colors.dark[5]
+                                : "#7d7d7d") as string,
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
@@ -282,11 +336,15 @@ export default function WriteStoryPage() {
               <Stack gap={0}>
                 <Box pb="sm">
                   <Text fw={600} size="md">
-                    Thông tin tác phẩm
+                    Thông tin truyện
                   </Text>
                   <Box
                     mt={8}
-                    style={{ width: 122, height: 3, background: "#f97316" }}
+                    style={{
+                      width: 122,
+                      height: 3,
+                      background: theme.colors.blue[6] as string,
+                    }}
                   />
                 </Box>
 
@@ -302,7 +360,7 @@ export default function WriteStoryPage() {
                       </Text>
                     </Text>
                     <TextInput
-                      placeholder="Nhập tiêu đề tác phẩm"
+                      placeholder="Nhập tiêu đề truyện"
                       radius={2}
                       value={title}
                       onChange={(e) => {
@@ -348,8 +406,6 @@ export default function WriteStoryPage() {
                     <Select
                       placeholder="Chọn thể loại"
                       data={topicOptions}
-                      searchable
-                      clearable
                       radius={2}
                       value={category}
                       onChange={(val) => {
@@ -368,11 +424,13 @@ export default function WriteStoryPage() {
                       Thẻ (Tags)
                     </Text>
                     <TagsInput
-                      placeholder="Thêm thẻ"
+                      placeholder="Thêm tag bằng cách ấn Enter, hỗ trợ thêm tối đa 25 tags"
                       maxTags={25}
                       radius={2}
                       value={tags}
                       onChange={setTags}
+                      acceptValueOnBlur
+                      data={topics.map((t) => t.name)}
                     />
                   </Box>
 
@@ -382,7 +440,7 @@ export default function WriteStoryPage() {
                   <Box>
                     <Group justify="space-between" align="center" mb={4}>
                       <Text fw={600} size="sm">
-                        Có phải trả phí
+                        Có trả phí hay không?
                       </Text>
                       <Switch
                         checked={isPremium}

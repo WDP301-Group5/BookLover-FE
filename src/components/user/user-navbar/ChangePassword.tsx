@@ -1,6 +1,7 @@
-import { Button, PasswordInput, Stack, Text } from "@mantine/core";
+import { Button, PasswordInput, Stack, Text, Group } from "@mantine/core";
 import { Lock } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import UserService from "../../../services/UserService";
 import { showError, showSuccess } from "../../../utils/notifications";
 
@@ -15,6 +16,7 @@ interface FieldErrors {
 }
 
 const ChangePassword = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState<ChangePasswordFormState>({
     currentPassword: "",
@@ -111,17 +113,31 @@ const ChangePassword = () => {
 
       <form onSubmit={handleSubmit}>
         <Stack gap="md">
-          <PasswordInput
-            label="Mật khẩu hiện tại"
-            placeholder="Nhập mật khẩu hiện tại"
-            required
-            value={form.currentPassword}
-            onChange={(e) =>
-              handleChange("currentPassword", e.currentTarget.value)
-            }
-            error={errors.currentPassword}
-            disabled={loading}
-          />
+          <div>
+            <Group justify="space-between" align="center" mb="xs">
+              <Text size="sm" fw={500}>
+                Mật khẩu hiện tại <span style={{ color: "red" }}>*</span>
+              </Text>
+              <Text
+                size="sm"
+                c="blue"
+                style={{ cursor: "pointer" }}
+                onClick={() => navigate("/forgot-password")}
+                className="hover:underline"
+              >
+                Quên mật khẩu?
+              </Text>
+            </Group>
+            <PasswordInput
+              placeholder="Nhập mật khẩu hiện tại"
+              value={form.currentPassword}
+              onChange={(e) =>
+                handleChange("currentPassword", e.currentTarget.value)
+              }
+              error={errors.currentPassword}
+              disabled={loading}
+            />
+          </div>
 
           <PasswordInput
             label="Mật khẩu mới"
