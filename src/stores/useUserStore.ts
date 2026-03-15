@@ -17,6 +17,7 @@ export interface UserProfile {
   bio?: string;
   spiritStones: number;
   followersCount?: number;
+  followingCount?: number;
   followingAuthorsCount?: number;
   followingStoriesCount?: number;
   storiesCount?: number;
