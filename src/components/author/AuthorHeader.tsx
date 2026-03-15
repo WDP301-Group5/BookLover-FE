@@ -10,16 +10,20 @@ interface AuthorHeaderProps {
   authorId: string;
   authorData?: AuthorPublicProfile | null;
   setAuthorData?: (data: AuthorPublicProfile) => void;
+  refreshKey?: number;
+  onRelationsChanged?: () => void;
 }
 
 export function AuthorHeader({
   authorId,
   authorData,
   setAuthorData,
+  refreshKey = 0,
+  onRelationsChanged,
 }: AuthorHeaderProps) {
   const [loadingFollow, setLoadingFollow] = useState(false);
   const [localAuthor, setLocalAuthor] = useState<AuthorPublicProfile | null>(
-    authorData || null
+    authorData || null,
   );
   const [followersOpened, setFollowersOpened] = useState(false);
   const [followingOpened, setFollowingOpened] = useState(false);
@@ -56,14 +60,14 @@ export function AuthorHeader({
     }
 
     fetchAuthor();
-  }, [authorId, setAuthorData]);
+  }, [authorId, setAuthorData, refreshKey]);
 
   if (!localAuthor) return null;
 
   const isFollowing = !!localAuthor.relationship?.amIFollowing;
 
   const handleFollow = async () => {
-    if (!authorId) return;
+    if (!authorId || !localAuthor) return;
 
     if (currentUserId === authorId) {
       showError("Không thể theo dõi bản thân");
@@ -72,10 +76,29 @@ export function AuthorHeader({
 
     setLoadingFollow(true);
     try {
-      await UserService.toggleFollow(authorId);
-      window.location.reload();
+      const wasFollowing = !!localAuthor.relationship?.amIFollowing;
+      const res = await UserService.toggleFollow(authorId);
+
+      const updatedAuthor: AuthorPublicProfile = {
+        ...localAuthor,
+        relationship: {
+          ...localAuthor.relationship,
+          ...res.relationship,
+        },
+        followersCount: Math.max(
+          0,
+          (localAuthor.followersCount || 0) +
+            (res.relationship.amIFollowing ? (wasFollowing ? 0 : 1) : -1),
+        ),
+      };
+
+      setLocalAuthor(updatedAuthor);
+      setAuthorData?.(updatedAuthor);
+
+      onRelationsChanged?.();
     } catch (err) {
       console.error(err);
+      showError("Theo dõi thất bại");
     } finally {
       setLoadingFollow(false);
     }
@@ -94,7 +117,11 @@ export function AuthorHeader({
         <div className="absolute inset-0 bg-black/50" />
 
         <div className="relative max-w-6xl mx-auto px-4">
-          <Flex direction={{ base: "column", sm: "row" }} gap="xl" align="center">
+          <Flex
+            direction={{ base: "column", sm: "row" }}
+            gap="xl"
+            align="center"
+          >
             <Avatar
               src={localAuthor.avatarURL || ""}
               size={200}
@@ -186,6 +213,7 @@ export function AuthorHeader({
         type="followers"
         userId={authorId}
         title="Người theo dõi"
+        onRelationsChanged={onRelationsChanged}
       />
 
       <FollowListModal
@@ -194,6 +222,7 @@ export function AuthorHeader({
         type="following"
         userId={authorId}
         title="Đang theo dõi"
+        onRelationsChanged={onRelationsChanged}
       />
     </>
   );

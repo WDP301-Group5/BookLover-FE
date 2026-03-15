@@ -38,6 +38,7 @@ const footerSections: FooterSection[] = [
       { link: "/community/forums", label: "Diễn đàn" },
       { link: "/community/events", label: "Sự kiện" },
       { link: "/community/contests", label: "Cuộc thi" },
+      { link: "/ranking", label: "Bảng xếp hạng" },
     ],
   },
   {

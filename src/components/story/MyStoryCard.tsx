@@ -9,6 +9,7 @@ import {
   Stack,
   Text,
 } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 import {
   Eye,
   MessageCircle,
@@ -17,10 +18,12 @@ import {
   Send,
   Star,
   Trash2,
+  X,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import type { Story } from "../../interfaces/Story";
 import { ShorterNumber, timeAgo } from "../../utils";
+import ChaptersListModal from "../author/ChaptersListModal";
 
 const statusConfig: Record<string, { label: string; color: string }> = {
   draft: { label: "Bản nháp", color: "gray" },
@@ -35,15 +38,21 @@ interface MyStoryCardProps {
   story: Story;
   onDelete: (id: string) => void;
   onSubmitReview: (id: string) => void;
+  onUnpublish?: (id: string) => void;
 }
 
 export default function MyStoryCard({
   story,
   onDelete,
   onSubmitReview,
+  onUnpublish,
 }: MyStoryCardProps) {
   const navigate = useNavigate();
   const cfg = statusConfig[story.status] ?? statusConfig.draft;
+  const [
+    chaptersModalOpened,
+    { open: openChaptersModal, close: closeChaptersModal },
+  ] = useDisclosure(false);
 
   return (
     <Flex
@@ -111,11 +120,7 @@ export default function MyStoryCard({
 
       {/* Hành động */}
       <Flex gap="xs" align="center" className="flex-shrink-0">
-        <Button
-          size="sm"
-          color="orange"
-          onClick={() => navigate(`/author/story/${story.slug}/write-chapter`)}
-        >
+        <Button size="sm" color="blue" onClick={openChaptersModal}>
           Tiếp tục viết
         </Button>
 
@@ -126,13 +131,6 @@ export default function MyStoryCard({
             </ActionIcon>
           </Menu.Target>
           <Menu.Dropdown>
-            <Menu.Item
-              leftSection={<Pencil size={14} />}
-              onClick={() => navigate(`/author/edit-story/${story.slug}`)}
-            >
-              Chỉnh sửa
-            </Menu.Item>
-
             {story.status === "draft" && (
               <Menu.Item
                 leftSection={<Send size={14} />}
@@ -144,6 +142,19 @@ export default function MyStoryCard({
 
             <Menu.Divider />
 
+            {story.status === "active" && (
+              <>
+                <Menu.Item
+                  color="red"
+                  leftSection={<X size={14} />}
+                  onClick={() => onUnpublish?.(story._id)}
+                >
+                  Hủy xuất bản
+                </Menu.Item>
+                <Menu.Divider />
+              </>
+            )}
+
             <Menu.Item
               color="red"
               leftSection={<Trash2 size={14} />}
@@ -154,6 +165,14 @@ export default function MyStoryCard({
           </Menu.Dropdown>
         </Menu>
       </Flex>
+
+      <ChaptersListModal
+        opened={chaptersModalOpened}
+        onClose={closeChaptersModal}
+        storyId={story._id}
+        storySlug={story.slug}
+        storyTitle={story.title}
+      />
     </Flex>
   );
 }
