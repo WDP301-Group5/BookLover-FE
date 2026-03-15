@@ -196,6 +196,7 @@ interface RankCardProps {
   username?: string;
   stats: RankStat[];
   extra?: ReactNode;
+  onClickName?: () => void;
 }
 
 function RankCard({
@@ -205,29 +206,10 @@ function RankCard({
   username,
   stats,
   extra,
+  onClickName,
 }: RankCardProps) {
-  const isTop3 = rank <= 3;
-
   return (
-    <Card
-      withBorder
-      radius="md"
-      p="md"
-      mb="xs"
-      style={{
-        background: isTop3
-          ? "linear-gradient(145deg, #fffaf0 0%, #ffffff 100%)"
-          : undefined,
-        borderColor: isTop3
-          ? rank === 1
-            ? "#ffc53d"
-            : rank === 2
-              ? "#d9d9d9"
-              : "#d98c3a"
-          : "#e9ecef",
-        boxShadow: isTop3 ? "0 4px 12px rgba(0,0,0,0.08)" : undefined,
-      }}
-    >
+    <Card withBorder radius="md" p="md" mb="xs">
       <Group wrap="nowrap" gap="md" align="center">
         <div
           style={{
@@ -256,12 +238,28 @@ function RankCard({
         <Avatar src={avatar} size={64} radius="xl" />
 
         <Stack gap={rem(4)} style={{ flex: 1 }}>
-          <Text fw={600} size="lg" c="dark">
+          <Text
+            fw={600}
+            size="lg"
+            onClick={onClickName}
+            style={{
+              cursor: onClickName ? "pointer" : "default",
+              width: "fit-content",
+            }}
+          >
             {name ?? username}
           </Text>
 
           {username && (
-            <Text size="sm" c="dimmed">
+            <Text
+              size="sm"
+              c="dimmed"
+              onClick={onClickName}
+              style={{
+                cursor: onClickName ? "pointer" : "default",
+                width: "fit-content",
+              }}
+            >
               @{username}
             </Text>
           )}
@@ -276,7 +274,7 @@ function RankCard({
                     <Icon size={rem(15)} strokeWidth={1.8} color="#868e96" />
                   )}
                   <Text size="sm">
-                    <Text component="span" fw={600} c="dark">
+                    <Text component="span" fw={600}>
                       {typeof stat.value === "number"
                         ? stat.value.toLocaleString("vi-VN")
                         : stat.value}
@@ -377,7 +375,7 @@ export default function RankingPage() {
               onChange={(value) => setStorySubTab(value as StorySubTab)}
               data={[
                 { label: "Đọc nhiều nhất", value: "views" },
-                { label: "Theo dõi nhiều nhất", value: "followers" },
+                { label: "Được theo dõi nhiều nhất", value: "followers" },
               ]}
               mb="lg"
             />
@@ -437,6 +435,7 @@ export default function RankingPage() {
                   avatar={author.avatarUrl}
                   name={author.penName}
                   username={author.username}
+                  onClickName={() => navigate(`/author-profile/${author.id}`)}
                   stats={[
                     {
                       label: "người theo dõi",
@@ -497,6 +496,7 @@ export default function RankingPage() {
                   avatar={user.avatarUrl}
                   name={user.fullName || user.username}
                   username={user.username}
+                  onClickName={() => navigate(`/author-profile/${user.id}`)}
                   stats={[
                     ...(userSubTab === "comments"
                       ? [
