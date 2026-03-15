@@ -12,8 +12,6 @@ import {
   Textarea,
   Avatar,
   Modal,
-  Slider,
-  ColorInput,
   Divider,
   Pagination,
   HoverCard,
@@ -29,7 +27,6 @@ import {
   IconMoodSad,
   IconMoodSmile,
   IconMoodSurprised,
-  IconSettings,
   IconThumbUp,
 } from "@tabler/icons-react";
 import { useEffect, useMemo, useState } from "react";
@@ -58,39 +55,11 @@ import ReactCommentService from "../../services/ReactCommentService";
 import { getReactColor, totalReact } from "../../utils/reactComment";
 import { ReactIcons } from "../../components/reactComment/ReactIcon";
 import { ChapterPageService } from "../../services/ChapterService";
-
-export interface ReaderSettings {
-  fontFamily: string;
-  fontSize: number;
-  lineHeight: number;
-  textColor: string;
-  backgroundColor: string | null;
-}
-
-const STORAGE_KEY = "reader_settings";
-
-const defaultSettings: ReaderSettings = {
-  fontFamily: "Times New Roman",
-  fontSize: 18,
-  lineHeight: 1.8,
-  textColor: "#000000",
-  backgroundColor: null,
-};
-
-const fonts = [
-  { value: "Times New Roman", label: "Times New Roman" },
-  { value: "Arial", label: "Arial" },
-  { value: "Verdana", label: "Verdana" },
-  { value: "Helvetica", label: "Helvetica" },
-];
+import { ChapterReader } from "../../components/chapter/ChapterReader";
 
 const LIMIT = 10;
 
 const ChapterPage = () => {
-  const [opened, { open, close }] = useDisclosure(false);
-  const [settings, setSettings] = useState<ReaderSettings>(defaultSettings);
-  const [textSettings, setTextSettings] =
-    useState<ReaderSettings>(defaultSettings);
   const { storySlug, chapterNumber } = useParams();
   const navigate = useNavigate();
   const { isLoggedIn, user, updateUser } = useUserStore();
@@ -113,15 +82,6 @@ const ChapterPage = () => {
     openedConfirmBuyChapter,
     { open: openConfirmBuyChapter, close: closeConfirmBuyChapter },
   ] = useDisclosure(false);
-
-  // Load settings
-  useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      setSettings(JSON.parse(saved));
-      setTextSettings(JSON.parse(saved));
-    }
-  }, []);
 
   const {
     data: chapter,
@@ -175,22 +135,6 @@ const ChapterPage = () => {
       userReact?.map((r: ReactComment) => [r.commentId, r.react]) ?? [],
     );
   }, [userReact]);
-
-  const saveSettings = () => {
-    setTextSettings(settings);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-    close();
-  };
-
-  const resetSettings = () => {
-    setSettings(defaultSettings);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultSettings));
-  };
-
-  const handleCloseSettings = () => {
-    setSettings(textSettings);
-    close();
-  };
 
   const handleSubmitComment = async () => {
     if (!comment.trim() || !chapter?.id) return; // Không có id hoặc nội dung thì ko được gửi
@@ -340,96 +284,6 @@ const ChapterPage = () => {
           </Text>
         </Breadcrumbs>
 
-        {/* Reader Settings Modal */}
-        <Modal
-          opened={opened}
-          onClose={handleCloseSettings}
-          title="Cấu hình đọc truyện"
-          centered
-        >
-          <Stack gap="lg">
-            {/* Font */}
-            <Select
-              label="Font chữ"
-              data={fonts}
-              value={settings.fontFamily}
-              onChange={(value) =>
-                setSettings({
-                  ...settings,
-                  fontFamily: value || "Times New Roman",
-                })
-              }
-            />
-
-            {/* Font size */}
-            <Stack gap={4}>
-              <Text>Kích cỡ chữ ({settings.fontSize}px)</Text>
-              <Slider
-                min={14}
-                max={28}
-                value={settings.fontSize}
-                onChange={(value) =>
-                  setSettings({ ...settings, fontSize: value })
-                }
-              />
-            </Stack>
-
-            {/* Line height */}
-            <Stack gap={4}>
-              <Text>Khoảng cách dòng ({settings.lineHeight})</Text>
-              <Slider
-                min={1.2}
-                max={2.5}
-                step={0.1}
-                value={settings.lineHeight}
-                onChange={(value) =>
-                  setSettings({ ...settings, lineHeight: value })
-                }
-              />
-            </Stack>
-
-            {/* Text color */}
-            <ColorInput
-              label="Màu chữ"
-              value={settings.textColor}
-              onChange={(value) =>
-                setSettings({ ...settings, textColor: value })
-              }
-            />
-
-            {/* Background color */}
-            <ColorInput
-              label="Màu nền"
-              value={settings.backgroundColor || ""}
-              onChange={(value) =>
-                setSettings({ ...settings, backgroundColor: value })
-              }
-            />
-
-            {/* Preview */}
-            <Text
-              style={{
-                fontFamily: settings.fontFamily,
-                fontSize: settings.fontSize,
-                lineHeight: settings.lineHeight,
-                color: settings.textColor,
-                backgroundColor: settings.backgroundColor || "",
-              }}
-            >
-              Đây là đoạn văn bản xem trước để bạn điều chỉnh cấu hình đọc
-              truyện.
-            </Text>
-
-            {/* Buttons */}
-            <Group justify="space-between">
-              <Button variant="light" onClick={resetSettings}>
-                Reset
-              </Button>
-              <Button onClick={saveSettings}>Lưu</Button>
-            </Group>
-          </Stack>
-        </Modal>
-
         {/* Navigation top */}
         <Group justify="center" gap="sm">
           <HoverCard>
@@ -487,9 +341,6 @@ const ChapterPage = () => {
             }
           >
             <IconChevronRight size={16} />
-          </Button>
-          <Button variant="outline" color="blue" onClick={open}>
-            <IconSettings size={16} />
           </Button>
         </Group>
 
@@ -641,17 +492,7 @@ const ChapterPage = () => {
                     </Modal>
                   </>
                 ) : (
-                  <Text
-                    style={{ whiteSpace: "pre-wrap" }}
-                    ff={textSettings.fontFamily}
-                    fz={textSettings.fontSize}
-                    lh={textSettings.lineHeight}
-                    c={textSettings.textColor}
-                    bg={textSettings.backgroundColor || ""}
-                    dangerouslySetInnerHTML={{
-                      __html: chapter?.contentURL || "",
-                    }}
-                  ></Text>
+                  <ChapterReader contentHtml={chapter?.contentURL || ""} />
                 )}
               </>
             )}

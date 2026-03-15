@@ -25,7 +25,7 @@ export function DataTableContent<TData>({ className }: DataTableContentProps) {
       }}
       className={className}
     >
-      <Table stickyHeader striped withColumnBorders>
+      <Table stickyHeader striped>
         <Table.Thead>
           {table.getHeaderGroups().map((headerGroup) => (
             <Table.Tr
