@@ -15,12 +15,22 @@ import { DataTableFilter } from "../../../components/data-table/filter";
 import {
   useAcknowledgeReport,
   useDismissReport,
-  useReports,
 } from "../../../hooks/useAdminReport";
 import { format } from "../../../lib/format";
-import type { Report } from "../../../services/AdminReportService";
+import type { GetReportsResponse, Report } from "../../../interfaces/report";
+import { AdminReportService } from "../../../services/AdminReportService";
 import { ReportDetailModal } from "./ReportDetailModal";
 import { ReportHistoryModal } from "./ReportHistoryModal";
+
+// Wrapper function để tương thích với useDataTable
+const getReportsService = async (): Promise<Report[]> => {
+  const response: GetReportsResponse = await AdminReportService.getReports({
+    status: "pending",
+    page: 1,
+    limit: 20,
+  });
+  return response.reports;
+};
 
 function ReportManagement() {
   const { mutate: dismissReport } = useDismissReport();
@@ -28,9 +38,7 @@ function ReportManagement() {
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [detailOpened, { open: openDetail, close: closeDetail }] =
     useDisclosure(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [historyOpened, { open: openHistory, close: closeHistory }] =
-    useDisclosure(false);
+  const [historyOpened, { close: closeHistory }] = useDisclosure(false);
 
   const handleDismiss = (report: Report) => {
     let note = "";
@@ -86,14 +94,8 @@ function ReportManagement() {
   };
 
   const dataTable = useDataTable<Report>({
-    columns: getColumns(
-      handleDismiss,
-      handleAcknowledge,
-      handleViewDetail,
-    ),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    service: (params: any) =>
-      useReports(params).data || { reports: [], pagination: { total: 0 } },
+    columns: getColumns(handleDismiss, handleAcknowledge, handleViewDetail),
+    service: getReportsService,
     queryKey: ["admin", "reports", "pending"],
   });
 

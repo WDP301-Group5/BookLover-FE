@@ -23,18 +23,20 @@ import {
   useWarnUserFromReport,
 } from "../../../hooks/useAdminReport";
 import { format } from "../../../lib/format";
-import type { Report } from "../../../services/AdminReportService";
+import type { Report } from "../../../interfaces/report";
 
 interface ReportDetailModalProps {
   report: Report | null;
   opened: boolean;
   onClose: () => void;
+  onViewHistory?: () => void;
 }
 
 export function ReportDetailModal({
   report,
   opened,
   onClose,
+  onViewHistory,
 }: ReportDetailModalProps) {
   const { mutate: banStory } = useBanStoryFromReport();
   const { mutate: deleteChapter } = useDeleteChapterFromReport();
@@ -278,12 +280,7 @@ export function ReportDetailModal({
           <Text size="sm" fw={600} mb={4}>
             Nội dung bình luận
           </Text>
-          <Box
-            p="sm"
-            bg="gray.0"
-            radius="md"
-            style={{ border: "1px solid #e9ecef" }}
-          >
+          <Box p="sm" bg="gray.0" style={{ border: "1px solid #e9ecef" }}>
             <Text size="sm">{report.targetPreview.content}</Text>
           </Box>
           <Text size="xs" c="dimmed" mt={4}>
@@ -442,12 +439,7 @@ export function ReportDetailModal({
           <Text size="sm" fw={600} mb={4}>
             Lý do báo cáo
           </Text>
-          <Box
-            p="sm"
-            bg="gray.0"
-            radius="md"
-            style={{ border: "1px solid #e9ecef" }}
-          >
+          <Box p="sm" bg="gray.0" style={{ border: "1px solid #e9ecef" }}>
             <Text size="sm">{report.content}</Text>
           </Box>
         </Box>
@@ -473,8 +465,9 @@ export function ReportDetailModal({
                 variant="default"
                 leftSection={<IconHistory size={14} />}
                 onClick={() => {
-                  onClose();
-                  // Open history modal - handled by parent
+                  if (onViewHistory) {
+                    onViewHistory();
+                  }
                 }}
               >
                 Xem lịch sử

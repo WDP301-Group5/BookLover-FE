@@ -9,8 +9,9 @@ import {
   Text,
   Title,
 } from "@mantine/core";
+import { useReportLogs } from "../../../hooks/useAdminReport";
 import { format } from "../../../lib/format";
-import type { Report, ReportLog } from "../../../services/AdminReportService";
+import type { Report, ReportLog } from "../../../interfaces/report";
 
 interface ReportHistoryModalProps {
   report: Report | null;
@@ -23,10 +24,9 @@ export function ReportHistoryModal({
   opened,
   onClose,
 }: ReportHistoryModalProps) {
-  if (!report) return null;
+  const { data: logs = [] } = useReportLogs(report?._id || null);
 
-  // Note: In a real implementation, you would fetch logs here
-  // For now, this is a placeholder that will be connected when hooks are used
+  if (!report) return null;
 
   const actionLabels: Record<string, string> = {
     dismiss: "Từ chối báo cáo",
@@ -48,9 +48,6 @@ export function ReportHistoryModal({
     ban_user: "red",
   };
 
-  // Placeholder logs - will be replaced with actual data from useReportLogs hook
-  const placeholderLogs: ReportLog[] = [];
-
   return (
     <Modal
       opened={opened}
@@ -62,20 +59,19 @@ export function ReportHistoryModal({
       scrollAreaComponent={ScrollArea.Autosize}
     >
       <Stack gap="md">
-        {placeholderLogs.length === 0 ? (
-          <Box p="md" bg="gray.0" radius="md" ta="center">
+        {logs.length === 0 ? (
+          <Box p="md" bg="gray.0" ta="center">
             <Text size="sm" c="dimmed">
               Chưa có lịch sử xử lý cho báo cáo này.
             </Text>
           </Box>
         ) : (
           <Stack gap="sm">
-            {placeholderLogs.map((log) => (
+            {logs.map((log: ReportLog) => (
               <Box
                 key={log._id}
                 p="sm"
                 bg="gray.0"
-                radius="md"
                 style={{ border: "1px solid #e9ecef" }}
               >
                 <Group justify="space-between" mb="xs">
