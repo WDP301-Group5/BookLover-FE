@@ -1,3 +1,4 @@
+// src/layouts/header/Header.tsx
 import { Box, Menu as MantineMenu, useMantineColorScheme } from "@mantine/core";
 import {
   BookOpen,
@@ -15,16 +16,18 @@ import {
   Zap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useUserStore } from "../../stores/useUserStore";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";import { useUserStore } from "../../stores/useUserStore";
 import { showSuccess } from "../../utils/notifications";
 import NotificationBell from "../../components/notification/NotificationBell";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const navigate = useNavigate();
-  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+const navigate = useNavigate();
+const location = useLocation();
+const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+const [searchParams] = useSearchParams();  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+const isSearchPage = location.pathname === "/search";
   const isDark = colorScheme === "dark";
   const { user, isLoggedIn, logout } = useUserStore();
 
@@ -39,7 +42,36 @@ const Header = () => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [mobileMenuOpen]);
+  useEffect(() => {
+  const timeout = setTimeout(() => {
+    setDebouncedSearchQuery(searchQuery.trim());
+  }, 400);
 
+  return () => clearTimeout(timeout);
+}, [searchQuery]);
+
+useEffect(() => {
+  if (!isSearchPage) return;
+
+  const currentQ = searchParams.get("q") || "";
+
+  if (debouncedSearchQuery === currentQ) return;
+
+  if (!debouncedSearchQuery) {
+    navigate("/search", { replace: true });
+    return;
+  }
+
+  navigate(`/search?q=${encodeURIComponent(debouncedSearchQuery)}`, {
+    replace: true,
+  });
+}, [debouncedSearchQuery, isSearchPage, navigate, searchParams]);
+useEffect(() => {
+  if (!isSearchPage) return;
+
+  const currentQ = searchParams.get("q") || "";
+  setSearchQuery(currentQ);
+}, [isSearchPage, searchParams]);
   const handleLogout = () => {
     logout();
     showSuccess("Hẹn gặp lại bạn!", "Đăng xuất thành công");
@@ -47,11 +79,13 @@ const Header = () => {
   };
 
   const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
-    }
-  };
+  e.preventDefault();
+  const keyword = searchQuery.trim();
+  if (!keyword) return;
+
+  navigate(`/search?q=${encodeURIComponent(keyword)}`);
+  setMobileMenuOpen(false);
+};
 
   return (
     <header className="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
