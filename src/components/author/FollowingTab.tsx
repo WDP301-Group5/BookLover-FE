@@ -115,9 +115,9 @@ export function FollowingTab({
             avatarUrl={f.avatarURL || ""}
             backgroundUrl={f.backgroundURL || ""}
             stats={{
-              works: f.storiesCount || 0,
-              readingLists: 0,
-              followers: f.followersCount || 0,
+              storiesCount: f.storiesCount || 0,
+              followingCount: f.followingCount || 0,
+              followersCount: f.followersCount || 0,
             }}
             showFollowButton
             isFollowing={!!f.relationship?.amIFollowing}
