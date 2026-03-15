@@ -4,7 +4,7 @@ import { instance as axios } from "../lib/axios";
 // Mở rộng interface Story cho các phần cần thiết
 export interface Chapter {
   _id: string;
-  storyId: string | any;
+  storyId: string;
   chapterNumber: number;
   title: string;
   contentURL: string;

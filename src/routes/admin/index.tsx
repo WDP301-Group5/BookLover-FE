@@ -1,12 +1,13 @@
 import { Navigate, Outlet, type RouteObject } from "react-router-dom";
 // import { AdminRouteGuard } from "../../components/common/AdminRouteGuard";
+import { RoleBasedRoute } from "../../components/common/RoleBasedRoute";
 import { AdminLayout } from "../../layouts/admin";
 import { AdminAccountManagement } from "../../pages/admin/account/AdminAccountManagement";
 import { GenreManagement } from "../../pages/admin/catalog/genre/GenreManagement";
 import { AdminChapterModeration } from "../../pages/admin/censor/AdminChapterModeration";
 import { AdminStoryModeration } from "../../pages/admin/censor/AdminStoryModeration";
+import ReportManagement from "../../pages/admin/reports/ReportManagement";
 import NotFoundPage from "../../pages/error/not-found";
-import { RoleBasedRoute } from "../../components/common/RoleBasedRoute";
 
 export const AdminRoute: RouteObject = {
   path: "/admin",
@@ -56,6 +57,10 @@ export const AdminRoute: RouteObject = {
               element: <AdminChapterModeration />,
             },
           ],
+        },
+        {
+          path: "reports",
+          element: <ReportManagement />,
         },
         {
           path: "*",

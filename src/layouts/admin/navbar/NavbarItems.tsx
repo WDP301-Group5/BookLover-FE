@@ -1,9 +1,10 @@
 import {
+  IconAlertCircle,
   IconGauge,
   IconListCheck,
   IconNotes,
-  type IconProps,
   IconUsers,
+  type IconProps,
 } from "@tabler/icons-react";
 import type { ForwardRefExoticComponent, RefAttributes } from "react";
 
@@ -37,5 +38,10 @@ export const NAVBAR_ITEMS: NavbarItem[] = [
       { label: "Kiểm duyệt Truyện", link: "/admin/censor/stories" },
       { label: "Kiểm duyệt Chương", link: "/admin/censor/chapters" },
     ],
+  },
+  {
+    label: "Báo cáo vi phạm",
+    icon: IconAlertCircle,
+    link: "/admin/reports",
   },
 ];
