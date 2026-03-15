@@ -6,6 +6,8 @@ import { setNavigate } from "../lib/navigation";
 import { useLogoutCleanup } from "../hooks/useLogoutCleanup";
 import Footer from "./footer/Footer";
 import Header from "./header/Header";
+import socket from "../lib/socket";
+import { useUserStore } from "../stores/useUserStore";
 
 const Layout = () => {
   const navigate = useNavigate();
@@ -16,7 +18,16 @@ const Layout = () => {
     setNavigate(navigate);
   }, [navigate]);
 
-  const [showScrollTop, setShowScrollTop] = useState(false);
+	const [showScrollTop, setShowScrollTop] = useState(false);
+
+	const { user } = useUserStore();
+
+	useEffect(() => {
+		if (user?.id) {
+			socket.auth = { userId: user.id };
+			socket.connect();
+		}
+	}, []);
 
   useEffect(() => {
     const handleScroll = () => {

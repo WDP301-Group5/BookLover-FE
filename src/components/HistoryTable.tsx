@@ -18,7 +18,7 @@ const HistoryTable = () => {
               <div className="flex justify-between items-center py-3">
                 <p className="text-[16px] font-semibold">Lịch sử đọc truyện</p>
                 <Link
-                  to={"/user-profile?tab=history"}
+                  to={"/history"}
                   className="text-[13px] font-semibold cursor-pointer underline hover:text-blue-500"
                 >
                   Xem tất cả

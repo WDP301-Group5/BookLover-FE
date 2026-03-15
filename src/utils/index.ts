@@ -61,3 +61,33 @@ export const DateHourFormat = (date: Date | string): string => {
   const seconds = String(d.getSeconds()).padStart(2, "0");
   return `${hours}:${minutes}:${seconds} ${day}/${month}/${year}`;
 };
+
+export const rangeTime = (updatedAt: number) => {
+  const now = new Date();
+  const updated = new Date(updatedAt);
+
+  // Điều chỉnh múi giờ GMT+7 nếu cần
+  const gmtOffset = 7 * 60 * 60 * 1000;
+  const nowGmt7 = new Date(now.getTime() + gmtOffset).getTime();
+  const updatedGmt7 = new Date(updated.getTime() + gmtOffset).getTime();
+
+  const diffMs = nowGmt7 - updatedGmt7;
+
+  const minutes = Math.floor(diffMs / (1000 * 60));
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+  const months = Math.floor(days / 30);
+  const years = Math.floor(months / 12);
+
+  const format = (value: number, unit: string) => {
+    return `${value} ${unit} trước`;
+  };
+
+  if (years > 0) return format(years, "năm");
+  if (months > 0) return format(months, "tháng");
+  if (days > 0) return format(days, "ngày");
+  if (hours > 0) return format(hours, "giờ");
+  if (minutes > 0) return format(minutes, "phút");
+
+  return "vừa xong";
+};

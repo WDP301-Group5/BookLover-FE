@@ -21,6 +21,7 @@ import { UnauthorizedPage } from "../pages/unauthorized-page/UnauthorizedPage";
 import HistoryPage from "../pages/history-page/HistoryPage";
 import NotificationPage from "../pages/notification-page/NotificationPage";
 import RankingPage from "../pages/ranking-page/RankingPage";
+import ChatingPage from "../pages/chat-page/ChatPage";
 
 const routes = createBrowserRouter([
   UserWriteStoryRoute,
@@ -94,6 +95,10 @@ const routes = createBrowserRouter([
       {
         path: "/notifications",
         element: <NotificationPage />,
+      },
+      {
+        path: "chating",
+        element: <ChatingPage />,
       },
       // Routes below require the user to be authenticated with a valid token.
       {
