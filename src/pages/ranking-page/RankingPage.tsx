@@ -14,7 +14,7 @@ import {
   rem,
   SegmentedControl,
 } from "@mantine/core";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import {
   BookOpen,
   User,
@@ -26,7 +26,10 @@ import {
   Coins,
   UserPlus,
   MessageCircle,
+  type LucideIcon,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
 import { ShorterNumber } from "../../utils/index.ts";
 import {
   useTopAuthorsRanking,
@@ -35,9 +38,14 @@ import {
 } from "../../hooks/useRanking";
 import type { RankingStoryItem } from "../../services/rankingService";
 
+type StorySubTab = "views" | "followers";
+type AuthorSubTab = "followers" | "stories";
+type UserSubTab = "comments" | "spent";
+
 interface TopStoryCardData {
   rank: number;
   title: string;
+  slug: string;
   coverUrl: string;
   author: string;
   categories: string[];
@@ -51,11 +59,15 @@ interface TopStoryCardData {
 
 interface TopStorySearchCardProps {
   story: TopStoryCardData;
+  onClick?: () => void;
 }
 
-function TopStorySearchCard({ story }: TopStorySearchCardProps) {
+function TopStorySearchCard({ story, onClick }: TopStorySearchCardProps) {
   return (
-    <div className="w-full cursor-pointer hover:shadow-md transition-shadow duration-200 rounded-sm border border-gray-200">
+    <div
+      className="w-full cursor-pointer rounded-sm border border-gray-200 transition-shadow duration-200 hover:shadow-md"
+      onClick={onClick}
+    >
       <Card p="sm" radius="sm">
         <Group wrap="nowrap" align="flex-start" gap="sm">
           <div
@@ -110,7 +122,7 @@ function TopStorySearchCard({ story }: TopStorySearchCardProps) {
             </Text>
 
             <Text size="xs" c="dimmed" lineClamp={1}>
-              Thể loại: {story.categories?.join(", ")}
+              Thể loại: {story.categories.join(", ")}
             </Text>
 
             <Group gap={0} mt="xs" grow>
@@ -171,16 +183,29 @@ function TopStorySearchCard({ story }: TopStorySearchCardProps) {
   );
 }
 
+interface RankStat {
+  label: string;
+  value: string | number;
+  icon?: LucideIcon;
+}
+
 interface RankCardProps {
   rank: number;
   avatar?: string;
   name?: string;
   username?: string;
-  stats: Array<{ label: string; value: string | number; icon?: any }>;
-  extra?: React.ReactNode;
+  stats: RankStat[];
+  extra?: ReactNode;
 }
 
-function RankCard({ rank, avatar, name, username, stats, extra }: RankCardProps) {
+function RankCard({
+  rank,
+  avatar,
+  name,
+  username,
+  stats,
+  extra,
+}: RankCardProps) {
   const isTop3 = rank <= 3;
 
   return (
@@ -190,8 +215,16 @@ function RankCard({ rank, avatar, name, username, stats, extra }: RankCardProps)
       p="md"
       mb="xs"
       style={{
-        background: isTop3 ? "linear-gradient(145deg, #fffaf0 0%, #ffffff 100%)" : undefined,
-        borderColor: isTop3 ? (rank === 1 ? "#ffc53d" : rank === 2 ? "#d9d9d9" : "#d98c3a") : "#e9ecef",
+        background: isTop3
+          ? "linear-gradient(145deg, #fffaf0 0%, #ffffff 100%)"
+          : undefined,
+        borderColor: isTop3
+          ? rank === 1
+            ? "#ffc53d"
+            : rank === 2
+              ? "#d9d9d9"
+              : "#d98c3a"
+          : "#e9ecef",
         boxShadow: isTop3 ? "0 4px 12px rgba(0,0,0,0.08)" : undefined,
       }}
     >
@@ -202,7 +235,13 @@ function RankCard({ rank, avatar, name, username, stats, extra }: RankCardProps)
             height: rem(48),
             borderRadius: "50%",
             background:
-              rank === 1 ? "#ffc53d" : rank === 2 ? "#d9d9d9" : rank === 3 ? "#d98c3a" : "#e9ecef",
+              rank === 1
+                ? "#ffc53d"
+                : rank === 2
+                  ? "#d9d9d9"
+                  : rank === 3
+                    ? "#d98c3a"
+                    : "#e9ecef",
             color: rank <= 3 ? "#1a1a1a" : "#495057",
             fontWeight: 700,
             fontSize: rank <= 3 ? rem(24) : rem(18),
@@ -218,8 +257,9 @@ function RankCard({ rank, avatar, name, username, stats, extra }: RankCardProps)
 
         <Stack gap={rem(4)} style={{ flex: 1 }}>
           <Text fw={600} size="lg" c="dark">
-            {name || username}
+            {name ?? username}
           </Text>
+
           {username && (
             <Text size="sm" c="dimmed">
               @{username}
@@ -227,17 +267,25 @@ function RankCard({ rank, avatar, name, username, stats, extra }: RankCardProps)
           )}
 
           <Group gap={rem(16)} mt={rem(2)}>
-            {stats.map((s, idx) => (
-              <Group key={idx} gap={rem(5)}>
-                {s.icon && <s.icon size={rem(15)} stroke={1.8} color="#868e96" />}
-                <Text size="sm">
-                  <Text component="span" fw={600} c="dark">
-                    {typeof s.value === "number" ? s.value.toLocaleString("vi-VN") : s.value}
-                  </Text>{" "}
-                  {s.label}
-                </Text>
-              </Group>
-            ))}
+            {stats.map((stat, index) => {
+              const Icon = stat.icon;
+
+              return (
+                <Group key={`${stat.label}-${index}`} gap={rem(5)}>
+                  {Icon && (
+                    <Icon size={rem(15)} strokeWidth={1.8} color="#868e96" />
+                  )}
+                  <Text size="sm">
+                    <Text component="span" fw={600} c="dark">
+                      {typeof stat.value === "number"
+                        ? stat.value.toLocaleString("vi-VN")
+                        : stat.value}
+                    </Text>{" "}
+                    {stat.label}
+                  </Text>
+                </Group>
+              );
+            })}
           </Group>
 
           {extra && <Group mt={rem(6)}>{extra}</Group>}
@@ -249,55 +297,62 @@ function RankCard({ rank, avatar, name, username, stats, extra }: RankCardProps)
 
 export default function RankingPage() {
   const [mainTab, setMainTab] = useState<string | null>("stories");
-  const [storySubTab, setStorySubTab] = useState("views");
-  const [authorSubTab, setAuthorSubTab] = useState("followers");
-  const [userSubTab, setUserSubTab] = useState("comments");
+  const [storySubTab, setStorySubTab] = useState<StorySubTab>("views");
+  const [authorSubTab, setAuthorSubTab] = useState<AuthorSubTab>("followers");
+  const [userSubTab, setUserSubTab] = useState<UserSubTab>("comments");
 
   const {
-    data: storyRankingData,
+    data: storyRankingData = [],
     loading: storiesLoading,
     error: storiesError,
-  } = useTopStoriesRanking(storySubTab as "views" | "followers", 15);
+  } = useTopStoriesRanking(storySubTab, 15);
 
   const {
-    data: authorRankingData,
+    data: authorRankingData = [],
     loading: authorsLoading,
     error: authorsError,
-  } = useTopAuthorsRanking(authorSubTab as "followers" | "stories", 30);
+  } = useTopAuthorsRanking(authorSubTab, 30);
 
   const {
-    data: userRankingData,
+    data: userRankingData = [],
     note: usersNote,
     loading: usersLoading,
     error: usersError,
-  } = useTopUsersRanking(userSubTab as "comments" | "spent", 30);
+  } = useTopUsersRanking(userSubTab, 30);
 
- const mappedStoryCards = useMemo<TopStoryCardData[]>(() => {
-  return storyRankingData.map((item: RankingStoryItem) => {
-    const mergedCategories = [...(item.genres || []), ...(item.topics || [])];
-    const uniqueCategories = Array.from(new Set(mergedCategories)).slice(0, 5);
+  const navigate = useNavigate();
 
-    return {
-      rank: item.rank,
-      title: item.title,
-      coverUrl: item.image,
-      author: item.author,
-      categories: uniqueCategories,
-      views: item.views,
-      followers: item.followers,
-      rates: item.rates,
-      chapters: item.chapters,
-      description: item.description,
-      isPremium: item.isPremium,
-    };
-  });
-}, [storyRankingData]);
+  const mappedStoryCards = useMemo<TopStoryCardData[]>(() => {
+    return storyRankingData.map((item: RankingStoryItem) => {
+      const mergedCategories = [...(item.genres ?? []), ...(item.topics ?? [])];
+      const uniqueCategories = Array.from(new Set(mergedCategories)).slice(0, 5);
+
+      return {
+        rank: item.rank,
+        title: item.title,
+        slug: item.slug,
+        coverUrl: item.image,
+        author: item.author,
+        categories: uniqueCategories,
+        views: item.views,
+        followers: item.followers,
+        rates: item.rates,
+        chapters: item.chapters,
+        description: item.description,
+        isPremium: item.isPremium,
+      };
+    });
+  }, [storyRankingData]);
 
   return (
     <Container size="xl" py="xl">
       <Group justify="apart" align="center" mb="xl">
-        <Title order={2}>
-          <Flame size={rem(30)} color="#fa5252" /> Bảng Xếp Hạng
+        <Title
+          order={3}
+          style={{ display: "inline-flex", alignItems: "center", gap: rem(8) }}
+        >
+          <Flame size={rem(30)} color="#fa5252" />
+          Bảng Xếp Hạng
         </Title>
       </Group>
 
@@ -319,7 +374,7 @@ export default function RankingPage() {
             <SegmentedControl
               fullWidth
               value={storySubTab}
-              onChange={setStorySubTab}
+              onChange={(value) => setStorySubTab(value as StorySubTab)}
               data={[
                 { label: "Đọc nhiều nhất", value: "views" },
                 { label: "Theo dõi nhiều nhất", value: "followers" },
@@ -341,7 +396,11 @@ export default function RankingPage() {
 
             <Stack gap="md">
               {mappedStoryCards.map((item) => (
-                <TopStorySearchCard key={`${item.rank}-${item.title}`} story={item} />
+                <TopStorySearchCard
+                  key={`${item.rank}-${item.slug}`}
+                  story={item}
+                  onClick={() => navigate(`/story/${item.slug}`)}
+                />
               ))}
             </Stack>
           </Tabs.Panel>
@@ -350,7 +409,7 @@ export default function RankingPage() {
             <SegmentedControl
               fullWidth
               value={authorSubTab}
-              onChange={setAuthorSubTab}
+              onChange={(value) => setAuthorSubTab(value as AuthorSubTab)}
               data={[
                 { label: "Nhiều người follow nhất", value: "followers" },
                 { label: "Viết nhiều truyện nhất", value: "stories" },
@@ -379,9 +438,21 @@ export default function RankingPage() {
                   name={author.penName}
                   username={author.username}
                   stats={[
-                    { label: "người theo dõi", value: author.followersCount, icon: Users },
-                    { label: "truyện", value: author.storiesCount, icon: BookOpen },
-                    { label: "tổng lượt xem", value: author.totalViews, icon: Eye },
+                    {
+                      label: "người theo dõi",
+                      value: author.followersCount,
+                      icon: Users,
+                    },
+                    {
+                      label: "truyện",
+                      value: author.storiesCount,
+                      icon: BookOpen,
+                    },
+                    {
+                      label: "tổng lượt xem",
+                      value: author.totalViews,
+                      icon: Eye,
+                    },
                   ]}
                 />
               ))}
@@ -392,7 +463,7 @@ export default function RankingPage() {
             <SegmentedControl
               fullWidth
               value={userSubTab}
-              onChange={setUserSubTab}
+              onChange={(value) => setUserSubTab(value as UserSubTab)}
               data={[
                 { label: "Bình luận nhiều nhất", value: "comments" },
                 { label: "Nạp tiền nhiều nhất", value: "spent" },
@@ -424,7 +495,7 @@ export default function RankingPage() {
                   key={user.id || user.rank}
                   rank={user.rank}
                   avatar={user.avatarUrl}
-                  name={userSubTab === "spent" ? (user.fullName || user.username) : (user.fullName || user.username)}
+                  name={user.fullName || user.username}
                   username={user.username}
                   stats={[
                     ...(userSubTab === "comments"
