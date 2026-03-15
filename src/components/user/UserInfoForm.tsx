@@ -22,7 +22,6 @@ import { showError, showSuccess } from "../../utils/notifications";
 import ChangePassword from "./user-navbar/ChangePassword";
 import ListStoryFollowed from "./user-navbar/ListStoryFollowed";
 import MyStory from "./user-navbar/MyStory";
-import Notification from "./user-navbar/Notification";
 import { useNavigate } from "react-router-dom";
 import Followers from "./user-navbar/Followers";
 import { FollowingTab } from "../author/FollowingTab";
@@ -45,7 +44,6 @@ const SIDEBAR_MENU = [
     label: "Đang theo dõi",
     icon: <UserRoundPlus size={18} />,
   },
-  { key: "notifications", label: "Thông báo", icon: <Bell size={18} /> },
   { key: "change-password", label: "Đổi mật khẩu", icon: <Lock size={18} /> },
 ];
 
@@ -124,7 +122,6 @@ export default function UserInfoForm() {
     "following-stories": <ListStoryFollowed />,
     "following": <FollowingTab authorId={user.id} layout="compact" showTitle />,
     "followers": <Followers authorId={user.id} layout="compact" showTitle />,
-    "notifications": <Notification />,
     "change-password": <ChangePassword />,
   };
 
