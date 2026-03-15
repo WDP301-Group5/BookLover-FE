@@ -1,8 +1,46 @@
 import { type RouteObject } from "react-router-dom";
 import Layout from "../../layouts/Layout";
 import { RoleBasedRoute } from "../../components/common/RoleBasedRoute";
+import { ProtectedRoute } from "../../components/common/ProtectedRoute";
 import WriteStoryPage from "../../pages/author/WriteStoryPage";
 import WriteChapterPage from "../../pages/author/WriteChapterPage";
+import MyStoriesPage from "../../pages/author/MyStoriesPage";
+
+// Allow users to start writing a story (they will become an author after creating the story)
+// Only requires authentication, no role check
+export const UserWriteStoryRoute: RouteObject = {
+  path: "/author/write-story",
+  element: <Layout />,
+  children: [
+    {
+      element: <ProtectedRoute />,
+      children: [
+        {
+          index: true,
+          element: <WriteStoryPage />,
+        },
+      ],
+    },
+  ],
+};
+
+// My Stories route - requires authentication but accessible to any user
+// (they can view their own stories regardless of current role)
+export const MyStoriesRoute: RouteObject = {
+  path: "/author/my-stories",
+  element: <Layout />,
+  children: [
+    {
+      element: <ProtectedRoute />,
+      children: [
+        {
+          index: true,
+          element: <MyStoriesPage />,
+        },
+      ],
+    },
+  ],
+};
 
 export const AuthorRoute: RouteObject = {
   path: "/author",
@@ -16,10 +54,6 @@ export const AuthorRoute: RouteObject = {
     {
       element: <Layout />,
       children: [
-        {
-          path: "write-story",
-          element: <WriteStoryPage />,
-        },
         {
           path: "story/:storySlug/write-chapter",
           element: <WriteChapterPage />,

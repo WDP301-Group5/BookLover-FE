@@ -1,3 +1,4 @@
+// src/layouts/header/Header.tsx
 import { Box, Menu as MantineMenu, useMantineColorScheme } from "@mantine/core";
 import {
   BookOpen,
@@ -15,15 +16,18 @@ import {
   Zap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useUserStore } from "../../stores/useUserStore";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";import { useUserStore } from "../../stores/useUserStore";
 import { showSuccess } from "../../utils/notifications";
+import NotificationBell from "../../components/notification/NotificationBell";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const navigate = useNavigate();
-  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+const navigate = useNavigate();
+const location = useLocation();
+const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+const [searchParams] = useSearchParams();  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+const isSearchPage = location.pathname === "/search";
   const isDark = colorScheme === "dark";
   const { user, isLoggedIn, logout } = useUserStore();
 
@@ -38,7 +42,36 @@ const Header = () => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [mobileMenuOpen]);
+  useEffect(() => {
+  const timeout = setTimeout(() => {
+    setDebouncedSearchQuery(searchQuery.trim());
+  }, 400);
 
+  return () => clearTimeout(timeout);
+}, [searchQuery]);
+
+useEffect(() => {
+  if (!isSearchPage) return;
+
+  const currentQ = searchParams.get("q") || "";
+
+  if (debouncedSearchQuery === currentQ) return;
+
+  if (!debouncedSearchQuery) {
+    navigate("/search", { replace: true });
+    return;
+  }
+
+  navigate(`/search?q=${encodeURIComponent(debouncedSearchQuery)}`, {
+    replace: true,
+  });
+}, [debouncedSearchQuery, isSearchPage, navigate, searchParams]);
+useEffect(() => {
+  if (!isSearchPage) return;
+
+  const currentQ = searchParams.get("q") || "";
+  setSearchQuery(currentQ);
+}, [isSearchPage, searchParams]);
   const handleLogout = () => {
     logout();
     showSuccess("Hẹn gặp lại bạn!", "Đăng xuất thành công");
@@ -46,11 +79,13 @@ const Header = () => {
   };
 
   const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
-    }
-  };
+  e.preventDefault();
+  const keyword = searchQuery.trim();
+  if (!keyword) return;
+
+  navigate(`/search?q=${encodeURIComponent(keyword)}`);
+  setMobileMenuOpen(false);
+};
 
   return (
     <header className="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
@@ -145,6 +180,13 @@ const Header = () => {
                 >
                   Cuộc thi
                 </MantineMenu.Item>
+                <MantineMenu.Item
+                  component={Link}
+                  to="/ranking"
+                  className="text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  Bảng xếp hạng
+                </MantineMenu.Item>
                 <MantineMenu.Divider className="border-gray-200 dark:border-gray-700" />
                 <MantineMenu.Item
                   component={Link}
@@ -194,17 +236,10 @@ const Header = () => {
                 </MantineMenu.Item>
                 <MantineMenu.Item
                   component={Link}
-                  to="/author/drafts"
+                  to="/author/my-stories"
                   className="text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
-                  Bản nháp của tôi
-                </MantineMenu.Item>
-                <MantineMenu.Item
-                  component={Link}
-                  to="/author/published"
-                  className="text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                  Truyện đã đăng
+                  Truyện của tôi
                 </MantineMenu.Item>
                 <MantineMenu.Divider className="border-gray-200 dark:border-gray-700" />
                 <MantineMenu.Item
@@ -238,11 +273,14 @@ const Header = () => {
             {/* Premium Button */}
             <Link
               to="/purchase/spirit-stone"
-              className="hidden lg:flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 hover:bg-blue-100 dark:hover:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-lg transition-all duration-200 cursor-pointer shadow-sm hover:shadow"
+              className="hidden md:flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 hover:bg-blue-100 dark:hover:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-lg transition-all duration-200 cursor-pointer shadow-sm hover:shadow"
             >
               <CircleDollarSignIcon />
               Nạp linh thạch
             </Link>
+
+            {/* Notification Bell */}
+            <NotificationBell />
 
             {/* Account Dropdown */}
             <MantineMenu shadow="md" width={224} position="bottom-end">
@@ -285,7 +323,7 @@ const Header = () => {
                     >
                       <Box className="flex gap-2">
                         <History size={18} />
-                      Lịch sử của tôi
+                        Lịch sử của tôi
                       </Box>
                     </MantineMenu.Item>
                     <MantineMenu.Divider className="border-gray-200 dark:border-gray-700" />
@@ -494,7 +532,8 @@ const Header = () => {
                     >
                       Trang cá nhân
                     </Link>
-                    <Link to="/history"
+                    <Link
+                      to="/history"
                       className="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
                       onClick={() => setMobileMenuOpen(false)}
                     >

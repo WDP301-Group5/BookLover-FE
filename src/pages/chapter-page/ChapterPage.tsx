@@ -1,6 +1,7 @@
 import {
   Breadcrumbs,
   Anchor,
+  Badge,
   Button,
   Container,
   Group,
@@ -12,8 +13,6 @@ import {
   Textarea,
   Avatar,
   Modal,
-  Slider,
-  ColorInput,
   Divider,
   Pagination,
   HoverCard,
@@ -29,23 +28,24 @@ import {
   IconMoodSad,
   IconMoodSmile,
   IconMoodSurprised,
-  IconSettings,
   IconThumbUp,
 } from "@tabler/icons-react";
 import { useEffect, useMemo, useState } from "react";
 import {
   useChapterByChapterNumber,
   useChaptersByStory,
+  useChaptersByStoryForAuthor,
 } from "../../hooks/useChapter";
 import { useNavigate, useParams } from "react-router-dom";
 import { useUserStore } from "../../stores/useUserStore";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { AuthorService } from "../../services/AuthorService";
 import RequireLoginModal from "../../components/RequireLoginModal";
 import { useCommentsByChapter, useReplyComments } from "../../hooks/useComment";
 import CommentService from "../../services/CommentService";
 import { showError, showSuccess } from "../../utils/notifications";
 import type { Comment } from "../../interfaces/Comment";
 import { DateHourFormat } from "../../utils";
-import { useQueryClient } from "@tanstack/react-query";
 import { useCheckUserFollowStory } from "../../hooks/useFollowStory";
 import FollowStoryService from "../../services/FollowStoryService";
 import { useUserReactOfChapter } from "../../hooks/useReactComment";
@@ -58,39 +58,11 @@ import ReactCommentService from "../../services/ReactCommentService";
 import { getReactColor, totalReact } from "../../utils/reactComment";
 import { ReactIcons } from "../../components/reactComment/ReactIcon";
 import { ChapterPageService } from "../../services/ChapterService";
-
-export interface ReaderSettings {
-  fontFamily: string;
-  fontSize: number;
-  lineHeight: number;
-  textColor: string;
-  backgroundColor: string | null;
-}
-
-const STORAGE_KEY = "reader_settings";
-
-const defaultSettings: ReaderSettings = {
-  fontFamily: "Times New Roman",
-  fontSize: 18,
-  lineHeight: 1.8,
-  textColor: "#000000",
-  backgroundColor: null,
-};
-
-const fonts = [
-  { value: "Times New Roman", label: "Times New Roman" },
-  { value: "Arial", label: "Arial" },
-  { value: "Verdana", label: "Verdana" },
-  { value: "Helvetica", label: "Helvetica" },
-];
+import { ChapterReader } from "../../components/chapter/ChapterReader";
 
 const LIMIT = 10;
 
 const ChapterPage = () => {
-  const [opened, { open, close }] = useDisclosure(false);
-  const [settings, setSettings] = useState<ReaderSettings>(defaultSettings);
-  const [textSettings, setTextSettings] =
-    useState<ReaderSettings>(defaultSettings);
   const { storySlug, chapterNumber } = useParams();
   const navigate = useNavigate();
   const { isLoggedIn, user, updateUser } = useUserStore();
@@ -114,21 +86,31 @@ const ChapterPage = () => {
     { open: openConfirmBuyChapter, close: closeConfirmBuyChapter },
   ] = useDisclosure(false);
 
-  // Load settings
-  useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      setSettings(JSON.parse(saved));
-      setTextSettings(JSON.parse(saved));
-    }
-  }, []);
-
   const {
     data: chapter,
     isLoading: chapterLoading,
     error: chapterError,
   } = useChapterByChapterNumber(String(storySlug), Number(chapterNumber));
-  const { data: listChapters } = useChaptersByStory(chapter?.storyId ?? "");
+
+  // Try to fetch author chapters first (if user is author, shows all statuses)
+  // If that fails (user not author), fall back to public chapters (only active)
+  const { data: authorChapters, isError: authorChaptersError } = useQuery({
+    queryKey: ["author-chapters-list", chapter?.storyId],
+    queryFn: () => AuthorService.getChaptersByStoryForAuthor(chapter!.storyId),
+    enabled: isLoggedIn && !!chapter?.storyId,
+    retry: false,
+    onError: () => {
+      // Silently fail - user is not the story author
+    },
+  });
+
+  // Only fetch public chapters if author chapters failed or if user is not logged in
+  const { data: publicChapters } = useChaptersByStory(
+    (!isLoggedIn || authorChaptersError) && chapter?.storyId
+      ? chapter.storyId
+      : "",
+  );
+  const listChapters = authorChapters ?? publicChapters;
   const chapters =
     listChapters?.map((c) => ({
       value: c.chapterNumber.toString(),
@@ -146,7 +128,7 @@ const ChapterPage = () => {
       : null;
 
   const { data: commentData } = useCommentsByChapter(
-    chapter?.id ?? "",
+    chapter?.storyId ?? "",
     commentPage,
     LIMIT,
   );
@@ -158,14 +140,39 @@ const ChapterPage = () => {
   // console.log("reply", replyData)
   repliesMap[openedReplyCommentId] = replyData?.comments ?? [];
 
-  const { data: isFollowStory } = useCheckUserFollowStory(chapter?.id ?? "");
+  const { data: isFollowStory } = useCheckUserFollowStory(
+    chapter?.storyId ?? "",
+  );
+
+  // If backend gates the chapter (buy/login required), try fetching via author API.
+  // This only succeeds when the logged-in user is the story's author; for everyone
+  // else the request returns 4xx and we fall back to the normal gated UI.
+  const isGated =
+    chapter?.contentURL === "status-buy-chapter" ||
+    chapter?.contentURL === "status-require-login";
+  const { data: authorOverride } = useQuery({
+    queryKey: ["author-chapter-override", chapter?.id],
+    queryFn: () => AuthorService.getChapterById(chapter!.id),
+    enabled: isGated && isLoggedIn && !!chapter?.id,
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+    onError: () => {
+      // Silently fail - user is not the author of this chapter
+    },
+  });
+  const effectiveContentURL =
+    isGated &&
+    authorOverride?.contentURL &&
+    !authorOverride.contentURL.startsWith("status-")
+      ? authorOverride.contentURL
+      : chapter?.contentURL;
 
   const commentIds = useMemo(
     () => commentData?.comments?.map((c: Comment) => c.id),
     [commentData?.comments],
   );
   const { data: userReact } = useUserReactOfChapter(
-    chapter?.id ?? "",
+    chapter?.storyId ?? "",
     commentPage,
     commentIds,
   );
@@ -176,41 +183,25 @@ const ChapterPage = () => {
     );
   }, [userReact]);
 
-  const saveSettings = () => {
-    setTextSettings(settings);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-    close();
-  };
-
-  const resetSettings = () => {
-    setSettings(defaultSettings);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultSettings));
-  };
-
-  const handleCloseSettings = () => {
-    setSettings(textSettings);
-    close();
-  };
-
   const handleSubmitComment = async () => {
-    if (!comment.trim() || !chapter?.id) return; // Không có id hoặc nội dung thì ko được gửi
+    if (!comment.trim() || !chapter?.storyId) return; // Không có id hoặc nội dung thì ko được gửi
     if (!isLoggedIn) {
       setLoginNotice(true);
     } else {
       const submitResult = await CommentService.submitComment(
-        chapter?.id,
+        chapter?.storyId,
         comment,
       );
       showSuccess(submitResult?.message || "Gửi bình luận thành công.");
       await queryClient.invalidateQueries({
-        queryKey: ["comments", chapter?.id, commentPage, LIMIT],
+        queryKey: ["comments", chapter?.storyId, commentPage, LIMIT],
       });
       setComment("");
     }
   };
 
   const handleSubmitReply = async (commentId: string) => {
-    if (!replyContent.trim() || !chapter?.id || !commentId) return;
+    if (!replyContent.trim() || !chapter?.storyId || !commentId) return;
 
     if (!isLoggedIn) {
       setLoginNotice(true);
@@ -225,7 +216,7 @@ const ChapterPage = () => {
     showSuccess(submitResult?.message || "Gửi phản hồi bình luận thành công.");
     await refetchReplyComments();
     await queryClient.invalidateQueries({
-      queryKey: ["comments", chapter?.id, commentPage, LIMIT],
+      queryKey: ["comments", chapter?.storyId, commentPage, LIMIT],
     });
 
     setReplyContent("");
@@ -247,18 +238,18 @@ const ChapterPage = () => {
       return;
     }
 
-    if (!chapter?.id) return;
+    if (!chapter?.storyId) return;
     const newStatus =
       isFollowStory?.status === "follow" || isFollowStory?.status === "unsend"
         ? "unfollow"
         : "follow";
 
     const submitResult = await FollowStoryService.changeStatusFollowStory(
-      chapter?.id ?? "",
+      chapter?.storyId ?? "",
       newStatus,
     );
     queryClient.invalidateQueries({
-      queryKey: ["checkUserFollowStory", chapter?.id],
+      queryKey: ["checkUserFollowStory", chapter?.storyId],
     });
     showSuccess(
       submitResult && newStatus === "follow"
@@ -272,17 +263,17 @@ const ChapterPage = () => {
       setLoginNotice(true);
       return;
     }
-    if (!chapter?.id || !commentId) return;
+    if (!chapter?.storyId || !commentId) return;
     const submitResult = await ReactCommentService.userReactComment(
       commentId,
-      chapter?.id,
+      chapter?.storyId,
       react,
     );
     await queryClient.invalidateQueries({
-      queryKey: ["comments", chapter?.id, commentPage, LIMIT],
+      queryKey: ["comments", chapter?.storyId, commentPage, LIMIT],
     });
     await queryClient.invalidateQueries({
-      queryKey: ["userReactOfChapter", chapter?.id, commentPage],
+      queryKey: ["userReactOfChapter", chapter?.storyId, commentPage],
     });
     showSuccess(submitResult.message);
   };
@@ -302,7 +293,7 @@ const ChapterPage = () => {
   const handleBuyChapter = async () => {
     // gọi API mua chương ở đây
     const result = await ChapterPageService.buyChapter(
-      chapter?.id || "",
+      chapter?.storyId || "",
       user?.spiritStones || 0,
     );
     console.log("Buy chapter", result);
@@ -339,96 +330,6 @@ const ChapterPage = () => {
             Chương {chapterNumber}: {chapter?.title}
           </Text>
         </Breadcrumbs>
-
-        {/* Reader Settings Modal */}
-        <Modal
-          opened={opened}
-          onClose={handleCloseSettings}
-          title="Cấu hình đọc truyện"
-          centered
-        >
-          <Stack gap="lg">
-            {/* Font */}
-            <Select
-              label="Font chữ"
-              data={fonts}
-              value={settings.fontFamily}
-              onChange={(value) =>
-                setSettings({
-                  ...settings,
-                  fontFamily: value || "Times New Roman",
-                })
-              }
-            />
-
-            {/* Font size */}
-            <Stack gap={4}>
-              <Text>Kích cỡ chữ ({settings.fontSize}px)</Text>
-              <Slider
-                min={14}
-                max={28}
-                value={settings.fontSize}
-                onChange={(value) =>
-                  setSettings({ ...settings, fontSize: value })
-                }
-              />
-            </Stack>
-
-            {/* Line height */}
-            <Stack gap={4}>
-              <Text>Khoảng cách dòng ({settings.lineHeight})</Text>
-              <Slider
-                min={1.2}
-                max={2.5}
-                step={0.1}
-                value={settings.lineHeight}
-                onChange={(value) =>
-                  setSettings({ ...settings, lineHeight: value })
-                }
-              />
-            </Stack>
-
-            {/* Text color */}
-            <ColorInput
-              label="Màu chữ"
-              value={settings.textColor}
-              onChange={(value) =>
-                setSettings({ ...settings, textColor: value })
-              }
-            />
-
-            {/* Background color */}
-            <ColorInput
-              label="Màu nền"
-              value={settings.backgroundColor || ""}
-              onChange={(value) =>
-                setSettings({ ...settings, backgroundColor: value })
-              }
-            />
-
-            {/* Preview */}
-            <Text
-              style={{
-                fontFamily: settings.fontFamily,
-                fontSize: settings.fontSize,
-                lineHeight: settings.lineHeight,
-                color: settings.textColor,
-                backgroundColor: settings.backgroundColor || "",
-              }}
-            >
-              Đây là đoạn văn bản xem trước để bạn điều chỉnh cấu hình đọc
-              truyện.
-            </Text>
-
-            {/* Buttons */}
-            <Group justify="space-between">
-              <Button variant="light" onClick={resetSettings}>
-                Reset
-              </Button>
-              <Button onClick={saveSettings}>Lưu</Button>
-            </Group>
-          </Stack>
-        </Modal>
 
         {/* Navigation top */}
         <Group justify="center" gap="sm">
@@ -488,9 +389,6 @@ const ChapterPage = () => {
           >
             <IconChevronRight size={16} />
           </Button>
-          <Button variant="outline" color="blue" onClick={open}>
-            <IconSettings size={16} />
-          </Button>
         </Group>
 
         {/* Chapter content */}
@@ -511,8 +409,20 @@ const ChapterPage = () => {
                 <Title order={2} ta="center">
                   {`Chương ${chapter?.chapterNumber}: ${chapter?.title}`}
                 </Title>
+                {chapter?.isPremium && (
+                  <Group justify="center">
+                    <Badge
+                      color="yellow"
+                      variant="light"
+                      size="sm"
+                      leftSection={<span>👑</span>}
+                    >
+                      Chương VIP
+                    </Badge>
+                  </Group>
+                )}
                 <Divider />
-                {chapter?.contentURL === "status-require-login" ? (
+                {effectiveContentURL === "status-require-login" ? (
                   <Text size="lg">
                     Vui lòng{" "}
                     <Anchor href="/login" fw={600}>
@@ -520,7 +430,7 @@ const ChapterPage = () => {
                     </Anchor>{" "}
                     và mua chương để xem nội dung.
                   </Text>
-                ) : chapter?.contentURL === "status-buy-chapter" ? (
+                ) : effectiveContentURL === "status-buy-chapter" ? (
                   <>
                     <Text size="lg">
                       Vui lòng{" "}
@@ -641,17 +551,7 @@ const ChapterPage = () => {
                     </Modal>
                   </>
                 ) : (
-                  <Text
-                    style={{ whiteSpace: "pre-wrap" }}
-                    ff={textSettings.fontFamily}
-                    fz={textSettings.fontSize}
-                    lh={textSettings.lineHeight}
-                    c={textSettings.textColor}
-                    bg={textSettings.backgroundColor || ""}
-                    dangerouslySetInnerHTML={{
-                      __html: chapter?.contentURL || "",
-                    }}
-                  ></Text>
+                  <ChapterReader contentHtml={effectiveContentURL || ""} />
                 )}
               </>
             )}

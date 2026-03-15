@@ -1,4 +1,13 @@
-import { Avatar, Box, Button, Card, Group, Stack, Text, Tooltip } from "@mantine/core";
+import {
+  Avatar,
+  Box,
+  Button,
+  Card,
+  Group,
+  Stack,
+  Text,
+  Tooltip,
+} from "@mantine/core";
 import { Book, UserCheck, UserPlus, Users } from "lucide-react";
 
 interface UserFollowCardProps {
@@ -7,9 +16,9 @@ interface UserFollowCardProps {
   avatarUrl?: string;
   backgroundUrl?: string;
   stats: {
-    works: number;
-    readingLists: number;
-    followers: number | string;
+    storiesCount: number;
+    followingCount: number;
+    followersCount: number | string;
   };
   showFollowButton?: boolean;
   isFollowing?: boolean;
@@ -64,7 +73,11 @@ export function UserFollowCard({
         </Box>
       ) : null}
 
-      <Stack align="center" gap={0} style={{ marginTop: 20, position: "relative", zIndex: 1 }}>
+      <Stack
+        align="center"
+        gap={0}
+        style={{ marginTop: 20, position: "relative", zIndex: 1 }}
+      >
         <Avatar
           src={avatarUrl}
           size={100}
@@ -118,7 +131,7 @@ export function UserFollowCard({
         <Group grow justify="center" mt="lg" className="w-full">
           <div className="flex flex-col items-center">
             <Text fw={700} size="lg" className="leading-none">
-              {stats.works}
+              {stats.storiesCount}
             </Text>
             <Tooltip label="Tác phẩm" withArrow>
               <Book size={16} className="cursor-pointer text-gray-500" />
@@ -127,7 +140,7 @@ export function UserFollowCard({
 
           <div className="flex flex-col items-center">
             <Text fw={700} size="lg" className="leading-none">
-              {stats.readingLists}
+              {stats.followingCount}
             </Text>
             <Tooltip label="Đang theo dõi" withArrow>
               <UserCheck size={16} className="cursor-pointer text-gray-500" />
@@ -136,7 +149,7 @@ export function UserFollowCard({
 
           <div className="flex flex-col items-center">
             <Text fw={700} size="lg" className="leading-none">
-              {stats.followers}
+              {stats.followersCount}
             </Text>
             <Tooltip label="Người theo dõi" withArrow>
               <Users size={16} className="cursor-pointer text-gray-500" />

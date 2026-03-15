@@ -69,6 +69,7 @@ export interface UserRelationship {
   followsMe: boolean;
   isMutual: boolean;
   isSelf?: boolean;
+  notificationEnabled?: boolean;
 }
 
 export interface AuthorPublicProfile {
@@ -105,6 +106,14 @@ export interface AuthorStory {
   isPremium: boolean;
   isFinish: boolean;
   chapterNumber: number;
+}
+
+export interface FollowListResponse {
+  followers?: AuthorPublicProfile[];
+  following?: AuthorPublicProfile[];
+  total: number;
+  page: number;
+  pageSize: number;
 }
 
 const UserService = {
@@ -168,7 +177,14 @@ const UserService = {
     try {
       const response = await instance.post("/auth/login", credentials);
       // Extract data from wrapper
-      const { success, data } = response.data;
+      const { success, data, message } = response.data;
+
+      if (!data || !data.accessToken) {
+        throw new Error(
+          message || "Không nhận được thông tin đăng nhập từ server",
+        );
+      }
+
       return {
         success,
         accessToken: data.accessToken,
@@ -177,7 +193,8 @@ const UserService = {
     } catch (error: unknown) {
       console.error("Lỗi đăng nhập:", error);
       if (axios.isAxiosError(error) && error.response) {
-        throw error.response?.data || error.message;
+        const errorData = error.response.data as any;
+        throw new Error(errorData?.message || "Đăng nhập thất bại");
       }
       throw error instanceof Error
         ? error.message
@@ -211,7 +228,14 @@ const UserService = {
         rememberMe,
       });
       // Extract data from wrapper
-      const { success, data } = response.data;
+      const { success, data, message } = response.data;
+
+      if (!data || !data.accessToken) {
+        throw new Error(
+          message || "Không nhận được thông tin đăng nhập từ server",
+        );
+      }
+
       return {
         success,
         accessToken: data.accessToken,
@@ -219,7 +243,8 @@ const UserService = {
       };
     } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response) {
-        throw error.response?.data || error;
+        const errorData = error.response.data as any;
+        throw new Error(errorData?.message || "Đăng nhập Google thất bại");
       }
       throw error instanceof Error
         ? error.message
@@ -313,9 +338,7 @@ const UserService = {
     return res.data.data;
   },
 
-  async toggleFollow(
-    authorId: string
-  ): Promise<{
+  async toggleFollow(authorId: string): Promise<{
     status: "follow" | "unfollow";
     relationship: UserRelationship;
   }> {
@@ -323,18 +346,34 @@ const UserService = {
     return res.data.data;
   },
 
-  async getFollowers(authorId: string, page = 1): Promise<AuthorPublicProfile[]> {
+  async getFollowers(
+    authorId: string,
+    page = 1,
+  ): Promise<{
+    followers: AuthorPublicProfile[];
+    total: number;
+    page: number;
+    pageSize: number;
+  }> {
     const res = await axiosClient.get(`/user/${authorId}/followers`, {
       params: { page },
     });
-    return res.data.data.followers;
+    return res.data.data;
   },
 
-  async getFollowing(authorId: string, page = 1): Promise<AuthorPublicProfile[]> {
+  async getFollowing(
+    authorId: string,
+    page = 1,
+  ): Promise<{
+    following: AuthorPublicProfile[];
+    total: number;
+    page: number;
+    pageSize: number;
+  }> {
     const res = await axiosClient.get(`/user/${authorId}/following`, {
       params: { page },
     });
-    return res.data.data.following;
+    return res.data.data;
   },
 
   async changePassword(
@@ -357,6 +396,44 @@ const UserService = {
       throw error instanceof Error
         ? error.message
         : "Có lỗi không xác định xảy ra";
+    }
+  },
+
+  async searchUsers(query: string): Promise<AuthorPublicProfile[]> {
+    if (!query || query.trim() === "") return [];
+
+    try {
+      const res = await axiosClient.get("/user/search", {
+        params: { q: query },
+      });
+
+      const mapped: AuthorPublicProfile[] = res.data.data.map((u: any) => ({
+        _id: u.id || u._id,
+        id: u.id || u._id,
+        username: u.username,
+        penName: u.penName,
+        fullName: u.fullName,
+        nickName: u.nickName,
+        bio: u.bio,
+        avatarURL: u.avatarURL || "/default-avatar.png",
+        backgroundURL: u.backgroundURL || "",
+        followersCount: u.followersCount || 0,
+        followingCount: u.followingCount || 0,
+        storiesCount: u.storiesCount || 0,
+        vipLevel: u.vipLevel || 0,
+        relationship: {
+          amIFollowing: !!u.relationship?.amIFollowing,
+          followsMe: !!u.relationship?.followsMe,
+          isMutual: !!u.relationship?.isMutual,
+          isSelf: !!u.relationship?.isSelf,
+          notificationEnabled: !!u.relationship?.notificationEnabled,
+        },
+      }));
+
+      return mapped;
+    } catch (error) {
+      console.error("Error searching users:", error);
+      throw error;
     }
   },
 };

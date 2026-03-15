@@ -13,7 +13,7 @@ import {
   Textarea,
   Title,
 } from "@mantine/core";
-import { useDisclosure, useFullscreen } from "@mantine/hooks";
+import { useDisclosure } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
 import {
   IconArrowsMaximize,
@@ -25,7 +25,9 @@ import {
 } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
+import { EyeIcon } from "lucide-react";
 import { useState } from "react";
+import { ChapterReader } from "../../../components/chapter/ChapterReader";
 import { ModerationHistoryTable } from "../../../components/common/ModerationHistoryTable";
 import {
   DataTable,
@@ -59,7 +61,7 @@ function ChapterContentFullscreenModal({
   onApprove: (ch: Chapter) => void;
   onReject: (ch: Chapter) => void;
 }) {
-  const { ref, toggle, fullscreen } = useFullscreen();
+  const [expanded, setExpanded] = useState(false);
 
   // fetch content from contentURL — must be called unconditionally (Rules of Hooks)
   const { data: content, isLoading } = useQuery({
@@ -78,55 +80,108 @@ function ChapterContentFullscreenModal({
     <Modal
       opened={opened}
       onClose={onClose}
+      size={expanded ? "100%" : "auto"}
+      fullScreen={expanded}
+      withCloseButton={false}
       title={
-        <Group gap="sm">
-          <Text fw={700}>
-            Chương {chapter.chapterNumber}: {chapter.title}
-          </Text>
-          <Badge
-            size="sm"
-            color={chapter.status === "pending" ? "yellow" : "gray"}
-            variant="light"
-          >
-            {chapter.status}
-          </Badge>
+        <Group justify="space-between" align="center" w="100%">
+          <Group gap="sm">
+            <Text fw={700}>
+              Chương {chapter.chapterNumber}: {chapter.title}
+            </Text>
+            <Badge
+              size="sm"
+              color={chapter.status === "pending" ? "yellow" : "gray"}
+              variant="light"
+            >
+              {chapter.status}
+            </Badge>
+          </Group>
+
+          <Group gap="xs">
+            <ActionIcon
+              variant="subtle"
+              size="lg"
+              onClick={() => setExpanded((v) => !v)}
+              title={expanded ? "Thu nhỏ" : "Toàn màn hình"}
+            >
+              {expanded ? (
+                <IconArrowsMinimize size={18} />
+              ) : (
+                <IconArrowsMaximize size={18} />
+              )}
+            </ActionIcon>
+            <ActionIcon
+              variant="subtle"
+              size="lg"
+              onClick={onClose}
+              title="Đóng"
+            >
+              <IconX size={18} />
+            </ActionIcon>
+          </Group>
         </Group>
       }
-      size="90%"
       styles={{
         body: { padding: 0 },
         header: {
           padding: "12px 16px",
           borderBottom: "1px solid var(--mantine-color-default-border)",
         },
+        title: {
+          width: "100%",
+        },
       }}
     >
-      {/* Toolbar */}
+      {/* Content */}
+      <Box
+        style={{
+          background: "var(--mantine-color-body)",
+        }}
+      >
+        <ScrollArea h={expanded ? "calc(100vh - 8rem)" : 680}>
+          <Box px="xl" py="lg">
+            {isLoading ? (
+              <Text c="dimmed">Đang tải nội dung chương...</Text>
+            ) : (
+              <Box
+                component="section"
+                mx="auto"
+                style={{
+                  maxWidth: 800,
+                  borderRadius: "12px",
+                  border: "1px solid var(--mantine-color-default-border)",
+                  boxShadow: "0 4px 18px rgba(0,0,0,0.04)",
+                  backgroundColor: "var(--mantine-color-body)",
+                  padding: "20px 24px",
+                }}
+              >
+                <ChapterReader contentHtml={content || ""} maxWidth="100%" />
+              </Box>
+            )}
+          </Box>
+        </ScrollArea>
+      </Box>
+
+      {/* Footer actions */}
       <Group
         px="md"
         py="xs"
-        justify="space-between"
+        justify="flex-end"
         style={{
-          borderBottom: "1px solid var(--mantine-color-default-border)",
+          borderTop: "1px solid var(--mantine-color-default-border)",
+          marginTop: 8,
         }}
       >
         {chapter.status === "pending" ? (
           <Group gap="xs">
             <Button
-              color="green"
-              size="sm"
-              leftSection={<IconCheck size={14} />}
-              onClick={() => {
-                onClose();
-                onApprove(chapter);
-              }}
-            >
-              Phê duyệt
-            </Button>
-            <Button
               variant="light"
               color="red"
               size="sm"
+              style={{
+                width: "10rem",
+              }}
               leftSection={<IconX size={14} />}
               onClick={() => {
                 onClose();
@@ -135,46 +190,27 @@ function ChapterContentFullscreenModal({
             >
               Từ chối
             </Button>
+            <Button
+              color="green"
+              size="sm"
+              style={{
+                width: "10rem",
+              }}
+              leftSection={<IconCheck size={14} />}
+              onClick={() => {
+                onClose();
+                onApprove(chapter);
+              }}
+            >
+              Phê duyệt
+            </Button>
           </Group>
         ) : (
           <Text size="sm" c="dimmed">
             Chương đã được xử lý
           </Text>
         )}
-        <ActionIcon
-          variant="subtle"
-          size="lg"
-          onClick={toggle}
-          title={fullscreen ? "Thu nhỏ" : "Toàn màn hình"}
-        >
-          {fullscreen ? (
-            <IconArrowsMinimize size={18} />
-          ) : (
-            <IconArrowsMaximize size={18} />
-          )}
-        </ActionIcon>
       </Group>
-
-      {/* Content */}
-      <Box ref={ref} style={{ background: "var(--mantine-color-body)" }}>
-        <ScrollArea h={500} px="xl" py="lg">
-          {isLoading ? (
-            <Text c="dimmed">Đang tải nội dung chương...</Text>
-          ) : (
-            <Box
-              style={{
-                maxWidth: 720,
-                margin: "0 auto",
-                lineHeight: 1.8,
-                fontSize: 16,
-                whiteSpace: "pre-wrap",
-              }}
-            >
-              {content || <Text c="dimmed">Không có nội dung.</Text>}
-            </Box>
-          )}
-        </ScrollArea>
-      </Box>
     </Modal>
   );
 }
@@ -243,7 +279,7 @@ function PendingChaptersTab() {
         openChapter();
       },
       handleApprove,
-      handleReject
+      handleReject,
     ),
     service: AdminChapterCensorService.getPendingChapters,
     queryKey: ["admin", "chapters", "pending"],
@@ -353,7 +389,7 @@ export function AdminChapterModeration() {
 function getPendingChapterColumns(
   onRead: (ch: Chapter) => void,
   onApprove: (ch: Chapter) => void,
-  onReject: (ch: Chapter) => void
+  onReject: (ch: Chapter) => void,
 ): ColumnDef<Chapter>[] {
   return [
     {
@@ -399,11 +435,13 @@ function getPendingChapterColumns(
       cell: ({ row }) => (
         <Group gap="xs" justify="center">
           <Button
-            variant="subtle"
+            variant="light"
+            color="blue"
             size="xs"
+            leftSection={<EyeIcon size={14} />}
             onClick={() => onRead(row.original)}
           >
-            Đọc nội dung
+            <span className="hidden md:block">Đọc nội dung</span>
           </Button>
           <Button
             variant="light"
@@ -430,7 +468,7 @@ function getPendingChapterColumns(
 }
 
 function getHistoryChapterColumns(
-  onHistory: (ch: Chapter) => void
+  onHistory: (ch: Chapter) => void,
 ): ColumnDef<Chapter>[] {
   return [
     {
@@ -472,10 +510,10 @@ function getHistoryChapterColumns(
               s === "active"
                 ? "green"
                 : s === "rejected"
-                ? "red"
-                : s === "banned"
-                ? "orange"
-                : "gray"
+                  ? "red"
+                  : s === "banned"
+                    ? "orange"
+                    : "gray"
             }
             variant="light"
           >

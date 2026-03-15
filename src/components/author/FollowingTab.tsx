@@ -9,12 +9,16 @@ interface FollowingTabProps {
   authorId?: string;
   layout?: "profile" | "compact";
   showTitle?: boolean;
+  refreshKey?: number;
+  onFollowChanged?: () => void;
 }
 
 export function FollowingTab({
   authorId,
   layout = "profile",
   showTitle = true,
+  refreshKey = 0,
+  onFollowChanged,
 }: FollowingTabProps) {
   const [following, setFollowing] = useState<AuthorPublicProfile[]>([]);
   const [loading, setLoading] = useState(false);
@@ -28,8 +32,7 @@ export function FollowingTab({
 
   const spacing = layout === "profile" ? "lg" : "md";
   const stackGap = layout === "profile" ? "xl" : "md";
-  const wrapperClass =
-    layout === "profile" ? "max-w-6xl mx-auto px-4" : "";
+  const wrapperClass = layout === "profile" ? "max-w-6xl mx-auto px-4" : "";
 
   useEffect(() => {
     if (!authorId) return;
@@ -40,7 +43,7 @@ export function FollowingTab({
         setError(null);
 
         const data = await UserService.getFollowing(authorId, 1);
-        setFollowing(data);
+        setFollowing(data.following);
       } catch (err) {
         console.error(err);
         setError("Có lỗi xảy ra khi lấy danh sách đang theo dõi");
@@ -50,12 +53,40 @@ export function FollowingTab({
     };
 
     fetchFollowing();
-  }, [authorId]);
+  }, [authorId, refreshKey]);
 
   const handleFollowToggle = async (id: string) => {
     try {
-      await UserService.toggleFollow(id);
-      window.location.reload();
+      const targetUser = following.find((u) => u._id === id);
+      if (!targetUser || targetUser.relationship?.isSelf) return;
+
+      const wasFollowing = !!targetUser.relationship?.amIFollowing;
+      const res = await UserService.toggleFollow(id);
+
+      setFollowing((prev) =>
+        prev.map((u) =>
+          u._id === id
+            ? {
+                ...u,
+                relationship: {
+                  ...u.relationship,
+                  ...res.relationship,
+                },
+                followersCount: Math.max(
+                  0,
+                  (u.followersCount || 0) +
+                    (res.relationship.amIFollowing
+                      ? wasFollowing
+                        ? 0
+                        : 1
+                      : -1),
+                ),
+              }
+            : u,
+        ),
+      );
+
+      onFollowChanged?.();
     } catch (err) {
       console.error(err);
     }
@@ -76,7 +107,7 @@ export function FollowingTab({
       {showTitle && <Title order={3}>Đang theo dõi</Title>}
 
       <SimpleGrid cols={gridCols} spacing={spacing}>
-        {following.map((f) => (
+        {following?.map((f) => (
           <UserFollowCard
             key={f._id}
             displayName={f.fullName}
@@ -84,9 +115,9 @@ export function FollowingTab({
             avatarUrl={f.avatarURL || ""}
             backgroundUrl={f.backgroundURL || ""}
             stats={{
-              works: f.storiesCount || 0,
-              readingLists: 0,
-              followers: f.followersCount || 0,
+              storiesCount: f.storiesCount || 0,
+              followingCount: f.followingCount || 0,
+              followersCount: f.followersCount || 0,
             }}
             showFollowButton
             isFollowing={!!f.relationship?.amIFollowing}

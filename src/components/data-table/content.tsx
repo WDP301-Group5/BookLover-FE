@@ -25,7 +25,7 @@ export function DataTableContent<TData>({ className }: DataTableContentProps) {
       }}
       className={className}
     >
-      <Table stickyHeader striped withColumnBorders>
+      <Table stickyHeader striped>
         <Table.Thead>
           {table.getHeaderGroups().map((headerGroup) => (
             <Table.Tr
@@ -82,11 +82,13 @@ export function DataTableContent<TData>({ className }: DataTableContentProps) {
 
         <Table.Tbody>
           {isLoading ? (
-            Array.from({ length: 10 }).map((_, index) => (
+            Array.from({ length: 5 }).map((_, index) => (
               <Table.Tr key={index} style={{ minHeight: "4rem" }}>
-                <Table.Td colSpan={columns.length}>
-                  <Skeleton height={16} radius={"xl"} width={"100%"} />
-                </Table.Td>
+                {columns.map((col) => (
+                  <Table.Td key={col.id}>
+                    <Skeleton height={16} radius={"xl"} width={"100%"} />
+                  </Table.Td>
+                ))}
               </Table.Tr>
             ))
           ) : table.getRowModel().rows?.length ? (
@@ -109,8 +111,10 @@ export function DataTableContent<TData>({ className }: DataTableContentProps) {
               </Table.Tr>
             ))
           ) : (
-            <Table.Tr key={"data-table-empty"} style={{ minHeight: "56px" }}>
-              <Table.Td colSpan={columns.length}>No results.</Table.Td>
+            <Table.Tr key={"data-table-empty"} style={{ minHeight: "8rem" }}>
+              <Table.Td colSpan={columns.length} ta="center" c="dimmed">
+                Không có dữ liệu
+              </Table.Td>
             </Table.Tr>
           )}
         </Table.Tbody>

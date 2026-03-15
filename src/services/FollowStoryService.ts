@@ -40,6 +40,16 @@ const FollowStoryService = {
       throw error;
     }
   },
+
+  async getMyFollowedStories() {
+    try {
+      const response = await instance.get(`/follow/story/my-following`);
+      return response?.data || [];
+    } catch (error) {
+      console.error("Error get my followed stories:", error);
+      throw error;
+    }
+  },
 };
 
 export default FollowStoryService;

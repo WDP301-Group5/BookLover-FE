@@ -17,7 +17,7 @@ export const showSuccess = (message: string, title?: string) => {
         backgroundColor: "#E6F9EE",
       },
       title: {
-        color: isDarkMode() ? "white" : "black", // chỉ đổi màu title
+        color: "black", // chỉ đổi màu title
       },
     },
   });
@@ -36,7 +36,7 @@ export const showError = (message: string, title?: string) => {
         backgroundColor: "#FDECEC",
       },
       title: {
-        color: isDarkMode() ? "white" : "black",
+        color: "black",
       },
     },
   });
@@ -55,7 +55,7 @@ export const showWarning = (message: string, title?: string) => {
         backgroundColor: "#FFF7E1",
       },
       title: {
-        color: isDarkMode() ? "white" : "black",
+        color: "black",
       },
     },
   });

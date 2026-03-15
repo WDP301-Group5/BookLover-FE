@@ -9,12 +9,16 @@ interface FollowersProps {
   authorId?: string;
   layout?: "profile" | "compact";
   showTitle?: boolean;
+  refreshKey?: number;
+  onFollowChanged?: () => void;
 }
 
 export default function Followers({
   authorId,
   layout = "profile",
   showTitle = true,
+  refreshKey = 0,
+  onFollowChanged,
 }: FollowersProps) {
   const [followers, setFollowers] = useState<AuthorPublicProfile[]>([]);
   const [loading, setLoading] = useState(false);
@@ -28,8 +32,7 @@ export default function Followers({
 
   const spacing = layout === "profile" ? "lg" : "md";
   const stackGap = layout === "profile" ? "xl" : "md";
-  const wrapperClass =
-    layout === "profile" ? "max-w-6xl mx-auto px-4" : "";
+  const wrapperClass = layout === "profile" ? "max-w-6xl mx-auto px-4" : "";
 
   useEffect(() => {
     if (!authorId) return;
@@ -40,7 +43,7 @@ export default function Followers({
         setError(null);
 
         const data = await UserService.getFollowers(authorId, 1);
-        setFollowers(data);
+        setFollowers(data.followers);
       } catch (err) {
         console.error(err);
         setError("Có lỗi xảy ra khi lấy danh sách người theo dõi");
@@ -50,12 +53,40 @@ export default function Followers({
     };
 
     fetchFollowers();
-  }, [authorId]);
+  }, [authorId, refreshKey]);
 
   const handleFollowToggle = async (id: string) => {
     try {
-      await UserService.toggleFollow(id);
-      window.location.reload();
+      const targetUser = followers.find((u) => u._id === id);
+      if (!targetUser || targetUser.relationship?.isSelf) return;
+
+      const wasFollowing = !!targetUser.relationship?.amIFollowing;
+      const res = await UserService.toggleFollow(id);
+
+      setFollowers((prev) =>
+        prev.map((u) =>
+          u._id === id
+            ? {
+                ...u,
+                relationship: {
+                  ...u.relationship,
+                  ...res.relationship,
+                },
+                followersCount: Math.max(
+                  0,
+                  (u.followersCount || 0) +
+                    (res.relationship.amIFollowing
+                      ? wasFollowing
+                        ? 0
+                        : 1
+                      : -1),
+                ),
+              }
+            : u,
+        ),
+      );
+
+      onFollowChanged?.();
     } catch (err) {
       console.error(err);
     }
@@ -84,9 +115,9 @@ export default function Followers({
             avatarUrl={f.avatarURL || ""}
             backgroundUrl={f.backgroundURL || ""}
             stats={{
-              works: f.storiesCount || 0,
-              readingLists: 0,
-              followers: f.followersCount || 0,
+              storiesCount: f.storiesCount || 0,
+              followingCount: f.followingCount || 0,
+              followersCount: f.followersCount || 0,
             }}
             showFollowButton
             isFollowing={!!f.relationship?.amIFollowing}
