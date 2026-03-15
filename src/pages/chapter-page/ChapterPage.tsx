@@ -106,7 +106,7 @@ const ChapterPage = () => {
       : null;
 
   const { data: commentData } = useCommentsByChapter(
-    chapter?.id ?? "",
+    chapter?.storyId ?? "",
     commentPage,
     LIMIT,
   );
@@ -118,14 +118,14 @@ const ChapterPage = () => {
   // console.log("reply", replyData)
   repliesMap[openedReplyCommentId] = replyData?.comments ?? [];
 
-  const { data: isFollowStory } = useCheckUserFollowStory(chapter?.id ?? "");
+  const { data: isFollowStory } = useCheckUserFollowStory(chapter?.storyId ?? "");
 
   const commentIds = useMemo(
     () => commentData?.comments?.map((c: Comment) => c.id),
     [commentData?.comments],
   );
   const { data: userReact } = useUserReactOfChapter(
-    chapter?.id ?? "",
+    chapter?.storyId ?? "",
     commentPage,
     commentIds,
   );
@@ -137,24 +137,24 @@ const ChapterPage = () => {
   }, [userReact]);
 
   const handleSubmitComment = async () => {
-    if (!comment.trim() || !chapter?.id) return; // Không có id hoặc nội dung thì ko được gửi
+    if (!comment.trim() || !chapter?.storyId) return; // Không có id hoặc nội dung thì ko được gửi
     if (!isLoggedIn) {
       setLoginNotice(true);
     } else {
       const submitResult = await CommentService.submitComment(
-        chapter?.id,
+        chapter?.storyId,
         comment,
       );
       showSuccess(submitResult?.message || "Gửi bình luận thành công.");
       await queryClient.invalidateQueries({
-        queryKey: ["comments", chapter?.id, commentPage, LIMIT],
+        queryKey: ["comments", chapter?.storyId, commentPage, LIMIT],
       });
       setComment("");
     }
   };
 
   const handleSubmitReply = async (commentId: string) => {
-    if (!replyContent.trim() || !chapter?.id || !commentId) return;
+    if (!replyContent.trim() || !chapter?.storyId || !commentId) return;
 
     if (!isLoggedIn) {
       setLoginNotice(true);
@@ -169,7 +169,7 @@ const ChapterPage = () => {
     showSuccess(submitResult?.message || "Gửi phản hồi bình luận thành công.");
     await refetchReplyComments();
     await queryClient.invalidateQueries({
-      queryKey: ["comments", chapter?.id, commentPage, LIMIT],
+      queryKey: ["comments", chapter?.storyId, commentPage, LIMIT],
     });
 
     setReplyContent("");
@@ -191,18 +191,18 @@ const ChapterPage = () => {
       return;
     }
 
-    if (!chapter?.id) return;
+    if (!chapter?.storyId) return;
     const newStatus =
       isFollowStory?.status === "follow" || isFollowStory?.status === "unsend"
         ? "unfollow"
         : "follow";
 
     const submitResult = await FollowStoryService.changeStatusFollowStory(
-      chapter?.id ?? "",
+      chapter?.storyId ?? "",
       newStatus,
     );
     queryClient.invalidateQueries({
-      queryKey: ["checkUserFollowStory", chapter?.id],
+      queryKey: ["checkUserFollowStory", chapter?.storyId],
     });
     showSuccess(
       submitResult && newStatus === "follow"
@@ -216,17 +216,17 @@ const ChapterPage = () => {
       setLoginNotice(true);
       return;
     }
-    if (!chapter?.id || !commentId) return;
+    if (!chapter?.storyId || !commentId) return;
     const submitResult = await ReactCommentService.userReactComment(
       commentId,
-      chapter?.id,
+      chapter?.storyId,
       react,
     );
     await queryClient.invalidateQueries({
-      queryKey: ["comments", chapter?.id, commentPage, LIMIT],
+      queryKey: ["comments", chapter?.storyId, commentPage, LIMIT],
     });
     await queryClient.invalidateQueries({
-      queryKey: ["userReactOfChapter", chapter?.id, commentPage],
+      queryKey: ["userReactOfChapter", chapter?.storyId, commentPage],
     });
     showSuccess(submitResult.message);
   };
@@ -246,7 +246,7 @@ const ChapterPage = () => {
   const handleBuyChapter = async () => {
     // gọi API mua chương ở đây
     const result = await ChapterPageService.buyChapter(
-      chapter?.id || "",
+      chapter?.storyId || "",
       user?.spiritStones || 0,
     );
     console.log("Buy chapter", result);

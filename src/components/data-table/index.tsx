@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 export { column, DataTableColumns } from "./columns";
 export { DataTableContent } from "./content";
 export { DataTableFilter } from "./filter";
