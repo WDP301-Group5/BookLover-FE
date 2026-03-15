@@ -1,3 +1,4 @@
+// src/pages/ranking-page/RankingPage.tsx
 import {
   Container,
   Title,
