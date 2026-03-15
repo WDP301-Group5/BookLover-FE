@@ -215,6 +215,8 @@ export function ChapterContentInput({
               fontSize: "16px",
               lineHeight: "1.8",
               minHeight: 400,
+              maxHeight: 600,
+              overflowY: "auto",
             }}
             onPaste={handlePaste}
           />
@@ -230,12 +232,6 @@ export function ChapterContentInput({
           )}
           <Text size="xs" c="dimmed">
             {words.toLocaleString("vi-VN")} từ
-            {words > 0 && words < 50 && (
-              <Text span c="blue" inherit>
-                {" "}
-                (cần ít nhất 50 từ để đăng)
-              </Text>
-            )}
           </Text>
         </Group>
       </Stack>

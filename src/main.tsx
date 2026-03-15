@@ -1,4 +1,4 @@
-import { StrictMode } from "react";
+import { StrictMode, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import "@mantine/core/styles.css";
@@ -9,7 +9,7 @@ import "@mantine/core/styles.css";
 import "@mantine/carousel/styles.css";
 import "@mantine/dropzone/styles.css";
 import "@mantine/tiptap/styles.css";
-import { MantineProvider } from "@mantine/core";
+import { MantineProvider, useComputedColorScheme } from "@mantine/core";
 import { DatesProvider } from "@mantine/dates";
 import { ModalsProvider } from "@mantine/modals";
 import { Notifications } from "@mantine/notifications";
@@ -35,6 +35,18 @@ const colorScheme =
     ? "dark"
     : "light";
 
+// Sync Mantine color scheme with HTML element for TailwindCSS
+const ColorSchemeSyncer = () => {
+  const computedColorScheme = useComputedColorScheme();
+
+  useEffect(() => {
+    const htmlElement = document.documentElement;
+    htmlElement.setAttribute("data-mantine-color-scheme", computedColorScheme);
+  }, [computedColorScheme]);
+
+  return null;
+};
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     {/* khong can quan tam */}
@@ -42,6 +54,7 @@ createRoot(document.getElementById("root")!).render(
       <QueryClientProvider client={queryClient}>
         {/* provider cua thu vien ui */}
         <MantineProvider theme={appTheme} defaultColorScheme={colorScheme}>
+          <ColorSchemeSyncer />
           <ModalsProvider>
             <NavigationProgress />
             {/* toast thong bao */}
