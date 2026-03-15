@@ -13,7 +13,7 @@ import {
 import { useDisclosure } from "@mantine/hooks";
 import { BookPlus } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import MyStoryCard from "../../components/story/MyStoryCard";
 import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 import {
@@ -25,6 +25,8 @@ import { showSuccess, showError } from "../../utils/notifications";
 
 export default function MyStoriesPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get("tab") ?? "published";
   const { data: stories, isLoading } = useMyStories();
   const deleteStory = useDeleteStory();
   const updateStory = useUpdateStory();
@@ -166,12 +168,17 @@ export default function MyStoriesPage() {
           leftSection={<BookPlus size={16} />}
           onClick={() => navigate("/author/write-story")}
         >
-          + Truyện mới
+          Truyện mới
         </Button>
       </Flex>
 
       {/* Tabs */}
-      <Tabs defaultValue="published">
+      <Tabs
+        value={activeTab}
+        onChange={(value) =>
+          setSearchParams({ tab: value ?? "published" }, { replace: true })
+        }
+      >
         <Tabs.List mb="md">
           <Tabs.Tab value="published" fw={600}>
             Đã duyệt
@@ -181,7 +188,7 @@ export default function MyStoriesPage() {
           </Tabs.Tab>
         </Tabs.List>
 
-        <Box className="bg-white rounded-md border border-gray-200">
+        <Box className="bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700">
           <Tabs.Panel value="published">
             {renderStoryList(publishedStories)}
           </Tabs.Panel>

@@ -1,6 +1,7 @@
 import {
   Breadcrumbs,
   Anchor,
+  Badge,
   Button,
   Container,
   Group,
@@ -33,16 +34,18 @@ import { useEffect, useMemo, useState } from "react";
 import {
   useChapterByChapterNumber,
   useChaptersByStory,
+  useChaptersByStoryForAuthor,
 } from "../../hooks/useChapter";
 import { useNavigate, useParams } from "react-router-dom";
 import { useUserStore } from "../../stores/useUserStore";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { AuthorService } from "../../services/AuthorService";
 import RequireLoginModal from "../../components/RequireLoginModal";
 import { useCommentsByChapter, useReplyComments } from "../../hooks/useComment";
 import CommentService from "../../services/CommentService";
 import { showError, showSuccess } from "../../utils/notifications";
 import type { Comment } from "../../interfaces/Comment";
 import { DateHourFormat } from "../../utils";
-import { useQueryClient } from "@tanstack/react-query";
 import { useCheckUserFollowStory } from "../../hooks/useFollowStory";
 import FollowStoryService from "../../services/FollowStoryService";
 import { useUserReactOfChapter } from "../../hooks/useReactComment";
@@ -88,7 +91,26 @@ const ChapterPage = () => {
     isLoading: chapterLoading,
     error: chapterError,
   } = useChapterByChapterNumber(String(storySlug), Number(chapterNumber));
-  const { data: listChapters } = useChaptersByStory(chapter?.storyId ?? "");
+
+  // Try to fetch author chapters first (if user is author, shows all statuses)
+  // If that fails (user not author), fall back to public chapters (only active)
+  const { data: authorChapters, isError: authorChaptersError } = useQuery({
+    queryKey: ["author-chapters-list", chapter?.storyId],
+    queryFn: () => AuthorService.getChaptersByStoryForAuthor(chapter!.storyId),
+    enabled: isLoggedIn && !!chapter?.storyId,
+    retry: false,
+    onError: () => {
+      // Silently fail - user is not the story author
+    },
+  });
+
+  // Only fetch public chapters if author chapters failed or if user is not logged in
+  const { data: publicChapters } = useChaptersByStory(
+    (!isLoggedIn || authorChaptersError) && chapter?.storyId
+      ? chapter.storyId
+      : "",
+  );
+  const listChapters = authorChapters ?? publicChapters;
   const chapters =
     listChapters?.map((c) => ({
       value: c.chapterNumber.toString(),
@@ -118,7 +140,32 @@ const ChapterPage = () => {
   // console.log("reply", replyData)
   repliesMap[openedReplyCommentId] = replyData?.comments ?? [];
 
-  const { data: isFollowStory } = useCheckUserFollowStory(chapter?.storyId ?? "");
+  const { data: isFollowStory } = useCheckUserFollowStory(
+    chapter?.storyId ?? "",
+  );
+
+  // If backend gates the chapter (buy/login required), try fetching via author API.
+  // This only succeeds when the logged-in user is the story's author; for everyone
+  // else the request returns 4xx and we fall back to the normal gated UI.
+  const isGated =
+    chapter?.contentURL === "status-buy-chapter" ||
+    chapter?.contentURL === "status-require-login";
+  const { data: authorOverride } = useQuery({
+    queryKey: ["author-chapter-override", chapter?.id],
+    queryFn: () => AuthorService.getChapterById(chapter!.id),
+    enabled: isGated && isLoggedIn && !!chapter?.id,
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+    onError: () => {
+      // Silently fail - user is not the author of this chapter
+    },
+  });
+  const effectiveContentURL =
+    isGated &&
+    authorOverride?.contentURL &&
+    !authorOverride.contentURL.startsWith("status-")
+      ? authorOverride.contentURL
+      : chapter?.contentURL;
 
   const commentIds = useMemo(
     () => commentData?.comments?.map((c: Comment) => c.id),
@@ -362,8 +409,20 @@ const ChapterPage = () => {
                 <Title order={2} ta="center">
                   {`Chương ${chapter?.chapterNumber}: ${chapter?.title}`}
                 </Title>
+                {chapter?.isPremium && (
+                  <Group justify="center">
+                    <Badge
+                      color="yellow"
+                      variant="light"
+                      size="sm"
+                      leftSection={<span>👑</span>}
+                    >
+                      Chương VIP
+                    </Badge>
+                  </Group>
+                )}
                 <Divider />
-                {chapter?.contentURL === "status-require-login" ? (
+                {effectiveContentURL === "status-require-login" ? (
                   <Text size="lg">
                     Vui lòng{" "}
                     <Anchor href="/login" fw={600}>
@@ -371,7 +430,7 @@ const ChapterPage = () => {
                     </Anchor>{" "}
                     và mua chương để xem nội dung.
                   </Text>
-                ) : chapter?.contentURL === "status-buy-chapter" ? (
+                ) : effectiveContentURL === "status-buy-chapter" ? (
                   <>
                     <Text size="lg">
                       Vui lòng{" "}
@@ -492,7 +551,7 @@ const ChapterPage = () => {
                     </Modal>
                   </>
                 ) : (
-                  <ChapterReader contentHtml={chapter?.contentURL || ""} />
+                  <ChapterReader contentHtml={effectiveContentURL || ""} />
                 )}
               </>
             )}

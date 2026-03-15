@@ -30,8 +30,9 @@ import {
   MoreVertical,
   Plus,
   Check,
+  Trash2,
 } from "lucide-react";
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import type { Story } from "../../interfaces/Story";
@@ -39,6 +40,7 @@ import type { Chapter } from "../../interfaces/Chapter";
 import { AuthorService } from "../../services/AuthorService";
 import { showError, showSuccess } from "../../utils/notifications.tsx";
 import PublishStoryModal from "../../components/author/PublishStoryModal.tsx";
+import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal.tsx";
 
 const writeChapterSchema = z.object({
   title: z
@@ -93,6 +95,9 @@ export default function WriteChapterPage() {
   const [editorInitialContent, setEditorInitialContent] = useState<string>("");
   const [editorResetKey, setEditorResetKey] = useState(0);
   const [publishModalOpened, setPublishModalOpened] = useState(false);
+  const [deleteModalOpened, setDeleteModalOpened] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const titleInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<WriteChapterFormValues>({
     initialValues: {
@@ -107,10 +112,6 @@ export default function WriteChapterPage() {
     if (chapters.length === 0) return 1;
     return Math.max(...chapters.map((c) => c.chapterNumber)) + 1;
   }, [chapters]);
-
-  const generateChapterTitle = (partNumber: number) => {
-    if (story) return `Chương ${partNumber}`;
-  };
 
   // Word count from content
   const wordCount = useMemo(() => {
@@ -168,7 +169,7 @@ export default function WriteChapterPage() {
           chapters: chapterList,
         }));
       })
-      .then(async ({ chapters: chapterList }) => {
+      .then(async ({ story: storyData, chapters: chapterList }) => {
         // Select chapter from URL param, or start in new-chapter mode if no param
         const targetNumber = chapterParam ? Number(chapterParam) : null;
         const targetIdx =
@@ -178,16 +179,12 @@ export default function WriteChapterPage() {
         const idx = targetIdx !== -1 ? targetIdx : -1;
 
         if (idx === -1) {
-          // No matching chapter or no param → new chapter mode, auto-fill title
           const nextNum =
             chapterList.length === 0
               ? 1
               : Math.max(...chapterList.map((c) => c.chapterNumber)) + 1;
-          form.setValues({
-            title: `Chương ${nextNum}`,
-            chapterType: "free",
-            price: 1,
-          });
+          const newTitle = `Chương ${nextNum}`;
+          form.setValues({ title: newTitle, chapterType: "free", price: 1 });
           return;
         }
 
@@ -220,19 +217,57 @@ export default function WriteChapterPage() {
       .finally(() => setStoryLoading(false));
   }, [storySlug, chapterParam, loadChapters, navigate]);
 
-  const handleNewPart = () => {
+  // Auto-focus title when entering new chapter mode (page load with no chapter param)
+  useEffect(() => {
+    if (!storyLoading && selectedChapterIndex === null) {
+      const timer = setTimeout(() => titleInputRef.current?.focus(), 150);
+      return () => clearTimeout(timer);
+    }
+  }, [storyLoading, selectedChapterIndex]);
+
+  const handleNewPart = async () => {
+    if (!story) return;
+    setChapterListOpened(false);
+
+    const newNum = nextChapterNumber;
+    const newTitle = `Chương ${newNum}`;
+
+    // Pre-fill UI immediately for instant feedback
     setSelectedChapterIndex(null);
-    form.setValues({
-      title: generateChapterTitle(nextChapterNumber),
-      chapterType: "free",
-      price: 1,
-    });
+    form.setValues({ title: newTitle, chapterType: "free", price: 1 });
     setEditorInitialContent("");
     setEditorResetKey((k) => k + 1);
     setContentPayload(null);
     setContentError(undefined);
     setSaved(false);
-    setChapterListOpened(false);
+
+    // Auto-create draft on server immediately (Wattpad-style)
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("storyId", story._id);
+      formData.append("chapterNumber", String(newNum));
+      formData.append("title", newTitle);
+      formData.append("status", "draft");
+      formData.append("chapterType", "free");
+      const blob = new Blob(["<p></p>"], { type: "text/html" });
+      formData.append("file", blob, `${newTitle}.html`);
+
+      await AuthorService.createChapter(formData);
+      const updatedChapters = await loadChapters(story._id);
+
+      const newIdx = updatedChapters.findIndex((c) => c.chapterNumber === newNum);
+      const idx = newIdx !== -1 ? newIdx : updatedChapters.length - 1;
+      setSelectedChapterIndex(idx);
+      setContentPayload({ mode: "editor", html: "" });
+      setSaved(true);
+    } catch {
+      showError("Không thể tạo chương mới. Vui lòng thử lại.");
+    } finally {
+      setLoading(false);
+      // Focus title input regardless of success/failure
+      setTimeout(() => titleInputRef.current?.focus(), 100);
+    }
   };
 
   const buildFormData = (
@@ -244,16 +279,6 @@ export default function WriteChapterPage() {
     if (!contentPayload) {
       setContentError("Vui lòng nhập nội dung chương");
       return null;
-    }
-    if (status === "pending" && contentPayload.mode === "editor") {
-      const plain = contentPayload.html.replace(/<[^>]+>/g, " ").trim();
-      const wc = plain ? plain.split(/\s+/).filter(Boolean).length : 0;
-      if (wc < 50) {
-        setContentError(
-          `Nội dung chương phải có ít nhất 50 từ để đăng (hiện tại: ${wc} từ)`,
-        );
-        return null;
-      }
     }
     setContentError(undefined);
 
@@ -351,9 +376,57 @@ export default function WriteChapterPage() {
     }
   };
 
+  const handleDeleteChapter = async () => {
+    if (selectedChapterIndex === null || !story) return;
+    const chapterId = chapters[selectedChapterIndex].id;
+    setDeleteLoading(true);
+    try {
+      await AuthorService.deleteChapter(chapterId);
+      showSuccess("Đã xóa chương thành công!");
+      setDeleteModalOpened(false);
+      const updatedChapters = await loadChapters(story._id);
+      // Move to first remaining chapter, or new chapter mode if none left
+      if (updatedChapters.length > 0) {
+        const newIdx = Math.min(
+          selectedChapterIndex,
+          updatedChapters.length - 1,
+        );
+        setSelectedChapterIndex(newIdx);
+        const ch = updatedChapters[newIdx];
+        form.setValues({
+          title: ch.title,
+          chapterType: ch.isPremium ? "vip" : "free",
+          price: ch.price || 1,
+        });
+        const fullChapter = await AuthorService.getChapterById(ch.id);
+        const html = fullChapter.contentURL ?? "";
+        setEditorInitialContent(html);
+        setEditorResetKey((k) => k + 1);
+        setContentPayload({ mode: "editor", html });
+      } else {
+        setSelectedChapterIndex(null);
+        const nextNum = 1;
+        form.setValues({
+          title: `Chương ${nextNum}`,
+          chapterType: "free",
+          price: 1,
+        });
+        setEditorInitialContent("");
+        setEditorResetKey((k) => k + 1);
+        setContentPayload(null);
+      }
+      setSaved(false);
+      setContentError(undefined);
+    } catch {
+      showError("Có lỗi xảy ra khi xóa chương. Vui lòng thử lại.");
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   if (storyLoading) {
     return (
-      <Box className="min-h-screen bg-[#f8f4ef] flex items-center justify-center">
+      <Box className="min-h-screen bg-[#f8f4ef] dark:bg-gray-900 flex items-center justify-center">
         <Stack align="center" gap="sm">
           <Loader color="blue" />
           <Text c="dimmed" size="sm">
@@ -365,12 +438,27 @@ export default function WriteChapterPage() {
   }
 
   return (
-    <Box className="bg-[#f3f3f3]">
+    <Box className="bg-[#f3f3f3] dark:bg-gray-900 min-h-screen">
+      {/* Backdrop overlay when chapter list is open */}
+      {chapterListOpened && (
+        <Box
+          onClick={() => setChapterListOpened(false)}
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 299,
+            opacity: 0,
+          }}
+        />
+      )}
       {/* ── Header ── */}
       <Box
         style={{
-          borderBottom: "1px solid #dfdfdf",
-          backgroundColor: "white",
+          borderBottom: "1px solid var(--mantine-color-gray-3)",
+          backgroundColor: "var(--mantine-color-body)",
         }}
       >
         <Container size="xl" py={8}>
@@ -380,7 +468,7 @@ export default function WriteChapterPage() {
               <ActionIcon
                 variant="subtle"
                 size="lg"
-                onClick={() => navigate(`/author/my-stories`)}
+                onClick={() => navigate(-1)}
                 color="gray"
               >
                 <ChevronLeft size={20} />
@@ -403,10 +491,16 @@ export default function WriteChapterPage() {
               <Stack gap={0}>
                 <Popover
                   opened={chapterListOpened}
-                  onChange={setChapterListOpened}
+                  onChange={(o) => {
+                    setChapterListOpened(o);
+                    if (o && story) loadChapters(story._id);
+                  }}
                   position="bottom-start"
                   shadow="md"
                   width={320}
+                  zIndex={300}
+                  trapFocus
+                  closeOnEscape
                 >
                   <Popover.Target>
                     <Group
@@ -433,15 +527,12 @@ export default function WriteChapterPage() {
                           px="md"
                           py="sm"
                           onClick={() => handleSelectChapter(idx)}
-                          style={{
-                            cursor: "pointer",
-                            backgroundColor:
-                              selectedChapterIndex === idx
-                                ? "#f0f9ff"
-                                : undefined,
-                            borderBottom: "1px solid #f0f0f0",
-                          }}
-                          className="hover:bg-gray-50"
+                          style={{ cursor: "pointer" }}
+                          className={`border-b border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 ${
+                            selectedChapterIndex === idx
+                              ? "bg-blue-50 dark:bg-blue-900/30"
+                              : ""
+                          }`}
                         >
                           <Stack gap={2}>
                             <Text size="sm" fw={500} lineClamp={1}>
@@ -467,10 +558,7 @@ export default function WriteChapterPage() {
                           justify="space-between"
                           px="md"
                           py="sm"
-                          style={{
-                            backgroundColor: "#f0f9ff",
-                            borderBottom: "1px solid #f0f0f0",
-                          }}
+                          className="bg-blue-50 dark:bg-blue-900/30 border-b border-gray-200 dark:border-gray-600"
                         >
                           <Stack gap={2}>
                             <Text size="sm" fw={500} lineClamp={1}>
@@ -491,7 +579,7 @@ export default function WriteChapterPage() {
                       <Box px="md" py="sm">
                         <Button
                           fullWidth
-                          color="orange"
+                          color="blue"
                           size="xs"
                           leftSection={<Plus size={14} />}
                           onClick={handleNewPart}
@@ -594,6 +682,19 @@ export default function WriteChapterPage() {
                       />
                     </Menu.Item>
                   )}
+
+                  {selectedChapterIndex !== null && (
+                    <>
+                      <Divider my="xs" />
+                      <Menu.Item
+                        color="red"
+                        leftSection={<Trash2 size={14} />}
+                        onClick={() => setDeleteModalOpened(true)}
+                      >
+                        Xóa chương này
+                      </Menu.Item>
+                    </>
+                  )}
                 </Menu.Dropdown>
               </Menu>
             </Group>
@@ -607,6 +708,7 @@ export default function WriteChapterPage() {
           <Stack gap="lg">
             {/* Chapter title input - centered, clean */}
             <TextInput
+              ref={titleInputRef}
               placeholder="Tiêu đề chương..."
               variant="unstyled"
               size="xl"
@@ -615,7 +717,7 @@ export default function WriteChapterPage() {
                   textAlign: "center",
                   fontSize: 24,
                   fontWeight: 600,
-                  color: "#333",
+                  color: "var(--mantine-color-text)",
                   border: "none",
                   background: "transparent",
                 },
@@ -624,7 +726,10 @@ export default function WriteChapterPage() {
             />
 
             {/* Chapter content editor */}
-            <Box className="bg-white rounded-lg border border-gray-200" p="md">
+            <Box
+              className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+              p="md"
+            >
               <ChapterContentInput
                 key={editorResetKey}
                 onChange={(payload) => {
@@ -649,6 +754,21 @@ export default function WriteChapterPage() {
           currentChapterTitle={currentChapterTitle}
         />
       )}
+
+      {/* ── Delete Chapter Modal ── */}
+      <ConfirmDeleteModal
+        opened={deleteModalOpened}
+        onClose={() => setDeleteModalOpened(false)}
+        onConfirm={handleDeleteChapter}
+        loading={deleteLoading}
+        title="Xác nhận xóa chương"
+        message={`Bạn có chắc chắn muốn xóa "${
+          selectedChapterIndex !== null
+            ? chapters[selectedChapterIndex]?.title ||
+              `Chương ${chapters[selectedChapterIndex]?.chapterNumber}`
+            : ""
+        }"? Hành động này không thể hoàn tác.`}
+      />
     </Box>
   );
 }

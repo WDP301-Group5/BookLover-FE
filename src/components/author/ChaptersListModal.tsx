@@ -12,9 +12,12 @@ import {
 } from "@mantine/core";
 import { Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import type { Chapter } from "../../interfaces/Chapter";
 import { useChaptersByStoryForAuthor } from "../../hooks/useChapter";
 import { timeAgo } from "../../utils";
+import { AuthorService } from "../../services/AuthorService";
+import { showError } from "../../utils/notifications";
 
 interface ChaptersListModalProps {
   opened: boolean;
@@ -40,18 +43,48 @@ export default function ChaptersListModal({
   storyTitle,
 }: ChaptersListModalProps) {
   const navigate = useNavigate();
-  const { data: chapters = [], isLoading, error } = useChaptersByStoryForAuthor(
-    storyId,
-  );
+  const [isCreating, setIsCreating] = useState(false);
+  const {
+    data: chapters = [],
+    isLoading,
+    error,
+  } = useChaptersByStoryForAuthor(storyId);
 
   const handleChapterClick = (chapterNumber: number) => {
     onClose();
-    navigate(`/author/story/${storySlug}/write-chapter?chapter=${chapterNumber}`);
+    navigate(
+      `/author/story/${storySlug}/write-chapter?chapter=${chapterNumber}`,
+    );
   };
 
-  const handleCreateNewChapter = () => {
-    onClose();
-    navigate(`/author/story/${storySlug}/write-chapter`);
+  const handleCreateNewChapter = async () => {
+    try {
+      setIsCreating(true);
+      const nextNumber =
+        chapters.length > 0
+          ? Math.max(...chapters.map((c) => c.chapterNumber)) + 1
+          : 1;
+      const newTitle = `Chương ${nextNumber}`;
+
+      const formData = new FormData();
+      formData.append("storyId", storyId);
+      formData.append("chapterNumber", String(nextNumber));
+      formData.append("title", newTitle);
+      formData.append("chapterType", "free");
+
+      const blob = new Blob(["<p></p>"], { type: "text/html" });
+      formData.append("file", blob, `${newTitle}.html`);
+
+      const newChapter = await AuthorService.createChapter(formData);
+      onClose();
+      navigate(
+        `/author/story/${storySlug}/write-chapter?chapter=${newChapter.chapterNumber}`,
+      );
+    } catch {
+      showError("Không thể tạo chương mới. Vui lòng thử lại.");
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (
@@ -90,10 +123,12 @@ export default function ChaptersListModal({
           <Text c="dimmed">Chưa có chương nào</Text>
           <Button
             color="orange"
-            leftSection={<Plus size={16} />}
+            leftSection={isCreating ? <Loader size={14} /> : <Plus size={16} />}
             onClick={handleCreateNewChapter}
+            disabled={isCreating}
+            loading={isCreating}
           >
-            Tạo chương đầu tiên
+            {isCreating ? "Đang tạo chương..." : "Tạo chương đầu tiên"}
           </Button>
         </Stack>
       ) : (
@@ -101,15 +136,14 @@ export default function ChaptersListModal({
           <ScrollArea.Autosize mah={520} offsetScrollbars>
             <Stack gap="sm" pr="md">
               {chapters.map((chapter: Chapter) => {
-                const cfg =
-                  statusConfig[chapter.status] || statusConfig.draft;
+                const cfg = statusConfig[(chapter.status as string) || "draft"] || statusConfig.draft;
                 return (
                   <Flex
-                    key={chapter._id}
+                    key={chapter.id}
                     justify="space-between"
                     align="center"
                     p="sm"
-                    className="border border-gray-200 rounded-md hover:bg-gray-50 cursor-pointer transition-colors"
+                    className="border border-gray-200 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
                     onClick={() => handleChapterClick(chapter.chapterNumber)}
                   >
                     <Stack gap={4} style={{ flex: 1 }}>
@@ -125,7 +159,7 @@ export default function ChaptersListModal({
                         {chapter.title}
                       </Text>
                       <Text size="xs" c="dimmed">
-                        Cập nhật {timeAgo(chapter.updatedAt)}
+                        Cập nhật {timeAgo(chapter.updatedAt || new Date().toISOString())}
                       </Text>
                     </Stack>
                   </Flex>
@@ -135,13 +169,15 @@ export default function ChaptersListModal({
           </ScrollArea.Autosize>
 
           <Button
-            color="orange"
-            leftSection={<Plus size={16} />}
+            color="blue"
+            leftSection={isCreating ? <Loader size={14} /> : <Plus size={16} />}
             mt="md"
             onClick={handleCreateNewChapter}
             fullWidth
+            disabled={isCreating}
+            loading={isCreating}
           >
-            + Chương mới
+            {isCreating ? "Đang tạo chương..." : "Chương mới"}
           </Button>
         </Stack>
       )}

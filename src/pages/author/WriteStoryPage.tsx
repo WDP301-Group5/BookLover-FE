@@ -120,21 +120,33 @@ export default function WriteStoryPage() {
 
     setLoading(true);
     try {
-      const formData = new FormData();
-      formData.append("title", title.trim());
-      formData.append("description", description.trim());
-      if (category) formData.append("topics", category);
+      const storyFormData = new FormData();
+      storyFormData.append("title", title.trim());
+      storyFormData.append("description", description.trim());
+      if (category) storyFormData.append("topics", category);
       for (const tag of tags) {
-        formData.append("tags", tag);
+        storyFormData.append("tags", tag);
       }
-      formData.append("isPremium", isPremium ? "true" : "false");
-      formData.append("isFinish", "false");
-      formData.append("status", "draft");
+      storyFormData.append("isPremium", isPremium ? "true" : "false");
+      storyFormData.append("isFinish", "false");
+      storyFormData.append("status", "draft");
       if (coverImage) {
-        formData.append("image", coverImage);
+        storyFormData.append("image", coverImage);
       }
 
-      const story = await AuthorService.createStory(formData);
+      const story = await AuthorService.createStory(storyFormData);
+
+      // Auto-create first chapter
+      const chapterFormData = new FormData();
+      chapterFormData.append("storyId", story.id);
+      chapterFormData.append("chapterNumber", "1");
+      chapterFormData.append("title", "Chương 1");
+      chapterFormData.append("chapterType", "free");
+
+      const blob = new Blob(["<p></p>"], { type: "text/html" });
+      chapterFormData.append("file", blob, "Chương 1.html");
+
+      await AuthorService.createChapter(chapterFormData);
 
       // Update user role to author
       updateUser({ role: "author" });
@@ -143,7 +155,7 @@ export default function WriteStoryPage() {
         "Tác phẩm đã được tạo. Bắt đầu viết chương đầu tiên!",
         "Tạo truyện thành công",
       );
-      navigate(`/author/story/${story.slug}/write-chapter`);
+      navigate(`/author/story/${story.slug}/write-chapter?chapter=1`);
     } catch {
       showError("Có lỗi xảy ra khi tạo truyện. Vui lòng thử lại.");
     } finally {

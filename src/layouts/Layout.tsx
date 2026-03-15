@@ -52,7 +52,18 @@ const Layout = () => {
           <div className="fixed bottom-4 right-4 z-50">
             <button
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-              className="p-2 rounded-full hover:bg-gray-300 transition"
+              className="p-2 rounded-full transition"
+              style={{
+                backgroundColor: "var(--mantine-color-gray-2)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor =
+                  "var(--mantine-color-gray-3)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor =
+                  "var(--mantine-color-gray-2)";
+              }}
             >
               <CircleArrowUp />
             </button>

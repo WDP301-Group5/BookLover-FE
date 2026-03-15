@@ -59,7 +59,7 @@ export default function MyStoryCard({
       gap="md"
       align="flex-start"
       p="md"
-      className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
+      className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
     >
       {/* Ảnh bìa */}
       <Image
@@ -131,16 +131,14 @@ export default function MyStoryCard({
             </ActionIcon>
           </Menu.Target>
           <Menu.Dropdown>
-            {story.status === "draft" && (
+            {/* {story.status === "draft" && (
               <Menu.Item
                 leftSection={<Send size={14} />}
                 onClick={() => onSubmitReview(story._id)}
               >
                 Gửi duyệt
               </Menu.Item>
-            )}
-
-            <Menu.Divider />
+            )} */}
 
             {story.status === "active" && (
               <>
