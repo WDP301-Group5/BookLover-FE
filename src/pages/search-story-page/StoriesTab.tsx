@@ -1,15 +1,32 @@
-import { Stack, Group, Loader, Text, Button, Divider, Anchor, Title } from "@mantine/core";
-import { useState, useEffect } from "react";
-import StoryCard from "../../components/story/StoryCard";
-import { useStories } from "../../hooks/useStory";
+import {
+  Stack,
+  Group,
+  Loader,
+  Text,
+  Button,
+  Divider,
+  Anchor,
+  Title,
+} from "@mantine/core";
+import { useState, useEffect, useMemo } from "react";import StoryCard from "../../components/story/StoryCard";
 import { useGenres } from "../../hooks/useGenre";
 import { useTopics } from "../../hooks/useTopics";
+import { useSearchStories } from "../../hooks/useSearch";
 import type { Story } from "../../interfaces/Story";
 import type { Genre } from "../../interfaces/genre";
 
 const ITEMS_PER_PAGE = 10;
 const statuses = ["Tất cả", "Hoàn thành", "Đang tiến hành"];
-const sortOptions = ["Ngày cập nhật", "Truyện mới", "Top tháng", "Top tuần", "Top ngày", "Top theo dõi", "Bình luận", "Số chapter"];
+const sortOptions = [
+  "Ngày cập nhật",
+  "Truyện mới",
+  "Top tháng",
+  "Top tuần",
+  "Top ngày",
+  "Top theo dõi",
+  "Bình luận",
+  "Số chapter",
+];
 
 interface Props {
   searchTerm: string;
@@ -29,12 +46,12 @@ const StoriesTab = ({ searchTerm }: Props) => {
   const { data: topicsData, isLoading: loadingTopics } = useTopics();
   const topics = topicsData || [];
 
-  const { data: storyData, isLoading: loadingStories } = useStories({
+  const { data: storyData, isLoading: loadingStories, error } = useSearchStories({
+    q: searchTerm,
     page: currentPage,
     limit: ITEMS_PER_PAGE,
     status: statusFilter,
     category: categoryFilter,
-    search: searchTerm,
     sortBy,
   });
 
@@ -42,15 +59,40 @@ const StoriesTab = ({ searchTerm }: Props) => {
   const totalStories = storyData?.total || 0;
   const totalPages = Math.ceil(totalStories / ITEMS_PER_PAGE);
 
+const mappedStories = useMemo(() => {
+  return stories.map((story: any) => {
+    const mergedCategories = [
+      ...(story.genres || []),
+      ...(story.topics || []),
+    ];
+
+    const uniqueCategories = Array.from(new Set(mergedCategories));
+
+    return {
+      ...story,
+
+      // để StoryCard có thể hiện tên tác giả / click sang trang tác giả
+      author: story.author || story.authorId,
+      authorId: story.authorId,
+
+      // để hiện thể loại như code cũ
+      categories: uniqueCategories,
+
+      // để hiện số chương
+      chapters: story.chapters ?? story.chapterCount ?? story.chapterNumber ?? 0,
+      chapterNumber:
+        story.chapterNumber ?? story.chapterCount ?? story.chapters ?? 0,
+    };
+  });
+}, [stories]);
+
   useEffect(() => {
     setCurrentPage(1);
   }, [statusFilter, categoryFilter, sortBy, searchTerm]);
 
   return (
     <Group align="flex-start" wrap="nowrap">
-      {/* Main story list */}
       <Stack w="70%">
-        {/* Trạng thái */}
         <Stack mb="sm">
           <Text fw={500}>Trạng thái:</Text>
           <Group gap={8}>
@@ -69,7 +111,6 @@ const StoriesTab = ({ searchTerm }: Props) => {
           </Group>
         </Stack>
 
-        {/* Sắp xếp theo */}
         <Stack mb="sm">
           <Text fw={500}>Sắp xếp theo:</Text>
           <Group gap={8} wrap="wrap">
@@ -89,23 +130,40 @@ const StoriesTab = ({ searchTerm }: Props) => {
 
         <Divider />
 
-        {/* Story cards */}
+        {error && (
+          <Text c="red" size="sm">
+            {error}
+          </Text>
+        )}
+
         {loadingStories ? (
-          <Group justify="center"><Loader /></Group>
+          <Group justify="center">
+            <Loader />
+          </Group>
         ) : stories.length ? (
           <Group wrap="wrap" gap={16}>
-            {stories.map((story, idx) => (
-              <StoryCard key={story._id || `${story._id}-${idx}`} story={story} type="search" />
-            ))}
+            {mappedStories.map((story, idx) => (
+  <StoryCard
+    key={story._id || `${story._id}-${idx}`}
+    story={story}
+    type="search"
+  />
+))}
           </Group>
         ) : (
           <Text>Không tìm thấy truyện nào</Text>
         )}
 
-        {/* Pagination */}
         {totalPages > 1 && (
           <Group justify="center" gap={8} mt={12}>
-            <Button size="xs" disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}>« Trước</Button>
+            <Button
+              size="xs"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => p - 1)}
+            >
+              « Trước
+            </Button>
+
             {[...Array(totalPages)].map((_, idx) => (
               <Button
                 key={idx + 1}
@@ -116,12 +174,18 @@ const StoriesTab = ({ searchTerm }: Props) => {
                 {idx + 1}
               </Button>
             ))}
-            <Button size="xs" disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)}>Sau »</Button>
+
+            <Button
+              size="xs"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((p) => p + 1)}
+            >
+              Sau »
+            </Button>
           </Group>
         )}
       </Stack>
 
-      {/* Sidebar y hệt cũ */}
       <Stack w="18%" ml="auto">
         <Title order={5}>Thể loại / Chủ đề</Title>
         <Divider />
@@ -139,6 +203,7 @@ const StoriesTab = ({ searchTerm }: Props) => {
         >
           Tất cả
         </Anchor>
+
         <Divider />
 
         {loadingGenres || loadingTopics ? (

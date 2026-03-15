@@ -1,4 +1,3 @@
-// src/components/ProfilesTab.tsx
 import { useState, useEffect } from "react";
 import { Group, Text, Button, Avatar, Stack, Card } from "@mantine/core";
 import UserService, {
@@ -18,7 +17,7 @@ const ProfilesTab = ({ searchTerm }: Props) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!searchTerm) {
+    if (!searchTerm.trim()) {
       setUsers([]);
       return;
     }
@@ -26,6 +25,10 @@ const ProfilesTab = ({ searchTerm }: Props) => {
     setLoading(true);
     UserService.searchUsers(searchTerm)
       .then((res: AuthorPublicProfile[]) => setUsers(res))
+      .catch((error) => {
+        console.error("Error searching users:", error);
+        setUsers([]);
+      })
       .finally(() => setLoading(false));
   }, [searchTerm]);
 
@@ -85,16 +88,16 @@ const ProfilesTab = ({ searchTerm }: Props) => {
           <Card
             key={user._id}
             withBorder
-            shadow="sm"
             radius="lg"
             p="15"
-            bg="white"
             styles={{
               root: {
                 transition: "all 0.2s ease",
+                backgroundColor: "var(--mantine-color-body)",
+                borderColor: "var(--mantine-color-default-border)",
                 "&:hover": {
                   transform: "translateY(-3px)",
-                  boxShadow: "0 10px 20px rgba(0,0,0,0.08)",
+                  boxShadow: "var(--mantine-shadow-sm)",
                 },
               },
             }}
@@ -124,11 +127,11 @@ const ProfilesTab = ({ searchTerm }: Props) => {
                   </Text>
 
                   <Text size="sm" c="dimmed" lh={1.4} mt={4}>
-                    <Text span fw={700} c="dark">
+                    <Text span fw={700} inherit c="inherit">
                       {user.storiesCount}
                     </Text>{" "}
                     Truyện ·{" "}
-                    <Text span fw={700} c="dark">
+                    <Text span fw={700} inherit c="inherit">
                       {user.followersCount.toLocaleString()}
                     </Text>{" "}
                     Người theo dõi
@@ -146,7 +149,7 @@ const ProfilesTab = ({ searchTerm }: Props) => {
                     )
                   }
                   variant={user.relationship?.amIFollowing ? "light" : "filled"}
-                  color="cyan"
+                  color="blue"
                   size="md"
                   radius="xl"
                   ml="auto"
