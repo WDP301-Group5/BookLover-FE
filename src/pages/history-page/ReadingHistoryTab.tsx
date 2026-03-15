@@ -49,10 +49,10 @@ const ReadingHistoryTab = () => {
                 readingHistory && readingHistory.length ? (
                     <>
                         {readingHistory?.map((item: IReadingHistory) => (
-                            <Card key={item.id} shadow="sm">
+                            <Card key={item?.id} shadow="sm">
                                 <Group>
                                     <Image
-                                        src={item.story.image}
+                                        src={item?.story?.image || ""}
                                         w={60}
                                         mah={80}
                                         radius="sm"
@@ -61,26 +61,26 @@ const ReadingHistoryTab = () => {
                                     <div className="flex flex-col gap-4">
                                         <Text
                                             fw={600}
-                                            onClick={() => navigate(`/story/${item.story.slug}`)}
+                                            onClick={() => navigate(`/story/${item?.story?.slug}`)}
                                             className="hover:underline cursor-pointer hover:text-blue-600"
                                         >
-                                            {item.story.title}
+                                            {item?.story?.title}
                                         </Text>
 
                                         <Text size="sm">
                                             Đọc tiếp:{" "}
                                             <span
                                                 className="cursor-pointer underline hover:text-blue-600"
-                                                onClick={() => navigate(`/truyen/${item.story.slug}/chuong/${item.chapterNumber}`)}
+                                                onClick={() => navigate(`/truyen/${item?.story?.slug}/chuong/${item?.chapterNumber}`)}
                                             >
-                                                Chương {item.chapterNumber}
+                                                Chương {item?.chapterNumber}
                                             </span>
                                         </Text>
                                     </div>
                                     <div className="ml-auto">
                                         <span
                                             className="flex justify-center items-center gap-1 text-red-500 font-semibold cursor-pointer"
-                                            onClick={() => handleDelete(item.id)}
+                                            onClick={() => handleDelete(item?.id)}
                                         >
                                             {loading ? (<>Loading</>) : (<>
                                                 <X strokeWidth={4} color="red" size={16} /> Xóa

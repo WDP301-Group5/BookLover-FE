@@ -19,6 +19,7 @@ import ChapterPage from "../pages/chapter-page/ChapterPage";
 import SearchStoryPage from "../pages/search-story-page/SearchStoryPage";
 import { UnauthorizedPage } from "../pages/unauthorized-page/UnauthorizedPage";
 import HistoryPage from "../pages/history-page/HistoryPage";
+import ChatingPage from "../pages/chat-page/ChatPage";
 
 const routes = createBrowserRouter([
   AdminRoute,
@@ -82,6 +83,10 @@ const routes = createBrowserRouter([
       {
         path: "history",
         element: <HistoryPage />,
+      },
+      {
+        path: "chating",
+        element: <ChatingPage />,
       },
       // Routes below require the user to be authenticated with a valid token.
       {

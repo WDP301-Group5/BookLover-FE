@@ -47,7 +47,7 @@ const StoryCard = ({ story, type = "home" }: StoryCardProps) => {
               </span>
             </div>
           </div>
-          <div className="px-1 flex flex-col justify-start gap-1 mt-1">
+          <div className="px-1 min-h-32 flex flex-col justify-start gap-1 mt-1">
             <Text lineClamp={2} fw={700}>
               {story.title}
             </Text>

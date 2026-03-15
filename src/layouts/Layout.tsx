@@ -5,6 +5,8 @@ import { Outlet, ScrollRestoration, useNavigate } from "react-router-dom";
 import { setNavigate } from "../lib/navigation";
 import Footer from "./footer/Footer";
 import Header from "./header/Header";
+import socket from "../lib/socket";
+import { useUserStore } from "../stores/useUserStore";
 
 const Layout = () => {
 	const navigate = useNavigate();
@@ -13,6 +15,15 @@ const Layout = () => {
 	}, [navigate]);
 
 	const [showScrollTop, setShowScrollTop] = useState(false);
+
+	const { user } = useUserStore();
+
+	useEffect(() => {
+		if (user?.id) {
+			socket.auth = { userId: user.id };
+			socket.connect();
+		}
+	}, []);
 
 	useEffect(() => {
 		const handleScroll = () => {
