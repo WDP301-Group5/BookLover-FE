@@ -37,6 +37,10 @@ import RequireLoginModal from "../../components/Modal/RequireLoginModal";
 import { useChaptersByStory } from "../../hooks/useChapter";
 import { useStoryDetail } from "../../hooks/useStory";
 import { slugify } from "../../utils";
+import { useQueryClient } from "@tanstack/react-query";
+import { useCheckUserFollowStory } from "../../hooks/useFollowStory";
+import FollowStoryService from "../../services/FollowStoryService";
+import { showError, showSuccess } from "../../utils/notifications";
 
 const StoryDetailPage: FC = () => {
 	const { slug } = useParams<{ slug: string }>();
@@ -50,11 +54,18 @@ const StoryDetailPage: FC = () => {
   const { data: chapters, isLoading: chapterLoading } =
     useChaptersByStory(story?.id || "");
 
-	const [followed, { toggle }] = useDisclosure(false);
 	const [hoverRating, setHoverRating] = useState<number | null>(null);
 	const [loginModalOpened, setLoginModalOpened] = useState(false);
 	const isLoggedIn = useUserStore((state) => state.isLoggedIn);
 	const navigate = useNavigate();
+
+	const queryClient = useQueryClient();
+
+	const storyId = story?.id || story?._id || "";
+
+	const { data: followStoryData } = useCheckUserFollowStory(storyId);
+
+	const followed = followStoryData?.status === "follow";
 
 	const viewData = useMemo(() => {
 		if (!story) return null;
@@ -126,6 +137,37 @@ const StoryDetailPage: FC = () => {
 		description,
 		chapters: chapterList,
 	} = viewData;
+
+	const handleChangeUserFollowStory = async () => {
+		if (!isLoggedIn) {
+			setLoginModalOpened(true);
+			return;
+		}
+
+		if (!storyId) return;
+
+		try {
+			const newStatus =
+			followStoryData?.status === "follow" || followStoryData?.status === "unsend"
+				? "unfollow"
+				: "follow";
+
+			await FollowStoryService.changeStatusFollowStory(storyId, newStatus);
+
+			await queryClient.invalidateQueries({
+			queryKey: ["checkUserFollowStory", storyId],
+			});
+
+			showSuccess(
+			newStatus === "follow"
+				? "Theo dõi truyện thành công"
+				: "Hủy theo dõi truyện thành công",
+			);
+		} catch (error) {
+			console.error(error);
+			showError("Không thể cập nhật trạng thái theo dõi truyện");
+		}
+	};
 
 	return (
 		<Container size="lg" py="md">
@@ -233,13 +275,7 @@ const StoryDetailPage: FC = () => {
 								leftSection={
 									<Heart size={14} fill={followed ? "currentColor" : "none"} />
 								}
-								onClick={() => {
-									if (!isLoggedIn) {
-										setLoginModalOpened(true);
-										return;
-									}
-									toggle();
-								}}
+								onClick={handleChangeUserFollowStory}
 							>
 								{followed ? "Đã theo dõi" : "Theo dõi"}
 							</Button>

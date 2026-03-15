@@ -5,5 +5,6 @@ export const useCheckUserFollowStory = (storyId: string) => {
     return useQuery({
         queryKey: ["checkUserFollowStory", storyId],
         queryFn: () => FollowStoryService.checkUserFollowStory( storyId ),
+        enabled: !!storyId,
     });
 };
