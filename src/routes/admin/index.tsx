@@ -8,6 +8,7 @@ import { AdminChapterModeration } from "../../pages/admin/censor/AdminChapterMod
 import { AdminStoryModeration } from "../../pages/admin/censor/AdminStoryModeration";
 import ReportManagement from "../../pages/admin/reports/ReportManagement";
 import NotFoundPage from "../../pages/error/not-found";
+import { UserManagementPage } from "../../pages/admin/user-management/UserManagementPage";
 
 export const AdminRoute: RouteObject = {
   path: "/admin",
@@ -29,6 +30,10 @@ export const AdminRoute: RouteObject = {
         {
           path: "account",
           element: <AdminAccountManagement />,
+        },
+        {
+          path: "users",
+          element: <UserManagementPage />
         },
         {
           path: "catalog",
