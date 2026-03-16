@@ -113,3 +113,27 @@ export const useStoryDetailWithAuthor = (slug: string) =>
     const res = await axios.get(`/api/v1/story/with-author/${slug}`);
     return res.data;
   });
+
+  export const useRateStory = (slug?: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      storyId,
+      rate,
+    }: {
+      storyId: string;
+      rate: number;
+    }) => StoryService.rateStory(storyId, rate),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["story", slug] });
+      queryClient.invalidateQueries({ queryKey: ["stories"] });
+      showSuccess("Đánh giá truyện thành công");
+    },
+
+    onError: (error: Error) => {
+      showError(error.message || "Lỗi khi đánh giá truyện");
+    },
+  });
+};
