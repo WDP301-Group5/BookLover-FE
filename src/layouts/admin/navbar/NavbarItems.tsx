@@ -6,6 +6,7 @@ import {
   IconUsers,
   type IconProps,
 } from "@tabler/icons-react";
+import { Coins, UserLock } from "lucide-react";
 import type { ForwardRefExoticComponent, RefAttributes } from "react";
 
 export type NavbarItem = {
@@ -28,8 +29,18 @@ export const NAVBAR_ITEMS: NavbarItem[] = [
   },
   {
     label: "Quản trị viên",
-    icon: IconUsers,
+    icon: UserLock,
     link: "/admin/account",
+  },
+  {
+    label: "Quản lý người dùng",
+    icon: IconUsers,
+    link: "/admin/users",
+  },
+  {
+    label: "Quản lý doanh thu",
+    icon: Coins,
+    link: "/admin",
   },
   {
     label: "Kiểm duyệt nội dung",
