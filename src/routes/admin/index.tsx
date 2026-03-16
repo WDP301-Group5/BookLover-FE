@@ -6,6 +6,7 @@ import { AdminAccountManagement } from "../../pages/admin/account/AdminAccountMa
 import { GenreManagement } from "../../pages/admin/catalog/genre/GenreManagement";
 import { AdminChapterModeration } from "../../pages/admin/censor/AdminChapterModeration";
 import { AdminStoryModeration } from "../../pages/admin/censor/AdminStoryModeration";
+import { BannedKeywordManagement } from "../../pages/admin/censor/BannedKeywordManagement";
 import ReportManagement from "../../pages/admin/reports/ReportManagement";
 import NotFoundPage from "../../pages/error/not-found";
 import { UserManagementPage } from "../../pages/admin/user-management/UserManagementPage";
@@ -60,6 +61,10 @@ export const AdminRoute: RouteObject = {
             {
               path: "chapters",
               element: <AdminChapterModeration />,
+            },
+            {
+              path: "keywords",
+              element: <BannedKeywordManagement />,
             },
           ],
         },
