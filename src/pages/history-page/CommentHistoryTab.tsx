@@ -67,24 +67,24 @@ const CommenHistoryTab = () => {
 
                             <Table.Tbody>
                                 {commentHistory?.length > 0 ? (
-                                    commentHistory.map((c: ICommentHistoryItem) => (
+                                    commentHistory?.map((c: ICommentHistoryItem) => (
                                         <Table.Tr key={c.id}>
                                             <Table.Td>
                                                 <Group
                                                     wrap="nowrap"
                                                     className="hover:cursor-pointer hover:text-blue-500"
                                                     onClick={() =>
-                                                        navigate(`/story/${c.chapterId.storyId.slug}`)
+                                                        navigate(`/story/${c.chapterId?.storyId.slug}`)
                                                     }
                                                 >
                                                     <Image
-                                                        src={c.chapterId.storyId.image}
-                                                        alt={c.chapterId.storyId.title}
+                                                        src={c.chapterId?.storyId.image}
+                                                        alt={c.chapterId?.storyId.title}
                                                         w={50}
                                                         mah={60}
                                                     />
                                                     <span className="line-clamp-2">
-                                                        {c.chapterId.storyId.title}
+                                                        {c.chapterId?.storyId.title}
                                                     </span>
                                                 </Group>
                                             </Table.Td>
@@ -95,16 +95,18 @@ const CommenHistoryTab = () => {
                                                     className="hover:cursor-pointer hover:underline hover:text-blue-600"
                                                     onClick={() =>
                                                         navigate(
-                                                            `/truyen/${c.chapterId.storyId.slug}/chuong/${c.chapterId.chapterNumber}`
+                                                            `/truyen/${c.chapterId?.storyId.slug}/chuong/${c.chapterId?.chapterNumber}`
                                                         )
                                                     }
                                                 >
-                                                    {`Chương ${c.chapterId.chapterNumber}`}
+                                                    {`Chương ${c.chapterId?.chapterNumber}`}
                                                 </Text>
                                             </Table.Td>
 
-                                            <Table.Td className="line-clamp-2">
+                                            <Table.Td>
+                                                <Text size="sm" className="line-clamp-3 overflow-y-auto" >
                                                 {c.content}
+                                                </Text>
                                             </Table.Td>
 
                                             <Table.Td>

@@ -7,6 +7,7 @@ import {
   History,
   LogOut,
   Menu,
+  MessageCircle,
   Moon,
   PenLine,
   Search,
@@ -16,18 +17,18 @@ import {
   Zap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";import { useUserStore } from "../../stores/useUserStore";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom"; import { useUserStore } from "../../stores/useUserStore";
 import { showSuccess } from "../../utils/notifications";
 import NotificationBell from "../../components/notification/NotificationBell";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-const navigate = useNavigate();
-const location = useLocation();
-const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-const [searchParams] = useSearchParams();  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
-const isSearchPage = location.pathname === "/search";
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const [searchParams] = useSearchParams(); const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+  const isSearchPage = location.pathname === "/search";
   const isDark = colorScheme === "dark";
   const { user, isLoggedIn, logout } = useUserStore();
 
@@ -43,35 +44,35 @@ const isSearchPage = location.pathname === "/search";
     return () => window.removeEventListener("resize", handleResize);
   }, [mobileMenuOpen]);
   useEffect(() => {
-  const timeout = setTimeout(() => {
-    setDebouncedSearchQuery(searchQuery.trim());
-  }, 400);
+    const timeout = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery.trim());
+    }, 400);
 
-  return () => clearTimeout(timeout);
-}, [searchQuery]);
+    return () => clearTimeout(timeout);
+  }, [searchQuery]);
 
-useEffect(() => {
-  if (!isSearchPage) return;
+  useEffect(() => {
+    if (!isSearchPage) return;
 
-  const currentQ = searchParams.get("q") || "";
+    const currentQ = searchParams.get("q") || "";
 
-  if (debouncedSearchQuery === currentQ) return;
+    if (debouncedSearchQuery === currentQ) return;
 
-  if (!debouncedSearchQuery) {
-    navigate("/search", { replace: true });
-    return;
-  }
+    if (!debouncedSearchQuery) {
+      navigate("/search", { replace: true });
+      return;
+    }
 
-  navigate(`/search?q=${encodeURIComponent(debouncedSearchQuery)}`, {
-    replace: true,
-  });
-}, [debouncedSearchQuery, isSearchPage, navigate, searchParams]);
-useEffect(() => {
-  if (!isSearchPage) return;
+    navigate(`/search?q=${encodeURIComponent(debouncedSearchQuery)}`, {
+      replace: true,
+    });
+  }, [debouncedSearchQuery, isSearchPage, navigate, searchParams]);
+  useEffect(() => {
+    if (!isSearchPage) return;
 
-  const currentQ = searchParams.get("q") || "";
-  setSearchQuery(currentQ);
-}, [isSearchPage, searchParams]);
+    const currentQ = searchParams.get("q") || "";
+    setSearchQuery(currentQ);
+  }, [isSearchPage, searchParams]);
   const handleLogout = () => {
     logout();
     showSuccess("Hẹn gặp lại bạn!", "Đăng xuất thành công");
@@ -79,13 +80,13 @@ useEffect(() => {
   };
 
   const handleSearch = (e: React.FormEvent) => {
-  e.preventDefault();
-  const keyword = searchQuery.trim();
-  if (!keyword) return;
+    e.preventDefault();
+    const keyword = searchQuery.trim();
+    if (!keyword) return;
 
-  navigate(`/search?q=${encodeURIComponent(keyword)}`);
-  setMobileMenuOpen(false);
-};
+    navigate(`/search?q=${encodeURIComponent(keyword)}`);
+    setMobileMenuOpen(false);
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
@@ -326,6 +327,16 @@ useEffect(() => {
                         Lịch sử của tôi
                       </Box>
                     </MantineMenu.Item>
+                    <MantineMenu.Item
+                      component={Link}
+                      to={"/chating"}
+                      className="text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      <Box className="flex gap-2">
+                        <MessageCircle size={18} />
+                        Hội thoại
+                      </Box>
+                    </MantineMenu.Item>
                     <MantineMenu.Divider className="border-gray-200 dark:border-gray-700" />
                     <MantineMenu.Item
                       onClick={handleLogout}
@@ -538,6 +549,13 @@ useEffect(() => {
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       Lịch sử của tôi
+                    </Link>
+                    <Link
+                      to={"/chating"}
+                      className="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Hội thoại
                     </Link>
                     <button
                       onClick={() => {
