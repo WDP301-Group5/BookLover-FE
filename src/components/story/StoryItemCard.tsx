@@ -1,5 +1,5 @@
 // src/components/story/StoryItemCard.tsx
-import { Image, Text } from "@mantine/core";
+import { Image, Loader, Text } from "@mantine/core";
 import { Eye, X } from "lucide-react";
 import type { StoryItem } from "../../interfaces/Story.ts";
 import { ShorterNumber } from "../../utils/index.ts";
@@ -8,6 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { showSuccess } from "../../utils/notifications.tsx";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ConfirmDeleteModal from "../common/ConfirmDeleteModal.tsx";
 
 type StoryItemProps = {
 	story: StoryItem;
@@ -17,6 +18,7 @@ type StoryItemProps = {
 const StoryItemCard = ({ story, type }: StoryItemProps) => {
 
 	const [isLoading, setLoading] = useState(false);
+	const [deleteId, setDeleteId] = useState("");
 	const navigate = useNavigate();
 
 	const queryClient = useQueryClient();
@@ -34,9 +36,9 @@ const StoryItemCard = ({ story, type }: StoryItemProps) => {
 
 	if (type === "top") {
 		return (
-			<div 
-			className="w-full h-full min-w-[250px] max-w-[360px] max-h-20 flex gap-2 cursor-pointer"
-			onClick={() => navigate(`/story/${story.slug}`)}
+			<div
+				className="w-full h-full min-w-[250px] max-w-[360px] max-h-20 flex gap-2 cursor-pointer"
+				onClick={() => navigate(`/story/${story.slug}`)}
 			>
 				<Image
 					src={story.image}
@@ -65,6 +67,12 @@ const StoryItemCard = ({ story, type }: StoryItemProps) => {
 	} else {
 		return (// history
 			<div className="w-full min-w-[250px] max-w-[360px] max-h-20 flex gap-2">
+				<ConfirmDeleteModal
+					opened={!!deleteId && deleteId === story.id}
+					onClose={() => { setLoading(false); setDeleteId(""); }}
+					onConfirm={handleDelete}
+					loading={isLoading}
+				/>
 				<Image
 					src={story?.storyId?.image}
 					alt={story?.storyId?.title}
@@ -84,9 +92,9 @@ const StoryItemCard = ({ story, type }: StoryItemProps) => {
 						</span>
 						<span
 							className="flex justify-center items-center gap-1 text-red-500 font-semibold cursor-pointer"
-							onClick={handleDelete}
+							onClick={() => setDeleteId(story.id)}
 						>
-							{isLoading ? (<>Loading</>) : (<>
+							{isLoading ? (<Loader color="blue" />) : (<>
 								<X strokeWidth={4} color="red" size={16} /> Xóa
 							</>)}
 						</span>

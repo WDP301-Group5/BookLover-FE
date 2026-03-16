@@ -1,4 +1,4 @@
-import { Card, Group, Image, Pagination, Stack, Text } from "@mantine/core";
+import { Card, Group, Image, Loader, Pagination, Stack, Text } from "@mantine/core";
 import { useUserStore } from "../../stores/useUserStore";
 import { useReadingHistory } from "../../hooks/useHistory";
 import type { Story } from "../../interfaces/Story";
@@ -8,6 +8,7 @@ import { X } from "lucide-react";
 import HistoryService from "../../services/HistoryService";
 import { showSuccess } from "../../utils/notifications";
 import { useQueryClient } from "@tanstack/react-query";
+import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 
 export interface IReadingHistory {
     id: string;
@@ -26,6 +27,7 @@ const ReadingHistoryTab = () => {
     const { isLoggedIn } = useUserStore();
     const [loading, setLoading] = useState(false);
     const queryClient = useQueryClient();
+    const [deleteId, setDeleteId] = useState("");
 
     const { data: readingHistoryData, isLoading } = useReadingHistory(page, LIMIT);
     const { history: readingHistory, total } = readingHistoryData || { readingHistory: [], total: 0 };
@@ -34,12 +36,14 @@ const ReadingHistoryTab = () => {
 
     const handleDelete = async (id: string) => {
         if (!id) return;
+        setDeleteId(id);
         setLoading(true);
         const result = await HistoryService.deleteHistory(id);
         if (result && result?.success) {
             await queryClient.invalidateQueries({ queryKey: ["readingHistory", page, LIMIT] });
             showSuccess("Xóa lịch sử thành công");
         };
+        setDeleteId("");
         setLoading(false);
     };
 
@@ -48,6 +52,12 @@ const ReadingHistoryTab = () => {
             {isLoggedIn && (isLoading ? (<Text>Đang tải...</Text>) : (
                 readingHistory && readingHistory.length ? (
                     <>
+                        <ConfirmDeleteModal
+                            opened={!!deleteId}
+                            onClose={() => setDeleteId("")}
+                            onConfirm={() => handleDelete(deleteId)}
+                            loading={loading}
+                        />
                         {readingHistory?.map((item: IReadingHistory) => (
                             <Card key={item?.id} shadow="sm">
                                 <Group>
@@ -80,9 +90,9 @@ const ReadingHistoryTab = () => {
                                     <div className="ml-auto">
                                         <span
                                             className="flex justify-center items-center gap-1 text-red-500 font-semibold cursor-pointer"
-                                            onClick={() => handleDelete(item?.id)}
+                                            onClick={() => setDeleteId(item?.id)}
                                         >
-                                            {loading ? (<>Loading</>) : (<>
+                                            {(loading && item?.id === deleteId) ? (<Loader color="blue" />) : (<>
                                                 <X strokeWidth={4} color="red" size={16} /> Xóa
                                             </>)}
                                         </span>
