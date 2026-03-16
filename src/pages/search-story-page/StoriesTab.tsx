@@ -8,7 +8,8 @@ import {
   Anchor,
   Title,
 } from "@mantine/core";
-import { useState, useEffect, useMemo } from "react";import StoryCard from "../../components/story/StoryCard";
+import { useState, useEffect, useMemo } from "react";
+import StoryCard from "../../components/story/StoryCard";
 import { useGenres } from "../../hooks/useGenre";
 import { useTopics } from "../../hooks/useTopics";
 import { useSearchStories } from "../../hooks/useSearch";

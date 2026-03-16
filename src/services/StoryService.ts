@@ -112,6 +112,18 @@ async getStoriesWithFilter(params: {
     throw error;
   }
 },
+
+async rateStory(storyId: string, rate: number) {
+  if (!storyId || !String(storyId).trim()) return null;
+
+  try {
+    const response = await instance.post(`/story/${storyId}/rate`, { rate });
+    return response.data;
+  } catch (error) {
+    console.error("Error rate story:", error);
+    throw error;
+  }
+}
 };
 
 export default StoryService;
