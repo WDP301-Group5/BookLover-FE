@@ -109,7 +109,7 @@ export function UserManagementPage() {
 
 			<DataTable dataTable={dataTable}>
 				<div className="flex items-center justify-between gap-4">
-					<Group>
+					{/* <Group>
 						<TextInput
 							placeholder="Tìm username, email, họ tên..."
 							leftSection={<IconSearch size={16} />}
@@ -138,7 +138,7 @@ export function UserManagementPage() {
 							onChange={setStatus}
 							clearable
 						/>
-					</Group>
+					</Group> */}
 
 					<DataTableColumns />
 				</div>
