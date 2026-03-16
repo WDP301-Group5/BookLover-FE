@@ -91,7 +91,7 @@ export function EditUserModal({
 				<TextInput label="Họ tên" {...form.getInputProps("fullName")} />
 				<TextInput label="Nickname" {...form.getInputProps("nickName")} />
 				<TextInput label="Pen name" {...form.getInputProps("penName")} />
-				<TextInput label="Email" {...form.getInputProps("email")} />
+				<TextInput label="Email" {...form.getInputProps("email")} readOnly />
 				<TextInput
 					label="Ngày sinh"
 					type="date"
@@ -103,7 +103,7 @@ export function EditUserModal({
 					label="Background URL"
 					{...form.getInputProps("backgroundURL")}
 				/>
-				<NumberInput label="VIP level" min={0} {...form.getInputProps("vipLevel")} />
+				<NumberInput label="VIP level" min={0} {...form.getInputProps("vipLevel")} readOnly/>
 
 				<TextInput
 					label="Provider"
