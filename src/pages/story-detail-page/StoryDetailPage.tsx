@@ -30,6 +30,10 @@ import {
   User,
 } from "lucide-react";
 import type { FC } from "react";
+import {
+  useReadingHistoryByStory,
+  useSaveReadingHistory,
+} from "../../hooks/useHistory";
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -101,6 +105,16 @@ interface ViewChapterItem {
   views: number;
   isPremium: boolean;
   status?: string;
+}
+
+interface ReadingHistoryResponse {
+  _id?: string;
+  id?: string;
+  userId?: string;
+  storyId?: string;
+  chapterNumber?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface ViewData {
@@ -182,6 +196,20 @@ const StoryDetailPage: FC = () => {
   const story = rawStory as StoryDetailResponse | undefined;
   const storyId = getStoryId(story);
 
+  const { data: rawReadingHistory } = useReadingHistoryByStory(
+    isLoggedIn && storyId ? storyId : "",
+  );
+
+  const { mutateAsync: saveReadingHistory } = useSaveReadingHistory();
+
+  const readingHistory = rawReadingHistory as
+    | ReadingHistoryResponse
+    | null
+    | undefined;
+
+  const continueChapterNumber = readingHistory?.chapterNumber || 0;
+  const hasContinueReading = continueChapterNumber > 0;
+
   const { mutate: submitRateStory, isPending: rateLoading } = useRateStory(
     slug || "",
   );
@@ -230,6 +258,26 @@ const StoryDetailPage: FC = () => {
   const chapters = (rawChapters ?? []) as ChapterResponse[];
   const authorChapters = (rawAuthorChapters ?? []) as ChapterResponse[];
   const displayChapters = isAuthor ? authorChapters : chapters;
+
+  const handleReadChapter = async (chapterNumber: number) => {
+    if (!chapterNumber) return;
+
+    const storySlug = slugify(title || story?.title || "");
+
+    try {
+      if (isLoggedIn && user?.id && storyId) {
+        await saveReadingHistory({
+          storyId,
+          chapterNumber,
+          userId: user.id,
+        });
+      }
+    } catch (error) {
+      console.error("Lưu lịch sử đọc thất bại:", error);
+    } finally {
+      navigate(`/truyen/${storySlug}/chuong/${chapterNumber}`);
+    }
+  };
 
   const viewData = useMemo<ViewData | null>(() => {
     if (!story) return null;
@@ -441,14 +489,12 @@ const StoryDetailPage: FC = () => {
                 size="xs"
                 color="blue"
                 disabled={!chapterList.length}
-                component="a"
-                href={
-                  chapterList.length
-                    ? `/truyen/${slugify(title)}/chuong/${
-                        chapterList[0].number.split(" ")[1]
-                      }`
-                    : "#"
-                }
+                onClick={() => {
+                  const firstChapter = Number(
+                    chapterList[0]?.number.split(" ")[1] || 0,
+                  );
+                  void handleReadChapter(firstChapter);
+                }}
               >
                 Đọc từ đầu
               </Button>
@@ -457,17 +503,26 @@ const StoryDetailPage: FC = () => {
                 size="xs"
                 color="green"
                 disabled={!chapterList.length}
-                component="a"
-                href={
-                  chapterList.length
-                    ? `/truyen/${slugify(title)}/chuong/${
-                        chapterList[chapterList.length - 1].number.split(" ")[1]
-                      }`
-                    : "#"
-                }
+                onClick={() => {
+                  const latestChapter = Number(
+                    chapterList[chapterList.length - 1]?.number.split(" ")[1] ||
+                      0,
+                  );
+                  void handleReadChapter(latestChapter);
+                }}
               >
                 Đọc mới nhất
               </Button>
+
+              {hasContinueReading && (
+                <Button
+                  size="xs"
+                  color="orange"
+                  onClick={() => handleReadChapter(continueChapterNumber)}
+                >
+                  Đọc tiếp
+                </Button>
+              )}
             </Group>
           </Stack>
         </Group>
@@ -501,11 +556,16 @@ const StoryDetailPage: FC = () => {
             >
               <Group gap={6}>
                 <Anchor
-                  size="sm"
+                  size="sm" 
                   fw={500}
-                  href={`/truyen/${slugify(title)}/chuong/${
-                    chapter.number.split(" ")[1]
-                  }`}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    const selectedChapter = Number(
+                      chapter.number.split(" ")[1] || 0,
+                    );
+                    void handleReadChapter(selectedChapter);
+                  }}
+                  style={{ cursor: "pointer" }}
                 >
                   {chapter.number}
                   {chapter.title ? ` - ${chapter.title}` : ""}
