@@ -3,8 +3,6 @@ import {
 	Badge,
 	Group,
 	Menu,
-	Select,
-	TextInput,
 	Title,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
@@ -13,7 +11,6 @@ import {
 	IconCheck,
 	IconDotsVertical,
 	IconEdit,
-	IconSearch,
 	IconUser,
 } from "@tabler/icons-react";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -32,6 +29,7 @@ import { BanUserModal } from "./BanUserModal";
 import { EditUserModal } from "./EditUserModal";
 import { useBanManagedUser, useUnbanManagedUser, useUpdateManagedUserRole, useUpdateManagedUserStatus } from "../../../hooks/useAdminUser";
 import { AdminUserService } from "../../../services/AdminUserService";
+import { DataTableFilter } from "./DataTableFilter";
 
 export function UserManagementPage() {
 	const [keyword, setKeyword] = useState("");
@@ -139,7 +137,7 @@ export function UserManagementPage() {
 							clearable
 						/>
 					</Group> */}
-
+					<DataTableFilter />
 					<DataTableColumns />
 				</div>
 
