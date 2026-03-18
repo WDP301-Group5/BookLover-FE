@@ -1,5 +1,4 @@
 import {
-  ActionIcon,
   Box,
   Button,
   Combobox,
@@ -23,7 +22,7 @@ import {
   useMantineColorScheme,
   useMantineTheme,
 } from "@mantine/core";
-import { ArrowLeft, ImageIcon } from "lucide-react";
+import { ImageIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { Topic } from "../../interfaces/Topic";
@@ -186,33 +185,23 @@ export default function WriteStoryPage() {
       >
         <Container size="xl" py="sm">
           <Group justify="space-between" align="center" wrap="wrap">
-            <Group align="center" gap="sm" wrap="nowrap">
-              <ActionIcon
-                variant="subtle"
-                size="lg"
-                onClick={() => navigate("/author/my-stories")}
-                color="gray"
+            <Stack gap={0} style={{ minWidth: 0, flex: 1 }}>
+              <Text size="xs" c="dimmed">
+                Thêm thông tin truyện
+              </Text>
+              <Title
+                order={3}
+                size="h4"
+                fw={600}
+                style={{
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
               >
-                <ArrowLeft size={20} />
-              </ActionIcon>
-              <Stack gap={0} style={{ minWidth: 0, flex: 1 }}>
-                <Text size="xs" c="dimmed">
-                  Thêm thông tin truyện
-                </Text>
-                <Title
-                  order={3}
-                  size="h4"
-                  fw={600}
-                  style={{
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {title || "Tác phẩm chưa đặt tên"}
-                </Title>
-              </Stack>
-            </Group>
+                {title || "Tác phẩm chưa đặt tên"}
+              </Title>
+            </Stack>
 
             <Group gap="xs" wrap="wrap">
               <Button
@@ -220,6 +209,7 @@ export default function WriteStoryPage() {
                 color="gray"
                 onClick={() => navigate("/author/my-stories")}
                 size="sm"
+                disabled={loading}
               >
                 Hủy
               </Button>

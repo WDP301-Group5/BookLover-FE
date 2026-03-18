@@ -10,7 +10,9 @@ import Followers from "../../components/user/user-navbar/Followers.tsx";
 
 export function AuthorProfile() {
   const { authorId } = useParams<{ authorId: string }>();
-  const [authorData, setAuthorData] = useState<AuthorPublicProfile | null>(null);
+  const [authorData, setAuthorData] = useState<AuthorPublicProfile | null>(
+    null,
+  );
   const [refreshRelationsKey, setRefreshRelationsKey] = useState(0);
   const { colorScheme } = useMantineColorScheme();
 
@@ -65,7 +67,7 @@ export function AuthorProfile() {
               Giới thiệu
             </Tabs.Tab>
             <Tabs.Tab value="conversation" className="min-h-[52px]">
-              Hội thoại
+              Danh sách đọc
             </Tabs.Tab>
             <Tabs.Tab value="following" className="min-h-[52px]">
               Đang theo dõi

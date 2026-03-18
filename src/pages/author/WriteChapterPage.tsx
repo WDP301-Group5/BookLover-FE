@@ -2,7 +2,9 @@
   Box,
   Button,
   Container,
+  Flex,
   Loader,
+  Modal,
   Stack,
   Text,
   ActionIcon,
@@ -12,9 +14,11 @@
   Radio,
   Divider,
   Image,
-  Popover,
   Badge,
   TextInput,
+  ScrollArea,
+  Title,
+  Alert,
 } from "@mantine/core";
 import {
   ChapterContentInput,
@@ -23,7 +27,6 @@ import {
 import { useForm } from "@mantine/form";
 import { zod4Resolver } from "mantine-form-zod-resolver";
 import {
-  ChevronLeft,
   ChevronDown,
   Send,
   Save,
@@ -39,6 +42,7 @@ import type { Story } from "../../interfaces/Story";
 import type { Chapter } from "../../interfaces/Chapter";
 import { AuthorService } from "../../services/AuthorService";
 import { showError, showSuccess } from "../../utils/notifications.tsx";
+import { timeAgo } from "../../utils";
 import PublishStoryModal from "../../components/author/PublishStoryModal.tsx";
 import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal.tsx";
 
@@ -57,33 +61,26 @@ const writeChapterSchema = z.object({
 
 type WriteChapterFormValues = z.infer<typeof writeChapterSchema>;
 
-const statusLabel: Record<string, string> = {
-  draft: "Bản nháp",
-  pending: "Chờ duyệt",
-  active: "Đã duyệt",
-  rejected: "Bị từ chối",
-  banned: "Bị cấm",
+const statusConfig: Record<string, { label: string; color: string }> = {
+  draft: { label: "Bản nháp", color: "gray" },
+  pending: { label: "Chờ duyệt", color: "yellow" },
+  active: { label: "Đã duyệt", color: "green" },
+  rejected: { label: "Bị từ chối", color: "red" },
+  banned: { label: "Bị cấm", color: "red.9" },
 };
-
-function formatDate(dateStr?: string) {
-  if (!dateStr) return "";
-  return new Date(dateStr).toLocaleDateString("vi-VN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-}
 
 export default function WriteChapterPage() {
   const navigate = useNavigate();
   const { storySlug } = useParams<{ storySlug: string }>();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const chapterParam = searchParams.get("chapter");
   const [story, setStory] = useState<Story | null>(null);
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [storyLoading, setStoryLoading] = useState(true);
-  const [loading, setLoading] = useState(false);
+  const [savingLoading, setSavingLoading] = useState(false);
+  const [publishingLoading, setPublishingLoading] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [hasChangesAfterSave, setHasChangesAfterSave] = useState(false);
   const [selectedChapterIndex, setSelectedChapterIndex] = useState<
     number | null
   >(null);
@@ -97,7 +94,16 @@ export default function WriteChapterPage() {
   const [publishModalOpened, setPublishModalOpened] = useState(false);
   const [deleteModalOpened, setDeleteModalOpened] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [unsavedExitModalOpened, setUnsavedExitModalOpened] = useState(false);
+  const [unsavedPublishModalOpened, setUnsavedPublishModalOpened] =
+    useState(false);
   const titleInputRef = useRef<HTMLInputElement>(null);
+  const isExitingRef = useRef(false);
+  const hasStateRef = useRef(false);
+  const extraPushesRef = useRef(0);
+  const lastSavedContentRef = useRef<string>("");
+  const lastSavedTitleRef = useRef<string>("");
+  const lastSavedChapterTypeRef = useRef<string>("free");
 
   const form = useForm<WriteChapterFormValues>({
     initialValues: {
@@ -171,12 +177,29 @@ export default function WriteChapterPage() {
       })
       .then(async ({ story: storyData, chapters: chapterList }) => {
         // Select chapter from URL param, or start in new-chapter mode if no param
-        const targetNumber = chapterParam ? Number(chapterParam) : null;
-        const targetIdx =
-          targetNumber !== null
-            ? chapterList.findIndex((c) => c.chapterNumber === targetNumber)
-            : -1;
-        const idx = targetIdx !== -1 ? targetIdx : -1;
+        const parsedParam = chapterParam ? Number(chapterParam) : null;
+        const isValidParam =
+          parsedParam !== null &&
+          Number.isInteger(parsedParam) &&
+          parsedParam >= 1;
+
+        // If param is present but invalid, clean up the URL
+        if (chapterParam && !isValidParam) {
+          setSearchParams({}, { replace: true });
+        }
+
+        const targetIdx = isValidParam
+          ? chapterList.findIndex((c) => c.chapterNumber === parsedParam)
+          : -1;
+
+        // If param is valid but not found in list → fallback to first chapter
+        // If param is invalid → treat as no param (new chapter mode)
+        const idx =
+          targetIdx !== -1
+            ? targetIdx
+            : isValidParam && chapterList.length > 0
+              ? 0
+              : -1;
 
         if (idx === -1) {
           const nextNum =
@@ -190,13 +213,22 @@ export default function WriteChapterPage() {
 
         const ch = chapterList[idx];
         setSelectedChapterIndex(idx);
+
+        // Sync URL if param didn't match (fallback case)
+        if (targetIdx === -1) {
+          setSearchParams(
+            { chapter: String(ch.chapterNumber) },
+            { replace: true },
+          );
+        }
+
         form.setValues({
           title: ch.title,
           chapterType: ch.isPremium ? "vip" : "free",
           price: ch.price || 1,
         });
         setContentError(undefined);
-        setSaved(false);
+        setSaved(true);
         setChapterListOpened(false);
 
         // Fetch chapter content from the server
@@ -225,6 +257,65 @@ export default function WriteChapterPage() {
     }
   }, [storyLoading, selectedChapterIndex]);
 
+  // Track changes after save - compare with last saved state
+  useEffect(() => {
+    if (saved) {
+      const currentContent = contentPayload?.html ?? "";
+      const currentTitle = form.values.title;
+      const currentChapterType = form.values.chapterType;
+
+      const hasContentChanged = currentContent !== lastSavedContentRef.current;
+      const hasTitleChanged = currentTitle !== lastSavedTitleRef.current;
+      const hasTypeChanged =
+        currentChapterType !== lastSavedChapterTypeRef.current;
+
+      if (hasContentChanged || hasTitleChanged || hasTypeChanged) {
+        setHasChangesAfterSave(true);
+      }
+    }
+  }, [contentPayload, form.values.title, form.values.chapterType, saved]);
+
+  // Detect unsaved changes before leaving page
+  useEffect(() => {
+    if (!saved && contentPayload) {
+      // Push state once to intercept browser back button
+      if (!hasStateRef.current) {
+        window.history.pushState(null, "", window.location.href);
+        hasStateRef.current = true;
+        extraPushesRef.current = 1;
+      }
+
+      const handlePopState = () => {
+        if (!isExitingRef.current) {
+          // Re-push state to keep user on page, track count
+          window.history.pushState(null, "", window.location.href);
+          extraPushesRef.current += 1;
+          setUnsavedExitModalOpened(true);
+        }
+      };
+
+      window.addEventListener("popstate", handlePopState);
+
+      // Browser back/refresh
+      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+        e.preventDefault();
+        e.returnValue = "";
+        return "";
+      };
+
+      window.addEventListener("beforeunload", handleBeforeUnload);
+
+      return () => {
+        window.removeEventListener("popstate", handlePopState);
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+      };
+    } else {
+      // Reset flags when saved or content cleared
+      hasStateRef.current = false;
+      extraPushesRef.current = 0;
+    }
+  }, [saved, contentPayload]);
+
   const handleNewPart = async () => {
     if (!story) return;
     setChapterListOpened(false);
@@ -242,7 +333,7 @@ export default function WriteChapterPage() {
     setSaved(false);
 
     // Auto-create draft on server immediately (Wattpad-style)
-    setLoading(true);
+    setSavingLoading(true);
     try {
       const formData = new FormData();
       formData.append("storyId", story._id);
@@ -256,15 +347,18 @@ export default function WriteChapterPage() {
       await AuthorService.createChapter(formData);
       const updatedChapters = await loadChapters(story._id);
 
-      const newIdx = updatedChapters.findIndex((c) => c.chapterNumber === newNum);
+      const newIdx = updatedChapters.findIndex(
+        (c) => c.chapterNumber === newNum,
+      );
       const idx = newIdx !== -1 ? newIdx : updatedChapters.length - 1;
       setSelectedChapterIndex(idx);
+      setSearchParams({ chapter: String(newNum) }, { replace: true });
       setContentPayload({ mode: "editor", html: "" });
       setSaved(true);
     } catch {
       showError("Không thể tạo chương mới. Vui lòng thử lại.");
     } finally {
-      setLoading(false);
+      setSavingLoading(false);
       // Focus title input regardless of success/failure
       setTimeout(() => titleInputRef.current?.focus(), 100);
     }
@@ -280,6 +374,23 @@ export default function WriteChapterPage() {
       setContentError("Vui lòng nhập nội dung chương");
       return null;
     }
+
+    // Extract plain text and check if content is empty
+    const plain = contentPayload.html.replace(/<[^>]+>/g, " ").trim();
+    if (!plain) {
+      setContentError("Nội dung chương không được bỏ trống");
+      return null;
+    }
+
+    // Check word count for publish
+    const words = plain.split(/\s+/).filter(Boolean).length;
+    if (status === "pending" && words < 50) {
+      setContentError(
+        `Nội dung chương phải có ít nhất 50 từ (hiện tại: ${words} từ)`,
+      );
+      return null;
+    }
+
     setContentError(undefined);
 
     const formData = new FormData();
@@ -318,7 +429,7 @@ export default function WriteChapterPage() {
     const formData = buildFormData(form.values, "draft");
     if (!formData || !story) return;
 
-    setLoading(true);
+    setSavingLoading(true);
     try {
       if (selectedChapterIndex !== null) {
         // Update existing chapter
@@ -331,6 +442,11 @@ export default function WriteChapterPage() {
 
       showSuccess("Chương đã được lưu nháp!");
       setSaved(true);
+      setHasChangesAfterSave(false);
+      // Save current state as last saved state
+      lastSavedContentRef.current = contentPayload?.html ?? "";
+      lastSavedTitleRef.current = form.values.title;
+      lastSavedChapterTypeRef.current = form.values.chapterType;
 
       const updatedChapters = await loadChapters(story._id);
       // If we just created a new chapter, select it
@@ -343,36 +459,77 @@ export default function WriteChapterPage() {
     } catch {
       showError("Có lỗi xảy ra khi lưu chương. Vui lòng thử lại.");
     } finally {
-      setLoading(false);
+      setSavingLoading(false);
     }
   };
 
   const handlePublishClick = async () => {
+    // Check if there are unsaved changes after last save
+    if (hasChangesAfterSave) {
+      setUnsavedPublishModalOpened(true);
+      return;
+    }
+
+    await proceedWithPublish();
+  };
+
+  const proceedWithPublish = async () => {
     const result = form.validate();
     if (result.hasErrors) return;
+
+    // Check word count BEFORE saving
+    if (!contentPayload) {
+      showError("Nội dung chương không được bỏ trống");
+      return;
+    }
+    const plain = contentPayload.html.replace(/<[^>]+>/g, " ").trim();
+    const words = plain.split(/\s+/).filter(Boolean).length;
+    if (words < 50) {
+      showError(
+        `Nội dung chương phải có ít nhất 50 từ (hiện tại: ${words} từ)`,
+      );
+      return;
+    }
 
     const formData = buildFormData(form.values, "draft");
     if (!formData || !story) return;
 
     // First save current chapter as draft
-    setLoading(true);
+    setPublishingLoading(true);
     try {
+      let chapterId: string;
       if (selectedChapterIndex !== null) {
-        const chapterId = chapters[selectedChapterIndex].id;
+        chapterId = chapters[selectedChapterIndex].id;
         await AuthorService.updateChapter(chapterId, formData);
       } else {
-        await AuthorService.createChapter(formData);
+        const newChapter = await AuthorService.createChapter(formData);
+        chapterId = newChapter.id;
       }
 
       setSaved(true);
+      setHasChangesAfterSave(false);
+      // Update last saved state
+      lastSavedContentRef.current = contentPayload?.html ?? "";
+      lastSavedTitleRef.current = form.values.title;
+      lastSavedChapterTypeRef.current = form.values.chapterType;
       await loadChapters(story._id);
 
-      // Then open publish modal
-      setPublishModalOpened(true);
+      if (story.status === "active") {
+        // Story already published: only submit this chapter for review
+        await AuthorService.submitChapterForReview(chapterId);
+        await loadChapters(story._id);
+        showSuccess(
+          "Chương đã được gửi duyệt! Vui lòng chờ admin phê duyệt.",
+          "Gửi duyệt thành công",
+        );
+      } else {
+        // First publish: open modal to publish whole story
+        setPublishModalOpened(true);
+      }
     } catch {
       showError("Có lỗi xảy ra khi lưu chương. Vui lòng thử lại.");
     } finally {
-      setLoading(false);
+      setPublishingLoading(false);
     }
   };
 
@@ -430,7 +587,7 @@ export default function WriteChapterPage() {
         <Stack align="center" gap="sm">
           <Loader color="blue" />
           <Text c="dimmed" size="sm">
-            Đang tải thông tin tác phẩm...
+            Đang tải thông tin truyện...
           </Text>
         </Stack>
       </Box>
@@ -439,21 +596,117 @@ export default function WriteChapterPage() {
 
   return (
     <Box className="bg-[#f3f3f3] dark:bg-gray-900 min-h-screen">
-      {/* Backdrop overlay when chapter list is open */}
-      {chapterListOpened && (
-        <Box
-          onClick={() => setChapterListOpened(false)}
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 299,
-            opacity: 0,
-          }}
-        />
-      )}
+      {/* ── Chapter List Modal ── */}
+      <Modal
+        opened={chapterListOpened}
+        onClose={() => setChapterListOpened(false)}
+        centered
+        size="lg"
+        radius="lg"
+        withCloseButton
+        title={
+          <Title order={2} ta="center" w="100%" size="h4">
+            {story?.title ?? "Danh sách chương"}
+          </Title>
+        }
+        styles={{
+          header: { width: "100%" },
+          title: { width: "100%" },
+          body: { paddingTop: 8 },
+        }}
+      >
+        <Stack gap={0}>
+          <ScrollArea.Autosize mah={520} offsetScrollbars>
+            <Stack gap="sm" px="md">
+              {chapters.map((ch, idx) => {
+                const cfg =
+                  statusConfig[ch.status ?? "draft"] ?? statusConfig.draft;
+                return (
+                  <Flex
+                    key={ch.id}
+                    justify="space-between"
+                    align="center"
+                    p="sm"
+                    onClick={() => handleSelectChapter(idx)}
+                    className={`border border-gray-200 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${
+                      selectedChapterIndex === idx
+                        ? "bg-blue-50 dark:bg-blue-900/30"
+                        : ""
+                    }`}
+                  >
+                    <Stack gap={4} style={{ flex: 1 }}>
+                      <Group gap="sm">
+                        <Text fw={500} size="sm">
+                          Chương {ch.chapterNumber}
+                        </Text>
+                        <Badge size="sm" variant="light" color={cfg.color}>
+                          {cfg.label}
+                        </Badge>
+                      </Group>
+                      <Text size="sm" c="dimmed" lineClamp={1}>
+                        {ch.title}
+                      </Text>
+                      <Text size="xs" c="dimmed">
+                        Cập nhật{" "}
+                        {timeAgo(
+                          ch.updatedAt ||
+                            ch.createdAt ||
+                            new Date().toISOString(),
+                        )}
+                      </Text>
+                    </Stack>
+                    {selectedChapterIndex === idx && (
+                      <Check size={18} color="var(--mantine-color-teal-6)" />
+                    )}
+                  </Flex>
+                );
+              })}
+
+              {/* Virtual entry for unsaved new chapter */}
+              {selectedChapterIndex === null && (
+                <Flex
+                  justify="space-between"
+                  align="center"
+                  p="sm"
+                  className="bg-blue-50 dark:bg-blue-900/30 border border-gray-200 dark:border-gray-600 rounded-md"
+                >
+                  <Stack gap={4} style={{ flex: 1 }}>
+                    <Group gap="sm">
+                      <Text fw={500} size="sm">
+                        Chương {nextChapterNumber}
+                      </Text>
+                      <Badge size="sm" variant="light" color="gray">
+                        Bản nháp
+                      </Badge>
+                    </Group>
+                    <Text size="sm" c="dimmed" lineClamp={1}>
+                      {form.values.title || `Chương ${nextChapterNumber}`}
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      Chưa lưu
+                    </Text>
+                  </Stack>
+                  <Check size={18} color="var(--mantine-color-teal-6)" />
+                </Flex>
+              )}
+            </Stack>
+          </ScrollArea.Autosize>
+
+          <Button
+            color="blue"
+            leftSection={
+              savingLoading ? <Loader size={14} /> : <Plus size={16} />
+            }
+            mt="md"
+            onClick={handleNewPart}
+            fullWidth
+            disabled={savingLoading}
+            loading={savingLoading}
+          >
+            {savingLoading ? "Đang tạo chương..." : "Chương mới"}
+          </Button>
+        </Stack>
+      </Modal>
       {/* ── Header ── */}
       <Box
         style={{
@@ -465,15 +718,6 @@ export default function WriteChapterPage() {
           <Group justify="space-between" align="center">
             {/* Left: Back + Story info + Chapter dropdown */}
             <Group align="center" gap="sm">
-              <ActionIcon
-                variant="subtle"
-                size="lg"
-                onClick={() => navigate(-1)}
-                color="gray"
-              >
-                <ChevronLeft size={20} />
-              </ActionIcon>
-
               {/* Story thumbnail */}
               {story?.image && (
                 <Image
@@ -487,120 +731,42 @@ export default function WriteChapterPage() {
                 />
               )}
 
-              {/* Story title + Chapter dropdown */}
+              {/* Story title + Chapter modal trigger */}
               <Stack gap={0}>
-                <Popover
-                  opened={chapterListOpened}
-                  onChange={(o) => {
-                    setChapterListOpened(o);
-                    if (o && story) loadChapters(story._id);
+                <Group
+                  gap={4}
+                  style={{ cursor: "pointer" }}
+                  onClick={() => {
+                    if (story) loadChapters(story._id);
+                    setChapterListOpened(true);
                   }}
-                  position="bottom-start"
-                  shadow="md"
-                  width={320}
-                  zIndex={300}
-                  trapFocus
-                  closeOnEscape
                 >
-                  <Popover.Target>
-                    <Group
-                      gap={4}
-                      style={{ cursor: "pointer" }}
-                      onClick={() => setChapterListOpened((o) => !o)}
-                    >
-                      <Text size="xs" c="blue" fw={500}>
-                        {story?.title ?? "Truyện"}
-                      </Text>
-                      <ChevronDown
-                        size={12}
-                        color="var(--mantine-color-blue-6)"
-                      />
-                    </Group>
-                  </Popover.Target>
-
-                  <Popover.Dropdown p={0}>
-                    <Stack gap={0}>
-                      {chapters.map((ch, idx) => (
-                        <Group
-                          key={ch.id}
-                          justify="space-between"
-                          px="md"
-                          py="sm"
-                          onClick={() => handleSelectChapter(idx)}
-                          style={{ cursor: "pointer" }}
-                          className={`border-b border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 ${
-                            selectedChapterIndex === idx
-                              ? "bg-blue-50 dark:bg-blue-900/30"
-                              : ""
-                          }`}
-                        >
-                          <Stack gap={2}>
-                            <Text size="sm" fw={500} lineClamp={1}>
-                              {ch.title || `Chương ${ch.chapterNumber}`}
-                            </Text>
-                            <Text size="xs" c="dimmed">
-                              {statusLabel[ch.status ?? "draft"] ?? "Bản nháp"}{" "}
-                              - {formatDate(ch.createdAt)}
-                            </Text>
-                          </Stack>
-                          {selectedChapterIndex === idx && (
-                            <Check
-                              size={18}
-                              color="var(--mantine-color-teal-6)"
-                            />
-                          )}
-                        </Group>
-                      ))}
-
-                      {/* Virtual entry for unsaved new chapter */}
-                      {selectedChapterIndex === null && (
-                        <Group
-                          justify="space-between"
-                          px="md"
-                          py="sm"
-                          className="bg-blue-50 dark:bg-blue-900/30 border-b border-gray-200 dark:border-gray-600"
-                        >
-                          <Stack gap={2}>
-                            <Text size="sm" fw={500} lineClamp={1}>
-                              {form.values.title ||
-                                `Chương ${nextChapterNumber}`}
-                            </Text>
-                            <Text size="xs" c="dimmed">
-                              Bản nháp - Chưa lưu
-                            </Text>
-                          </Stack>
-                          <Check
-                            size={18}
-                            color="var(--mantine-color-teal-6)"
-                          />
-                        </Group>
-                      )}
-
-                      <Box px="md" py="sm">
-                        <Button
-                          fullWidth
-                          color="blue"
-                          size="xs"
-                          leftSection={<Plus size={14} />}
-                          onClick={handleNewPart}
-                        >
-                          Chương mới
-                        </Button>
-                      </Box>
-                    </Stack>
-                  </Popover.Dropdown>
-                </Popover>
+                  <Text size="xs" c="blue" fw={500}>
+                    {story?.title ?? "Truyện"}
+                  </Text>
+                  <ChevronDown size={12} color="var(--mantine-color-blue-6)" />
+                </Group>
 
                 <Text fw={600} size="sm" lineClamp={1}>
                   {currentChapterTitle}
                 </Text>
 
                 <Group gap={6}>
-                  <Badge size="xs" variant="light" color="gray">
+                  <Badge
+                    size="xs"
+                    variant="light"
+                    color={
+                      selectedChapterIndex !== null
+                        ? (statusConfig[
+                            chapters[selectedChapterIndex]?.status ?? "draft"
+                          ]?.color ?? "gray")
+                        : "gray"
+                    }
+                  >
                     {selectedChapterIndex !== null
-                      ? (statusLabel[
+                      ? (statusConfig[
                           chapters[selectedChapterIndex]?.status ?? "draft"
-                        ] ?? "Bản nháp")
+                        ]?.label ?? "Bản nháp")
                       : "Bản nháp"}
                   </Badge>
                   <Text size="xs" c="dimmed">
@@ -617,86 +783,106 @@ export default function WriteChapterPage() {
 
             {/* Right: Action buttons */}
             <Group gap="xs">
-              <Button
-                color="blue"
-                size="sm"
-                loading={loading}
-                leftSection={<Send size={14} />}
-                onClick={handlePublishClick}
-              >
-                Đăng
-              </Button>
-              <Button
-                variant="outline"
-                color="dark"
-                size="sm"
-                leftSection={<Save size={14} />}
-                onClick={handleSave}
-                loading={loading}
-              >
-                Lưu
-              </Button>
+              <Stack gap={0}>
+                <Group gap="xs">
+                  <Button
+                    color="blue"
+                    size="sm"
+                    loading={publishingLoading}
+                    disabled={
+                      !contentPayload || wordCount === 0 || savingLoading
+                    }
+                    title={
+                      savingLoading
+                        ? "Chờ lưu xong trước khi đăng"
+                        : !contentPayload || wordCount === 0
+                          ? "Vui lòng nhập nội dung chương"
+                          : wordCount < 50
+                            ? `Cần ${50 - wordCount} từ nữa để gửi duyệt`
+                            : ""
+                    }
+                    leftSection={<Send size={14} />}
+                    onClick={handlePublishClick}
+                  >
+                    Đăng
+                  </Button>
+                  <Button
+                    variant="outline"
+                    color="dark"
+                    size="sm"
+                    leftSection={<Save size={14} />}
+                    onClick={handleSave}
+                    loading={savingLoading}
+                    disabled={publishingLoading}
+                  >
+                    Lưu
+                  </Button>
 
-              {/* More menu: chapter settings */}
-              <Menu shadow="md" width={280} position="bottom-end">
-                <Menu.Target>
-                  <ActionIcon variant="subtle" color="gray" size="lg">
-                    <MoreVertical size={20} />
-                  </ActionIcon>
-                </Menu.Target>
+                  {/* More menu: chapter settings */}
+                  <Menu shadow="md" width={280} position="bottom-end">
+                    <Menu.Target>
+                      <ActionIcon variant="subtle" color="gray" size="lg">
+                        <MoreVertical size={20} />
+                      </ActionIcon>
+                    </Menu.Target>
 
-                <Menu.Dropdown>
-                  <Menu.Label>Cài đặt chương</Menu.Label>
+                    <Menu.Dropdown>
+                      <Menu.Label>Cài đặt chương</Menu.Label>
 
-                  <Menu.Item closeMenuOnClick={false}>
-                    <Text size="xs" fw={500} mb="xs" c="dimmed">
-                      Loại chương
-                    </Text>
-                    <Radio.Group
-                      value={form.values.chapterType}
-                      onChange={(val) =>
-                        form.setFieldValue("chapterType", val as "free" | "vip")
-                      }
-                      size="xs"
-                    >
-                      <Group>
-                        <Radio value="free" label="Miễn phí" />
-                        <Radio value="vip" label="Trả phí" />
-                      </Group>
-                    </Radio.Group>
-                  </Menu.Item>
-
-                  <Divider my="xs" />
-
-                  {form.values.chapterType === "vip" && (
-                    <Menu.Item closeMenuOnClick={false}>
-                      <Text size="xs" fw={500} mb="xs" c="dimmed">
-                        Giá chương (Stone)
-                      </Text>
-                      <NumberInput
-                        placeholder="1"
-                        min={1}
-                        step={1}
-                        size="xs"
-                        {...form.getInputProps("price")}
-                      />
-                    </Menu.Item>
-                  )}
-
-                  {selectedChapterIndex !== null && (
-                    <>
-                      <Divider my="xs" />
-                      <Menu.Item
-                        color="red"
-                        leftSection={<Trash2 size={14} />}
-                        onClick={() => setDeleteModalOpened(true)}
-                      >
-                        Xóa chương này
+                      <Menu.Item closeMenuOnClick={false}>
+                        <Text size="xs" fw={500} mb="xs" c="dimmed">
+                          Loại chương
+                        </Text>
+                        <Radio.Group
+                          value={form.values.chapterType}
+                          onChange={(val) =>
+                            form.setFieldValue(
+                              "chapterType",
+                              val as "free" | "vip",
+                            )
+                          }
+                          size="xs"
+                        >
+                          <Group>
+                            <Radio value="free" label="Miễn phí" />
+                            <Radio value="vip" label="Trả phí" />
+                          </Group>
+                        </Radio.Group>
                       </Menu.Item>
-                    </>
-                  )}
-                </Menu.Dropdown>
-              </Menu>
+
+                      <Divider my="xs" />
+
+                      {form.values.chapterType === "vip" && (
+                        <Menu.Item closeMenuOnClick={false}>
+                          <Text size="xs" fw={500} mb="xs" c="dimmed">
+                            Giá chương (Stone)
+                          </Text>
+                          <NumberInput
+                            placeholder="1"
+                            min={1}
+                            step={1}
+                            size="xs"
+                            {...form.getInputProps("price")}
+                          />
+                        </Menu.Item>
+                      )}
+
+                      {selectedChapterIndex !== null && (
+                        <>
+                          <Divider my="xs" />
+                          <Menu.Item
+                            color="red"
+                            leftSection={<Trash2 size={14} />}
+                            onClick={() => setDeleteModalOpened(true)}
+                          >
+                            Xóa chương này
+                          </Menu.Item>
+                        </>
+                      )}
+                    </Menu.Dropdown>
+                  </Menu>
+                </Group>
+              </Stack>
             </Group>
           </Group>
         </Container>
@@ -741,6 +927,13 @@ export default function WriteChapterPage() {
                 error={contentError}
               />
             </Box>
+
+            {/* Word count warning below editor */}
+            {wordCount < 50 && contentPayload && wordCount > 0 && (
+              <Text size="sm" c="red" fw={500}>
+                Cần thêm {50 - wordCount} từ để gửi duyệt
+              </Text>
+            )}
           </Stack>
         </form>
       </Container>
@@ -754,6 +947,78 @@ export default function WriteChapterPage() {
           currentChapterTitle={currentChapterTitle}
         />
       )}
+
+      {/* ── Unsaved Changes Exit Modal ── */}
+      <Modal
+        opened={unsavedExitModalOpened}
+        onClose={() => {
+          setUnsavedExitModalOpened(false);
+          isExitingRef.current = false;
+        }}
+        centered
+        title="Có thay đổi chưa được lưu"
+      >
+        <Stack gap="md">
+          <Text>
+            Bạn có những thay đổi chưa được lưu. Bạn có chắc muốn thoát?
+          </Text>
+          <Group justify="flex-end" gap="sm">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setUnsavedExitModalOpened(false);
+                isExitingRef.current = false;
+              }}
+            >
+              Tiếp tục chỉnh sửa
+            </Button>
+            <Button
+              color="red"
+              onClick={() => {
+                isExitingRef.current = true;
+                setUnsavedExitModalOpened(false);
+                // Go back past all pushed dummy states + 1 to reach the actual previous page
+                window.history.go(-(extraPushesRef.current + 1));
+              }}
+            >
+              Thoát không lưu
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
+
+      {/* ── Unsaved Changes Before Publish Modal ── */}
+      <Modal
+        opened={unsavedPublishModalOpened}
+        onClose={() => setUnsavedPublishModalOpened(false)}
+        centered
+        title="Có thay đổi chưa được lưu"
+      >
+        <Stack gap="md">
+          <Text>
+            Bạn có những thay đổi chưa được lưu. Vui lòng lưu trước khi đăng.
+          </Text>
+          <Group justify="flex-end" gap="sm">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setUnsavedPublishModalOpened(false);
+              }}
+            >
+              Quay lại chỉnh sửa
+            </Button>
+            <Button
+              color="blue"
+              onClick={async () => {
+                setUnsavedPublishModalOpened(false);
+                await handleSave();
+              }}
+            >
+              Lưu và tiếp tục
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
 
       {/* ── Delete Chapter Modal ── */}
       <ConfirmDeleteModal

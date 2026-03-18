@@ -18,6 +18,7 @@ import { useChaptersByStoryForAuthor } from "../../hooks/useChapter";
 import { timeAgo } from "../../utils";
 import { AuthorService } from "../../services/AuthorService";
 import { showError } from "../../utils/notifications";
+import { useUserStore } from "../../stores/useUserStore";
 
 interface ChaptersListModalProps {
   opened: boolean;
@@ -43,6 +44,7 @@ export default function ChaptersListModal({
   storyTitle,
 }: ChaptersListModalProps) {
   const navigate = useNavigate();
+  const { user, updateUser } = useUserStore();
   const [isCreating, setIsCreating] = useState(false);
   const {
     data: chapters = [],
@@ -50,11 +52,19 @@ export default function ChaptersListModal({
     error,
   } = useChaptersByStoryForAuthor(storyId);
 
-  const handleChapterClick = (chapterNumber: number) => {
+  // Ensure role is "author" before navigating to write-chapter
+  const navigateToChapter = (chapterNumber: number) => {
+    if (user?.role === "user") {
+      updateUser({ role: "author" });
+    }
     onClose();
     navigate(
       `/author/story/${storySlug}/write-chapter?chapter=${chapterNumber}`,
     );
+  };
+
+  const handleChapterClick = (chapterNumber: number) => {
+    navigateToChapter(chapterNumber);
   };
 
   const handleCreateNewChapter = async () => {
@@ -76,10 +86,7 @@ export default function ChaptersListModal({
       formData.append("file", blob, `${newTitle}.html`);
 
       const newChapter = await AuthorService.createChapter(formData);
-      onClose();
-      navigate(
-        `/author/story/${storySlug}/write-chapter?chapter=${newChapter.chapterNumber}`,
-      );
+      navigateToChapter(newChapter.chapterNumber);
     } catch {
       showError("Không thể tạo chương mới. Vui lòng thử lại.");
     } finally {
@@ -134,9 +141,11 @@ export default function ChaptersListModal({
       ) : (
         <Stack gap={0}>
           <ScrollArea.Autosize mah={520} offsetScrollbars>
-            <Stack gap="sm" pr="md">
+            <Stack gap="sm" px="md">
               {chapters.map((chapter: Chapter) => {
-                const cfg = statusConfig[(chapter.status as string) || "draft"] || statusConfig.draft;
+                const cfg =
+                  statusConfig[(chapter.status as string) || "draft"] ||
+                  statusConfig.draft;
                 return (
                   <Flex
                     key={chapter.id}
@@ -159,7 +168,8 @@ export default function ChaptersListModal({
                         {chapter.title}
                       </Text>
                       <Text size="xs" c="dimmed">
-                        Cập nhật {timeAgo(chapter.updatedAt || new Date().toISOString())}
+                        Cập nhật{" "}
+                        {timeAgo(chapter.updatedAt || new Date().toISOString())}
                       </Text>
                     </Stack>
                   </Flex>

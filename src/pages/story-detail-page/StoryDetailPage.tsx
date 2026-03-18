@@ -49,7 +49,6 @@ import {
 import { useStoryDetail, useRateStory } from "../../hooks/useStory";
 import { useUserStore } from "../../stores/useUserStore";
 import { showError, showSuccess } from "../../utils/notifications";
-import { slugify } from "../../utils";
 
 interface AuthorInfo {
   _id?: string;
@@ -74,6 +73,7 @@ interface StoryDetailResponse {
   id?: string;
   title: string;
   image: string;
+  slug?: string;
   description?: string;
   author?: AuthorInfo;
   authorId?: StoryAuthorField;
@@ -262,7 +262,10 @@ const StoryDetailPage: FC = () => {
   const handleReadChapter = async (chapterNumber: number) => {
     if (!chapterNumber) return;
 
-    const storySlug = slugify(title || story?.title || "");
+    // Prefer slug from current URL to avoid drifting to another story when
+    // stories have similar titles and stale payload data appears.
+    const storySlug = slug || story?.slug;
+    if (!storySlug) return;
 
     try {
       if (isLoggedIn && user?.id && storyId) {
@@ -556,7 +559,7 @@ const StoryDetailPage: FC = () => {
             >
               <Group gap={6}>
                 <Anchor
-                  size="sm" 
+                  size="sm"
                   fw={500}
                   onClick={(event) => {
                     event.preventDefault();
