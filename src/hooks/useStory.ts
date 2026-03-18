@@ -114,6 +114,13 @@ export const useStoryDetailWithAuthor = (slug: string) =>
     return res.data;
   });
 
+  export const useAllStory = () => {
+    return useQuery({
+      queryKey: ["allStory"],
+      queryFn: () => StoryService.getAllStory(),
+    });
+  };
+
   export const useRateStory = (slug?: string) => {
   const queryClient = useQueryClient();
 
