@@ -113,3 +113,10 @@ export const useStoryDetailWithAuthor = (slug: string) =>
     const res = await axios.get(`/api/v1/story/with-author/${slug}`);
     return res.data;
   });
+
+  export const useAllStory = () => {
+    return useQuery({
+      queryKey: ["allStory"],
+      queryFn: () => StoryService.getAllStory(),
+    });
+  };

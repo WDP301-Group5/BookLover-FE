@@ -46,8 +46,8 @@ const RequireLoginModal = ({
 			zIndex={3000}
 			title={
 				<Group gap="xs">
-					<IconAlertCircle size={24} className="text-orange-500" stroke={2.5} />
-					<span className="text-lg font-semibold text-gray-800">{title}</span>
+					<IconAlertCircle size={24} className="text-orange-600" stroke={2.5} />
+					<span className="text-lg font-semibold text-gray-800 dark:text-white">{title}</span>
 				</Group>
 			}
 			centered
