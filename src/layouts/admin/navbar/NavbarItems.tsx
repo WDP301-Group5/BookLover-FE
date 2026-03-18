@@ -39,7 +39,7 @@ export const NAVBAR_ITEMS: NavbarItem[] = [
   {
     label: "Quản lý doanh thu",
     icon: Coins,
-    link: "/admin",
+    link: "/admin/transactions",
   },
   {
     label: "Kiểm duyệt nội dung",

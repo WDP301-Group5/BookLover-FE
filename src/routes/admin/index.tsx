@@ -10,6 +10,7 @@ import { BannedKeywordManagement } from "../../pages/admin/censor/BannedKeywordM
 import ReportManagement from "../../pages/admin/reports/ReportManagement";
 import NotFoundPage from "../../pages/error/not-found";
 import { UserManagementPage } from "../../pages/admin/user-management/UserManagementPage";
+import { AdminTransactionPage } from "../../pages/admin/transaction/AdminTransactionPage";
 
 export const AdminRoute: RouteObject = {
   path: "/admin",
@@ -35,6 +36,10 @@ export const AdminRoute: RouteObject = {
         {
           path: "users",
           element: <UserManagementPage />
+        },
+        {
+          path: "transactions",
+          element: <AdminTransactionPage />
         },
         {
           path: "catalog",
