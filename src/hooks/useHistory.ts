@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import HistoryService from "../services/HistoryService";
 
 export const useLast3History = () => {
@@ -40,5 +40,27 @@ export const usePurchaseHistory = (page: number, limit: number) => {
   return useQuery({
     queryKey: ["purchaseHistory", page, limit],
     queryFn: () => HistoryService.getPurchaseHistory(page, limit),
+  });
+};
+
+export const useReadingHistoryByStory = (storyId: string) => {
+  return useQuery({
+    queryKey: ["readingHistoryByStory", storyId],
+    queryFn: () => HistoryService.getReadingHistoryByStory(storyId),
+    enabled: !!storyId,
+  });
+};
+
+export const useSaveReadingHistory = () => {
+  return useMutation({
+    mutationFn: ({
+      storyId,
+      chapterNumber,
+      userId,
+    }: {
+      storyId: string;
+      chapterNumber: number;
+      userId: string;
+    }) => HistoryService.saveReadingHistory(storyId, chapterNumber, userId),
   });
 };

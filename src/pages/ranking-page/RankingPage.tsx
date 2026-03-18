@@ -1,4 +1,4 @@
-// src/pages/ranking-page/RankingPage.tsx
+// sr
 import {
   Container,
   Title,
@@ -126,9 +126,9 @@ function TopStorySearchCard({ story, onClick }: TopStorySearchCardProps) {
               Thể loại: {story.categories.join(", ")}
             </Text>
 
-            <Group gap={0} mt="xs" grow>
-              <Stack align="center" gap={2}>
-                <Group gap={4}>
+            <Group gap={0} mt="xs" wrap="nowrap" align="center">
+              <Stack align="center" gap={2} style={{ flex: 1 }}>
+                <Group gap={4} justify="center">
                   <Eye size={rem(12)} />
                   <Text size="xs">Xem</Text>
                 </Group>
@@ -137,10 +137,10 @@ function TopStorySearchCard({ story, onClick }: TopStorySearchCardProps) {
                 </Text>
               </Stack>
 
-              <Divider orientation="vertical" />
+              <Divider orientation="vertical" h={36} />
 
-              <Stack align="center" gap={2}>
-                <Group gap={4}>
+              <Stack align="center" gap={2} style={{ flex: 1 }}>
+                <Group gap={4} justify="center">
                   <UserPlus size={rem(12)} />
                   <Text size="xs">Theo dõi</Text>
                 </Group>
@@ -149,10 +149,10 @@ function TopStorySearchCard({ story, onClick }: TopStorySearchCardProps) {
                 </Text>
               </Stack>
 
-              <Divider orientation="vertical" />
+              <Divider orientation="vertical" h={36} />
 
-              <Stack align="center" gap={2}>
-                <Group gap={4}>
+              <Stack align="center" gap={2} style={{ flex: 1 }}>
+                <Group gap={4} justify="center">
                   <Star size={rem(12)} />
                   <Text size="xs">Đánh giá</Text>
                 </Group>
@@ -161,10 +161,10 @@ function TopStorySearchCard({ story, onClick }: TopStorySearchCardProps) {
                 </Text>
               </Stack>
 
-              <Divider orientation="vertical" />
+              <Divider orientation="vertical" h={36} />
 
-              <Stack align="center" gap={2}>
-                <Group gap={4}>
+              <Stack align="center" gap={2} style={{ flex: 1 }}>
+                <Group gap={4} justify="center">
                   <BookOpen size={rem(12)} />
                   <Text size="xs">Chương</Text>
                 </Group>
@@ -324,7 +324,10 @@ export default function RankingPage() {
   const mappedStoryCards = useMemo<TopStoryCardData[]>(() => {
     return storyRankingData.map((item: RankingStoryItem) => {
       const mergedCategories = [...(item.genres ?? []), ...(item.topics ?? [])];
-      const uniqueCategories = Array.from(new Set(mergedCategories)).slice(0, 5);
+      const uniqueCategories = Array.from(new Set(mergedCategories)).slice(
+        0,
+        5,
+      );
 
       return {
         rank: item.rank,
@@ -356,7 +359,12 @@ export default function RankingPage() {
       </Group>
 
       <Paper withBorder radius="md" p="lg" shadow="sm">
-        <Tabs value={mainTab} onChange={setMainTab} variant="pills" color="blue">
+        <Tabs
+          value={mainTab}
+          onChange={setMainTab}
+          variant="pills"
+          color="blue"
+        >
           <Tabs.List grow mb="xl">
             <Tabs.Tab value="stories" leftSection={<BookOpen size={18} />}>
               Top Truyện

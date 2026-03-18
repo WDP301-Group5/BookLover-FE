@@ -91,29 +91,41 @@ const StoryService = {
   },
 
   async createStory(data: FormData): Promise<Story> {
-    const res = await instance.post("/story", data, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-    return res.data;
-  },
-  async getStoriesWithFilter(params: {
-    page: number;
-    limit: number;
-    status?: string;
-    category?: string;
-    search?: string;
-    sortBy?: string;
-  }) {
-    try {
-      const response = await instance.get("/story/search", { params });
-      return response?.data;
-    } catch (error) {
-      console.error("Error fetching stories with filter:", error);
-      throw error;
-    }
-  },
+		const res = await instance.post("/story", data, {
+			headers: {
+				"Content-Type": "multipart/form-data",
+			},
+		});
+		return res.data;
+	},
+async getStoriesWithFilter(params: {
+  page: number;
+  limit: number;
+  status?: string;
+  category?: string;  
+  search?: string;
+  sortBy?: string;
+}) {
+  try {
+    const response = await instance.get("/story/search", { params });
+    return response?.data;
+  } catch (error) {
+    console.error("Error fetching stories with filter:", error);
+    throw error;
+  }
+},
+
+async rateStory(storyId: string, rate: number) {
+  if (!storyId || !String(storyId).trim()) return null;
+
+  try {
+    const response = await instance.post(`/story/${storyId}/rate`, { rate });
+    return response.data;
+  } catch (error) {
+    console.error("Error rate story:", error);
+    throw error;
+  }
+},
 
   async getAllStory() {
     try {

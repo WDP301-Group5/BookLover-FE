@@ -17,7 +17,6 @@ import {
   Textarea,
   Title,
 } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
 import {
   Activity,
   ChevronRight,
@@ -31,62 +30,266 @@ import {
   User,
 } from "lucide-react";
 import type { FC } from "react";
+import {
+  useReadingHistoryByStory,
+  useSaveReadingHistory,
+} from "../../hooks/useHistory";
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useUserStore } from "../../stores/useUserStore";
+
 import RequireLoginModal from "../../components/Modal/RequireLoginModal";
 import {
   useChaptersByStory,
   useChaptersByStoryForAuthor,
 } from "../../hooks/useChapter";
-import { useStoryDetail } from "../../hooks/useStory";
-import { slugify } from "../../utils";
-import { useQueryClient } from "@tanstack/react-query";
-import { useCheckUserFollowStory } from "../../hooks/useFollowStory";
-import FollowStoryService from "../../services/FollowStoryService";
+import {
+  useCheckUserFollowStory,
+  useChangeStatusFollowStory,
+} from "../../hooks/useFollowStory";
+import { useStoryDetail, useRateStory } from "../../hooks/useStory";
+import { useUserStore } from "../../stores/useUserStore";
 import { showError, showSuccess } from "../../utils/notifications";
+import { slugify } from "../../utils";
+
+interface AuthorInfo {
+  _id?: string;
+  fullName?: string;
+  nickName?: string;
+  penName?: string;
+  avatarURL?: string;
+}
+
+interface TopicInfo {
+  _id?: string;
+  name?: string;
+  description?: string;
+  status?: string;
+}
+
+type StoryAuthorField = string | AuthorInfo | undefined;
+type StoryTopicField = string | TopicInfo;
+
+interface StoryDetailResponse {
+  _id?: string;
+  id?: string;
+  title: string;
+  image: string;
+  description?: string;
+  author?: AuthorInfo;
+  authorId?: StoryAuthorField;
+  topics?: StoryTopicField[];
+  status?: string;
+  views?: number;
+  stars?: number;
+  rates?: number;
+  updatedAt?: string;
+}
+
+interface ChapterResponse {
+  chapterNumber: number;
+  title?: string;
+  updatedAt?: string;
+  views?: number;
+  isPremium?: boolean;
+  status?: string;
+}
+
+interface FollowStoryResponse {
+  status?: "follow" | "unsend" | "unfollow";
+}
+
+interface ViewChapterItem {
+  number: string;
+  title?: string;
+  updatedAt: string;
+  views: number;
+  isPremium: boolean;
+  status?: string;
+}
+
+interface ReadingHistoryResponse {
+  _id?: string;
+  id?: string;
+  userId?: string;
+  storyId?: string;
+  chapterNumber?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+interface ViewData {
+  title: string;
+  breadcrumbs: Array<{ label: string; href: string }>;
+  coverUrl: string;
+  authorId: string;
+  author: string;
+  status: string;
+  genres: string[];
+  views: number;
+  rating: number;
+  ratingCount: number;
+  updatedAt: string;
+  description: string;
+  chapters: ViewChapterItem[];
+}
+
+const isAuthorInfo = (value: unknown): value is AuthorInfo => {
+  return typeof value === "object" && value !== null;
+};
+
+const isTopicInfo = (value: unknown): value is TopicInfo => {
+  return typeof value === "object" && value !== null;
+};
+
+const getStoryId = (story?: StoryDetailResponse): string => {
+  return story?._id || story?.id || "";
+};
+
+const getAuthorObject = (
+  story?: StoryDetailResponse,
+): AuthorInfo | undefined => {
+  if (story?.author) return story.author;
+  if (isAuthorInfo(story?.authorId)) return story.authorId;
+  return undefined;
+};
+
+const getAuthorId = (story?: StoryDetailResponse): string => {
+  const authorObject = getAuthorObject(story);
+  if (authorObject?._id) return authorObject._id;
+  if (typeof story?.authorId === "string") return story.authorId;
+  return "";
+};
+
+const getAuthorName = (story?: StoryDetailResponse): string => {
+  const authorObject = getAuthorObject(story);
+  return (
+    authorObject?.penName ||
+    authorObject?.nickName ||
+    authorObject?.fullName ||
+    "Đang cập nhật"
+  );
+};
+
+const getTopicNames = (topics?: StoryTopicField[]): string[] => {
+  if (!topics || !Array.isArray(topics)) return [];
+
+  return topics
+    .map((topic) => {
+      if (typeof topic === "string") return topic;
+      if (isTopicInfo(topic)) return topic.name || "";
+      return "";
+    })
+    .filter(Boolean);
+};
 
 const StoryDetailPage: FC = () => {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
+  const { isLoggedIn, user } = useUserStore();
 
   const {
-    data: story,
+    data: rawStory,
     isLoading: storyLoading,
     isError: storyError,
   } = useStoryDetail(slug || "");
 
-  const { data: chapters, isLoading: chapterLoading } = useChaptersByStory(
-    story?.id || "",
+  const story = rawStory as StoryDetailResponse | undefined;
+  const storyId = getStoryId(story);
+
+  const { data: rawReadingHistory } = useReadingHistoryByStory(
+    isLoggedIn && storyId ? storyId : "",
   );
 
-  const [followed, { toggle }] = useDisclosure(false);
+  const { mutateAsync: saveReadingHistory } = useSaveReadingHistory();
+
+  const readingHistory = rawReadingHistory as
+    | ReadingHistoryResponse
+    | null
+    | undefined;
+
+  const continueChapterNumber = readingHistory?.chapterNumber || 0;
+  const hasContinueReading = continueChapterNumber > 0;
+
+  const { mutate: submitRateStory, isPending: rateLoading } = useRateStory(
+    slug || "",
+  );
+  const handleRateStory = (value: number) => {
+    if (!isLoggedIn) {
+      setLoginModalOpened(true);
+      return;
+    }
+
+    if (!storyId) return;
+
+    const selectedRate = Math.round(value);
+
+    if (selectedRate < 1 || selectedRate > 5) return;
+
+    submitRateStory({
+      storyId,
+      rate: selectedRate,
+    });
+  };
+
+  const { data: rawChapters, isLoading: chapterLoading } =
+    useChaptersByStory(storyId);
+
   const [hoverRating, setHoverRating] = useState<number | null>(null);
   const [loginModalOpened, setLoginModalOpened] = useState(false);
-  const { isLoggedIn, user } = useUserStore();
-  const navigate = useNavigate();
 
-  const isAuthor = !!user && !!story && story.authorId?._id === user.id;
+  const authorIdFromStory = getAuthorId(story);
+  const isAuthor =
+    !!user && !!authorIdFromStory && authorIdFromStory === user.id;
 
-  const { data: authorChapters, isLoading: authorChapterLoading } =
-    useChaptersByStoryForAuthor(isAuthor ? (story?.id ?? "") : "");
+  const { data: rawAuthorChapters, isLoading: authorChapterLoading } =
+    useChaptersByStoryForAuthor(isAuthor ? storyId : "");
 
+  const { data: rawFollowData } = useCheckUserFollowStory(
+    isLoggedIn && storyId ? storyId : "",
+  );
+
+  const { mutate: changeFollowStatus, isPending: followLoading } =
+    useChangeStatusFollowStory();
+
+  const followData = rawFollowData as FollowStoryResponse | null | undefined;
+  const followed =
+    followData?.status === "follow" || followData?.status === "unsend";
+
+  const chapters = (rawChapters ?? []) as ChapterResponse[];
+  const authorChapters = (rawAuthorChapters ?? []) as ChapterResponse[];
   const displayChapters = isAuthor ? authorChapters : chapters;
 
-  const viewData = useMemo(() => {
+  const handleReadChapter = async (chapterNumber: number) => {
+    if (!chapterNumber) return;
+
+    const storySlug = slugify(title || story?.title || "");
+
+    try {
+      if (isLoggedIn && user?.id && storyId) {
+        await saveReadingHistory({
+          storyId,
+          chapterNumber,
+          userId: user.id,
+        });
+      }
+    } catch (error) {
+      console.error("Lưu lịch sử đọc thất bại:", error);
+    } finally {
+      navigate(`/truyen/${storySlug}/chuong/${chapterNumber}`);
+    }
+  };
+
+  const viewData = useMemo<ViewData | null>(() => {
     if (!story) return null;
 
     return {
       title: story.title,
       breadcrumbs: [{ label: "Trang chủ", href: "/" }],
       coverUrl: story.image,
-      authorId: story.author?._id || "",
-      author:
-        story.author?.penName ||
-        story.author?.nickName ||
-        story.author?.fullName ||
-        "Đang cập nhật",
+      authorId: getAuthorId(story),
+      author: getAuthorName(story),
       status: story.status || "Đang tiến hành",
-      genres: story.topics || [],
+      genres: getTopicNames(story.topics),
       views: story.views || 0,
       rating:
         story.stars && story.rates
@@ -97,17 +300,16 @@ const StoryDetailPage: FC = () => {
         ? new Date(story.updatedAt).toLocaleString("vi-VN")
         : "",
       description: story.description || "",
-      chapters:
-        displayChapters?.map((c) => ({
-          number: `Chapter ${c.chapterNumber}`,
-          title: c.title,
-          updatedAt: c.updatedAt
-            ? new Date(c.updatedAt).toLocaleString("vi-VN")
-            : "",
-          views: c.views || 0,
-          isPremium: c.isPremium ?? false,
-          status: "status" in c ? (c.status as string | undefined) : undefined,
-        })) || [],
+      chapters: displayChapters.map((chapter) => ({
+        number: `Chapter ${chapter.chapterNumber}`,
+        title: chapter.title,
+        updatedAt: chapter.updatedAt
+          ? new Date(chapter.updatedAt).toLocaleString("vi-VN")
+          : "",
+        views: chapter.views || 0,
+        isPremium: chapter.isPremium ?? false,
+        status: chapter.status,
+      })),
     };
   }, [story, displayChapters]);
 
@@ -202,9 +404,9 @@ const StoryDetailPage: FC = () => {
                 <Text size="sm" fw={500}>
                   Thể loại:
                 </Text>
-                {genres.map((g: string) => (
-                  <Badge key={g} size="xs" variant="light">
-                    {g}
+                {genres.map((genre) => (
+                  <Badge key={genre} size="xs" variant="light">
+                    {genre}
                   </Badge>
                 ))}
               </Group>
@@ -216,10 +418,12 @@ const StoryDetailPage: FC = () => {
                 </Text>
                 <Rating
                   value={hoverRating ?? rating}
-                  fractions={2}
+                  fractions={1}
                   size="sm"
+                  readOnly={rateLoading}
                   onHover={setHoverRating}
                   onMouseLeave={() => setHoverRating(null)}
+                  onChange={handleRateStory}
                 />
                 <Text size="xs" c="dimmed">
                   {Math.max(0, hoverRating ?? rating)} / 5 ({ratingCount})
@@ -246,6 +450,7 @@ const StoryDetailPage: FC = () => {
                 size="xs"
                 color="red"
                 variant={followed ? "filled" : "outline"}
+                loading={followLoading}
                 leftSection={
                   <Heart size={14} fill={followed ? "currentColor" : "none"} />
                 }
@@ -254,7 +459,27 @@ const StoryDetailPage: FC = () => {
                     setLoginModalOpened(true);
                     return;
                   }
-                  toggle();
+
+                  if (!storyId) return;
+
+                  changeFollowStatus(
+                    {
+                      storyId,
+                      status: followed ? "unfollow" : "follow",
+                    },
+                    {
+                      onSuccess: () => {
+                        showSuccess(
+                          followed
+                            ? "Đã bỏ theo dõi truyện"
+                            : "Đã theo dõi truyện",
+                        );
+                      },
+                      onError: (error: Error) => {
+                        showError(error.message || "Lỗi khi cập nhật theo dõi");
+                      },
+                    },
+                  );
                 }}
               >
                 {followed ? "Đã theo dõi" : "Theo dõi"}
@@ -264,14 +489,12 @@ const StoryDetailPage: FC = () => {
                 size="xs"
                 color="blue"
                 disabled={!chapterList.length}
-                component="a"
-                href={
-                  chapterList.length
-                    ? `/truyen/${slugify(title)}/chuong/${
-                        chapterList[0].number.split(" ")[1]
-                      }`
-                    : "#"
-                }
+                onClick={() => {
+                  const firstChapter = Number(
+                    chapterList[0]?.number.split(" ")[1] || 0,
+                  );
+                  void handleReadChapter(firstChapter);
+                }}
               >
                 Đọc từ đầu
               </Button>
@@ -280,17 +503,26 @@ const StoryDetailPage: FC = () => {
                 size="xs"
                 color="green"
                 disabled={!chapterList.length}
-                component="a"
-                href={
-                  chapterList.length
-                    ? `/truyen/${slugify(title)}/chuong/${
-                        chapterList[chapterList.length - 1].number.split(" ")[1]
-                      }`
-                    : "#"
-                }
+                onClick={() => {
+                  const latestChapter = Number(
+                    chapterList[chapterList.length - 1]?.number.split(" ")[1] ||
+                      0,
+                  );
+                  void handleReadChapter(latestChapter);
+                }}
               >
                 Đọc mới nhất
               </Button>
+
+              {hasContinueReading && (
+                <Button
+                  size="xs"
+                  color="orange"
+                  onClick={() => handleReadChapter(continueChapterNumber)}
+                >
+                  Đọc tiếp
+                </Button>
+              )}
             </Group>
           </Stack>
         </Group>
@@ -324,15 +556,21 @@ const StoryDetailPage: FC = () => {
             >
               <Group gap={6}>
                 <Anchor
-                  size="sm"
+                  size="sm" 
                   fw={500}
-                  href={`/truyen/${slugify(title)}/chuong/${
-                    chapter.number.split(" ")[1]
-                  }`}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    const selectedChapter = Number(
+                      chapter.number.split(" ")[1] || 0,
+                    );
+                    void handleReadChapter(selectedChapter);
+                  }}
+                  style={{ cursor: "pointer" }}
                 >
                   {chapter.number}
                   {chapter.title ? ` - ${chapter.title}` : ""}
                 </Anchor>
+
                 {chapter.isPremium && (
                   <Badge
                     size="xs"
@@ -343,6 +581,7 @@ const StoryDetailPage: FC = () => {
                     VIP
                   </Badge>
                 )}
+
                 {isAuthor && chapter.status && chapter.status !== "active" && (
                   <Badge
                     size="xs"
@@ -390,7 +629,6 @@ const StoryDetailPage: FC = () => {
                 setLoginModalOpened(true);
                 return;
               }
-              toggle();
             }}
           >
             Gửi bình luận

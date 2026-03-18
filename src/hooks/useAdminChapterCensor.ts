@@ -1,7 +1,8 @@
 import { notifications } from "@mantine/notifications";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 import { AdminChapterCensorService } from "../services/AdminChapterCensorService";
+import socket from "../lib/socket";
 
 interface ModerationAction {
   id: string;
@@ -25,7 +26,7 @@ export const useApproveChapter = () => {
         color: "green",
       });
     },
-    onError: (error: AxiosError<any>) => {
+    onError: (error: AxiosError) => {
       notifications.show({
         title: "Lỗi",
         message:
@@ -54,7 +55,7 @@ export const useRejectChapter = () => {
         color: "blue",
       });
     },
-    onError: (error: AxiosError<any>) => {
+    onError: (error: AxiosError) => {
       notifications.show({
         title: "Lỗi",
         message:
@@ -83,7 +84,7 @@ export const useBanChapter = () => {
         color: "orange",
       });
     },
-    onError: (error: AxiosError<any>) => {
+    onError: (error: AxiosError) => {
       notifications.show({
         title: "Lỗi",
         message:
@@ -111,11 +112,123 @@ export const useUnbanChapter = () => {
         color: "green",
       });
     },
-    onError: (error: AxiosError<any>) => {
+    onError: (error: AxiosError) => {
       notifications.show({
         title: "Lỗi",
         message:
           error.response?.data?.message || "Không thể mở khóa chương truyện",
+        color: "red",
+      });
+    },
+  });
+};
+
+export const useOverrideDecision = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, decision, reason }: ModerationAction & { decision: "active" | "rejected" }) =>
+      AdminChapterCensorService.overrideDecision(id, decision, reason || ""),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["admin", "chapters", "pending"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["admin", "chapters", "managed"],
+      });
+      notifications.show({
+        title: "Thành công",
+        message: "Đã ghi nhận quyết định override",
+        color: "green",
+      });
+    },
+    onError: (error: AxiosError) => {
+      notifications.show({
+        title: "Lỗi",
+        message:
+          error.response?.data?.message || "Không thể override quyết định",
+        color: "red",
+      });
+    },
+  });
+};
+
+export const useQueueStatus = () => {
+  return useQuery({
+    queryKey: ["admin", "chapters", "queue", "status"],
+    queryFn: () => AdminChapterCensorService.getQueueStatus(),
+    refetchInterval: 30000,
+  });
+};
+
+export const useRetryFailedJobs = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => AdminChapterCensorService.retryFailedJobs(),
+    onSuccess: (count) => {
+      queryClient.invalidateQueries({
+        queryKey: ["admin", "chapters", "queue", "status"],
+      });
+      notifications.show({
+        title: "Thành công",
+        message: `Đã thêm ${count} job vào hàng đợi`,
+        color: "green",
+      });
+    },
+    onError: (error: AxiosError) => {
+      notifications.show({
+        title: "Lỗi",
+        message:
+          error.response?.data?.message || "Không thể retry jobs",
+        color: "red",
+      });
+    },
+  });
+};
+
+export const useOverrideStatistics = () => {
+  return useQuery({
+    queryKey: ["admin", "chapters", "statistics", "overrides"],
+    queryFn: () => AdminChapterCensorService.getOverrideStatistics(),
+  });
+};
+
+export const useTriggerAIAnalysis = (onComplete?: () => void) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const result = await AdminChapterCensorService.triggerAIAnalysis(id);
+
+      if (!socket.connected) {
+        socket.connect();
+      }
+
+      const handleAIComplete = () => {
+        queryClient.invalidateQueries({ queryKey: ["admin", "chapters", "pending"] });
+        queryClient.invalidateQueries({ queryKey: ["admin", "chapters", "managed"] });
+        socket.off("ai-analysis-complete", handleAIComplete);
+        onComplete?.();
+      };
+
+      socket.on("ai-analysis-complete", handleAIComplete);
+
+      setTimeout(() => {
+        socket.off("ai-analysis-complete", handleAIComplete);
+      }, 30000);
+
+      return result;
+    },
+    onSuccess: () => {
+      notifications.show({
+        title: "Thành công",
+        message: "Đã bắt đầu phân tích AI",
+        color: "green",
+      });
+    },
+    onError: (error: AxiosError) => {
+      notifications.show({
+        title: "Lỗi",
+        message:
+          error.response?.data?.message || "Không thể phân tích AI",
         color: "red",
       });
     },

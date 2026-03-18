@@ -4,14 +4,13 @@ import {
   IconListCheck,
   IconNotes,
   IconUsers,
-  type IconProps,
+  type TablerIcon,
 } from "@tabler/icons-react";
-import { Coins, UserLock } from "lucide-react";
-import type { ForwardRefExoticComponent, RefAttributes } from "react";
+import { Coins, UserLock, type LucideIcon } from "lucide-react";
 
 export type NavbarItem = {
   label: string;
-  icon?: ForwardRefExoticComponent<IconProps & RefAttributes<SVGSVGElement>>;
+  icon?: TablerIcon | LucideIcon;
   link?: string;
   links?: NavbarItem[];
 };
@@ -48,6 +47,7 @@ export const NAVBAR_ITEMS: NavbarItem[] = [
     links: [
       { label: "Kiểm duyệt Truyện", link: "/admin/censor/stories" },
       { label: "Kiểm duyệt Chương", link: "/admin/censor/chapters" },
+      { label: "Từ khóa cấm", link: "/admin/censor/keywords" },
     ],
   },
   {
