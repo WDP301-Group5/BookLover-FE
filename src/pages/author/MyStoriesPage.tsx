@@ -12,7 +12,7 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { BookPlus } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import MyStoryCard from "../../components/story/MyStoryCard";
 import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
@@ -22,6 +22,7 @@ import {
   useUpdateStory,
 } from "../../hooks/useStory";
 import { showSuccess, showError } from "../../utils/notifications";
+import { useUserStore } from "../../stores/useUserStore";
 
 export default function MyStoriesPage() {
   const navigate = useNavigate();
@@ -30,6 +31,7 @@ export default function MyStoriesPage() {
   const { data: stories, isLoading } = useMyStories();
   const deleteStory = useDeleteStory();
   const updateStory = useUpdateStory();
+  const { user, updateUser } = useUserStore();
 
   const [
     deleteModalOpened,
@@ -44,6 +46,13 @@ export default function MyStoriesPage() {
     { open: openUnpublishModal, close: closeUnpublishModal },
   ] = useDisclosure(false);
   const [selectedStoryId, setSelectedStoryId] = useState<string | null>(null);
+
+  // Sync role: if user has stories but role is still "user", upgrade to "author"
+  useEffect(() => {
+    if (stories && stories.length > 0 && user?.role === "user") {
+      updateUser({ role: "author" });
+    }
+  }, [stories, user?.role, updateUser]);
 
   // Filter stories theo tab
   const publishedStories = useMemo(

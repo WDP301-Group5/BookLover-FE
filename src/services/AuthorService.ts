@@ -78,4 +78,8 @@ export const AuthorService = {
   deleteChapter: async (id: string): Promise<void> => {
     await axios.delete(`/chapter/${id}`);
   },
+
+  submitChapterForReview: async (id: string): Promise<void> => {
+    await axios.patch(`/chapter/${id}/review`);
+  },
 };
