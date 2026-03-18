@@ -333,7 +333,7 @@ const ForumPostPage = () => {
                                             {repliesMap[post?.id].map((reply) => (
                                                 <Card key={reply.id} withBorder p={1} px={8} radius="md">
                                                     <Group>
-                                                        <Avatar radius="xl" size="md" />
+                                                        <Avatar src={reply.userId?.avatarURL} radius="xl" size="md" />
                                                         <Box>
                                                             <Text size="sm" fw={500}>{reply.userId.nickName}</Text>
                                                             <Text size="sm" mt={4}>
