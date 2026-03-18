@@ -25,6 +25,7 @@ import ChatingPage from "../pages/chat-page/ChatPage";
 import ForumCategoriesPage from "../pages/forum/ForumCategoryPage";
 import ForumTopicPage from "../pages/forum/ForumTopicPage";
 import ForumPostPage from "../pages/forum/ForumPostPage";
+import ReviewPage from "../pages/review-story-page/ReviewPage";
 
 const routes = createBrowserRouter([
   UserWriteStoryRoute,
@@ -110,6 +111,10 @@ const routes = createBrowserRouter([
       {
         path: "community/forums/:slug",
         element: <ForumTopicPage />,
+      },
+      {
+        path: "review-story",
+        element: <ReviewPage />,
       },
       {
         path: "community/forums/:slug/:topicSlug",
