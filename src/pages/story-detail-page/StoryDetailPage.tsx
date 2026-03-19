@@ -231,15 +231,18 @@ const StoryDetailPage: FC = () => {
     });
   };
 
-  const { data: rawChapters, isLoading: chapterLoading } =
-    useChaptersByStory(storyId);
-
   const [hoverRating, setHoverRating] = useState<number | null>(null);
   const [loginModalOpened, setLoginModalOpened] = useState(false);
 
+  // Calculate isAuthor early to determine which chapter endpoint to use
   const authorIdFromStory = getAuthorId(story);
   const isAuthor =
     !!user && !!authorIdFromStory && authorIdFromStory === user.id;
+
+  // Only call public endpoint if NOT author; author calls dedicated endpoint
+  const { data: rawChapters, isLoading: chapterLoading } = useChaptersByStory(
+    isAuthor ? "" : storyId,
+  );
 
   const { data: rawAuthorChapters, isLoading: authorChapterLoading } =
     useChaptersByStoryForAuthor(isAuthor ? storyId : "");
@@ -593,7 +596,13 @@ const StoryDetailPage: FC = () => {
                         ? "gray"
                         : chapter.status === "pending"
                           ? "yellow"
-                          : "red"
+                          : chapter.status === "inactive"
+                            ? "gray"
+                            : chapter.status === "private"
+                              ? "blue"
+                              : chapter.status === "error"
+                                ? "orange"
+                                : "red"
                     }
                     variant="light"
                   >
@@ -601,9 +610,17 @@ const StoryDetailPage: FC = () => {
                       ? "Bản nháp"
                       : chapter.status === "pending"
                         ? "Chờ duyệt"
-                        : chapter.status === "rejected"
-                          ? "Từ chối"
-                          : chapter.status}
+                        : chapter.status === "inactive"
+                          ? "Không hoạt động"
+                          : chapter.status === "private"
+                            ? "Riêng tư"
+                            : chapter.status === "error"
+                              ? "Lỗi"
+                              : chapter.status === "rejected"
+                                ? "Từ chối"
+                                : chapter.status === "banned"
+                                  ? "Bị cấm"
+                                  : chapter.status}
                   </Badge>
                 )}
               </Group>

@@ -11,7 +11,7 @@ import {
   Title,
 } from "@mantine/core";
 import { Plus } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import type { Chapter } from "../../interfaces/Chapter";
 import { useChaptersByStoryForAuthor } from "../../hooks/useChapter";
@@ -32,6 +32,9 @@ const statusConfig: Record<string, { label: string; color: string }> = {
   draft: { label: "Bản nháp", color: "gray" },
   pending: { label: "Chờ duyệt", color: "yellow" },
   active: { label: "Đã duyệt", color: "green" },
+  inactive: { label: "Không hoạt động", color: "gray" },
+  private: { label: "Riêng tư", color: "blue" },
+  error: { label: "Lỗi", color: "orange" },
   rejected: { label: "Bị từ chối", color: "red" },
   banned: { label: "Bị cấm", color: "red.9" },
 };
@@ -44,6 +47,7 @@ export default function ChaptersListModal({
   storyTitle,
 }: ChaptersListModalProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, updateUser } = useUserStore();
   const [isCreating, setIsCreating] = useState(false);
   const {
@@ -58,8 +62,10 @@ export default function ChaptersListModal({
       updateUser({ role: "author" });
     }
     onClose();
+    // Build return URL with current location
+    const returnTo = `${location.pathname}${location.search}`;
     navigate(
-      `/author/story/${storySlug}/write-chapter?chapter=${chapterNumber}`,
+      `/author/story/${storySlug}/write-chapter?chapter=${chapterNumber}&returnTo=${encodeURIComponent(returnTo)}`,
     );
   };
 
@@ -129,7 +135,7 @@ export default function ChaptersListModal({
         <Stack align="center" py="xl" gap="md">
           <Text c="dimmed">Chưa có chương nào</Text>
           <Button
-            color="orange"
+            color="blue"
             leftSection={isCreating ? <Loader size={14} /> : <Plus size={16} />}
             onClick={handleCreateNewChapter}
             disabled={isCreating}

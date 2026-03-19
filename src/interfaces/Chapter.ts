@@ -8,7 +8,15 @@ export interface Chapter {
   isPremium: boolean;
   price: number;
   contentURL?: string;
-  status?: "draft" | "active" | "inactive" | "pending" | "rejected" | "banned";
+  status?:
+    | "draft"
+    | "active"
+    | "inactive"
+    | "error"
+    | "pending"
+    | "rejected"
+    | "banned"
+    | "private";
   views?: number;
   createdAt?: string;
   updatedAt?: string;

@@ -154,7 +154,9 @@ export default function WriteStoryPage() {
         "Tác phẩm đã được tạo. Bắt đầu viết chương đầu tiên!",
         "Tạo truyện thành công",
       );
-      navigate(`/author/story/${story.slug}/write-chapter?chapter=1`);
+      navigate(
+        `/author/story/${story.slug}/write-chapter?chapter=1&returnTo=${encodeURIComponent("/author/my-stories?tab=all")}`,
+      );
     } catch {
       showError("Có lỗi xảy ra khi tạo truyện. Vui lòng thử lại.");
     } finally {
