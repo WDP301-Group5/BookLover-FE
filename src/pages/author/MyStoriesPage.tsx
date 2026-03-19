@@ -9,6 +9,8 @@ import {
   Text,
   Title,
   Flex,
+  Pagination,
+  Group,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { BookPlus } from "lucide-react";
@@ -28,7 +30,13 @@ export default function MyStoriesPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get("tab") ?? "published";
-  const { data: stories, isLoading } = useMyStories();
+  const page = Number(searchParams.get("page")) || 1;
+  const LIMIT = 10;
+
+  const { data: responseData, isLoading } = useMyStories(page, LIMIT);
+  const stories = responseData?.stories ?? [];
+  const total = responseData?.total ?? 0;
+
   const deleteStory = useDeleteStory();
   const updateStory = useUpdateStory();
   const { user, updateUser } = useUserStore();
@@ -54,13 +62,18 @@ export default function MyStoriesPage() {
     }
   }, [stories, user?.role, updateUser]);
 
-  // Filter stories theo tab
+  // Filter stories theo tab (từ current page)
   const publishedStories = useMemo(
     () => stories?.filter((s) => s.status === "active") ?? [],
     [stories],
   );
 
   const allStories = useMemo(() => stories ?? [], [stories]);
+
+  // Calculate pagination based on active tab
+  const displayedTotal =
+    activeTab === "published" ? publishedStories.length : total;
+  const displayedTotalPages = Math.ceil(displayedTotal / LIMIT) || 1;
 
   const handleDeleteClick = (id: string) => {
     setSelectedStoryId(id);
@@ -126,6 +139,14 @@ export default function MyStoriesPage() {
     );
   };
 
+  const handlePageChange = (newPage: number) => {
+    setSearchParams(
+      { tab: activeTab, page: newPage.toString() },
+      { replace: true },
+    );
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const renderStoryList = (list: typeof allStories) => {
     if (isLoading) {
       return (
@@ -185,7 +206,10 @@ export default function MyStoriesPage() {
       <Tabs
         value={activeTab}
         onChange={(value) =>
-          setSearchParams({ tab: value ?? "published" }, { replace: true })
+          setSearchParams(
+            { tab: value ?? "published", page: "1" },
+            { replace: true },
+          )
         }
       >
         <Tabs.List mb="md">
@@ -203,6 +227,18 @@ export default function MyStoriesPage() {
           </Tabs.Panel>
           <Tabs.Panel value="all">{renderStoryList(allStories)}</Tabs.Panel>
         </Box>
+
+        {/* Pagination */}
+        {displayedTotal > 0 && (
+          <Group justify="center" mt="lg">
+            <Pagination
+              value={page}
+              onChange={handlePageChange}
+              total={displayedTotalPages}
+              size="sm"
+            />
+          </Group>
+        )}
       </Tabs>
 
       {/* Modal xác nhận xóa */}
