@@ -16,6 +16,10 @@ import {
   Text,
   Textarea,
   Title,
+  ActionIcon,
+  Flex,
+  Modal,
+  TextInput,
 } from "@mantine/core";
 import {
   Activity,
@@ -28,6 +32,8 @@ import {
   Star,
   Tags,
   User,
+  Plus,
+  CheckCircle2,
 } from "lucide-react";
 import type { FC } from "react";
 import {
@@ -49,6 +55,11 @@ import {
 import { useStoryDetail, useRateStory } from "../../hooks/useStory";
 import { useUserStore } from "../../stores/useUserStore";
 import { showError, showSuccess } from "../../utils/notifications";
+import {
+  useMyReadingLists,
+  useAddStoryToList,
+  useCreateReadingList,
+} from "../../hooks/useReadingList";
 
 interface AuthorInfo {
   _id?: string;
@@ -233,6 +244,11 @@ const StoryDetailPage: FC = () => {
 
   const [hoverRating, setHoverRating] = useState<number | null>(null);
   const [loginModalOpened, setLoginModalOpened] = useState(false);
+  const [openedAddToReadingList, setOpenedAddToReadingList] = useState(false);
+  const [newListName, setNewListName] = useState("");
+  const [selectedReadingListId, setSelectedReadingListId] = useState<
+    string | null
+  >(null);
 
   // Calculate isAuthor early to determine which chapter endpoint to use
   const authorIdFromStory = getAuthorId(story);
@@ -253,6 +269,10 @@ const StoryDetailPage: FC = () => {
 
   const { mutate: changeFollowStatus, isPending: followLoading } =
     useChangeStatusFollowStory();
+
+  const { data: myReadingLists = [] } = useMyReadingLists();
+  const addStoryMutation = useAddStoryToList();
+  const createListMutation = useCreateReadingList();
 
   const followData = rawFollowData as FollowStoryResponse | null | undefined;
   const followed =
@@ -282,6 +302,60 @@ const StoryDetailPage: FC = () => {
       console.error("Lưu lịch sử đọc thất bại:", error);
     } finally {
       navigate(`/truyen/${storySlug}/chuong/${chapterNumber}`);
+    }
+  };
+
+  const handleAddToReadingList = async () => {
+    if (!isLoggedIn) {
+      setLoginModalOpened(true);
+      return;
+    }
+
+    if (selectedReadingListId && storyId) {
+      try {
+        await addStoryMutation.mutateAsync({
+          listId: selectedReadingListId,
+          storyId,
+        });
+        showSuccess("Thêm vào danh sách đọc thành công");
+        setOpenedAddToReadingList(false);
+        setSelectedReadingListId(null);
+      } catch (error: any) {
+        showError(error.message || "Có lỗi xảy ra");
+      }
+    }
+  };
+
+  const handleCreateAndAddReadingList = async () => {
+    if (!isLoggedIn) {
+      setLoginModalOpened(true);
+      return;
+    }
+
+    if (!newListName.trim()) {
+      showError("Vui lòng nhập tên danh sách");
+      return;
+    }
+
+    if (!storyId) return;
+
+    try {
+      const newList = await createListMutation.mutateAsync({
+        name: newListName,
+      });
+
+      if (newList?._id || newList?.id) {
+        await addStoryMutation.mutateAsync({
+          listId: newList._id || newList.id,
+          storyId,
+        });
+        showSuccess("Tạo danh sách và thêm truyện thành công");
+        setOpenedAddToReadingList(false);
+        setNewListName("");
+        setSelectedReadingListId(null);
+      }
+    } catch (error: any) {
+      showError(error.message || "Có lỗi xảy ra");
     }
   };
 
@@ -376,7 +450,18 @@ const StoryDetailPage: FC = () => {
           />
 
           <Stack flex={1} gap={6}>
-            <Title order={2}>{title}</Title>
+            <Flex justify="space-between" align="center">
+              <Title order={2}>{title}</Title>
+              <ActionIcon
+                size="lg"
+                variant="light"
+                color="blue"
+                onClick={() => setOpenedAddToReadingList(true)}
+                title="Thêm vào danh sách đọc"
+              >
+                <Plus size={20} />
+              </ActionIcon>
+            </Flex>
 
             <Stack gap={10}>
               <Group gap={6}>
@@ -660,6 +745,159 @@ const StoryDetailPage: FC = () => {
         opened={loginModalOpened}
         onClose={() => setLoginModalOpened(false)}
       />
+
+      {/* Add to Reading List Modal */}
+      {(() => {
+        const selectedList = myReadingLists.find(
+          (list: any) => (list._id || list.id) === selectedReadingListId,
+        );
+        const isStoryAlreadyInSelectedList = selectedList?.stories?.some(
+          (story: any) => (story._id || story.id) === storyId,
+        );
+
+        return (
+          <Modal
+            opened={openedAddToReadingList}
+            onClose={() => setOpenedAddToReadingList(false)}
+            title="Thêm vào danh sách đọc"
+            centered
+          >
+            <Stack gap="lg">
+              <div>
+                <Text mb="sm" fw={500}>
+                  Danh sách đọc của bạn
+                </Text>
+                {myReadingLists.length > 0 ? (
+                  <Stack gap="xs">
+                    {myReadingLists.map((list: any) => {
+                      const isStoryInThisList = list.stories?.some(
+                        (story: any) => (story._id || story.id) === storyId,
+                      );
+                      const isSelected =
+                        selectedReadingListId === (list._id || list.id);
+
+                      const handleListClick = () => {
+                        if (isSelected) {
+                          setSelectedReadingListId(null);
+                        } else {
+                          setSelectedReadingListId(list._id || list.id);
+                        }
+                      };
+
+                      return (
+                        <Paper
+                          key={list._id || list.id}
+                          p="md"
+                          radius="md"
+                          withBorder
+                          style={{
+                            cursor: "pointer",
+                            border: isSelected ? "2px solid" : "1px solid",
+                            borderColor: isSelected
+                              ? "var(--mantine-color-blue-6)"
+                              : "var(--mantine-color-gray-3)",
+                            backgroundColor: isSelected
+                              ? "var(--mantine-color-blue-0)"
+                              : "transparent",
+                            transition: "all 0.2s ease",
+                          }}
+                          onClick={handleListClick}
+                          className="hover:shadow-sm"
+                        >
+                          <Flex justify="space-between" align="center" gap="md">
+                            <Stack gap={0} style={{ flex: 1 }}>
+                              <Group gap="sm" align="center">
+                                <Text
+                                  fw={600}
+                                  size="sm"
+                                  c={isSelected ? "blue" : "dark"}
+                                >
+                                  {list.name}
+                                </Text>
+                                {isStoryInThisList && (
+                                  <Badge
+                                    size="xs"
+                                    color="green"
+                                    variant="filled"
+                                  >
+                                    Đã có
+                                  </Badge>
+                                )}
+                              </Group>
+                              <Text size="xs" c="dimmed" mt={4}>
+                                {list.stories?.length || 0} truyện
+                              </Text>
+                            </Stack>
+                            {isSelected && (
+                              <CheckCircle2
+                                size={24}
+                                color="#40c057"
+                                strokeWidth={2.5}
+                              />
+                            )}
+                          </Flex>
+                        </Paper>
+                      );
+                    })}
+                  </Stack>
+                ) : (
+                  <Text size="sm" c="dimmed">
+                    Bạn chưa có danh sách đọc nào
+                  </Text>
+                )}
+              </div>
+
+              <Divider />
+
+              <div>
+                <Text mb="sm" fw={500}>
+                  Hoặc tạo danh sách mới
+                </Text>
+                <Group>
+                  <TextInput
+                    placeholder="Tên danh sách mới"
+                    value={newListName}
+                    onChange={(e) => setNewListName(e.currentTarget.value)}
+                    style={{ flex: 1 }}
+                  />
+                  <Button
+                    onClick={handleCreateAndAddReadingList}
+                    loading={createListMutation.isPending}
+                  >
+                    Tạo & Thêm
+                  </Button>
+                </Group>
+              </div>
+
+              <Group justify="flex-end" mt="md">
+                <Button
+                  variant="light"
+                  onClick={() => setOpenedAddToReadingList(false)}
+                  disabled={
+                    addStoryMutation.isPending || createListMutation.isPending
+                  }
+                >
+                  Hủy
+                </Button>
+                <Button
+                  onClick={handleAddToReadingList}
+                  disabled={
+                    !selectedReadingListId || isStoryAlreadyInSelectedList
+                  }
+                  loading={addStoryMutation.isPending}
+                  title={
+                    isStoryAlreadyInSelectedList
+                      ? "Truyện đã có trong danh sách này"
+                      : ""
+                  }
+                >
+                  Thêm vào danh sách
+                </Button>
+              </Group>
+            </Stack>
+          </Modal>
+        );
+      })()}
     </Container>
   );
 };
