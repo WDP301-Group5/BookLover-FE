@@ -1,65 +1,59 @@
-"use client";
-
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
-  Container,
-  Title,
-  TextInput,
-  Button,
-  Select,
-  Group,
-  Card,
-  Avatar,
-  Text,
-  Stack,
-  Grid,
   ActionIcon,
-  Divider,
-  Box,
   Autocomplete,
-  Paper,
+  Avatar,
+  Box,
+  Button,
+  Card,
+  Container,
+  Divider,
+  Grid,
+  Group,
   Loader,
+  Pagination,
+  Paper,
+  Select,
+  Stack,
+  Text,
+  TextInput,
+  Title,
 } from "@mantine/core";
 import {
-  IconMessageCircle,
-  IconSend,
   IconHeart,
+  IconMessageCircle,
   IconSearch,
+  IconSend,
 } from "@tabler/icons-react";
-import {
-  ChapterContentInput,
-  type ContentPayload,
-} from "../../components/author/ChapterContentInput";
+import { useNavigate } from "react-router-dom";
+
+import { ChapterContentInput, type ContentPayload } from "../../components/author/ChapterContentInput";
 import RequireLoginModal from "../../components/Modal/RequireLoginModal";
 import StoryCard from "../../components/story/StoryCard";
-import { showSuccess, showError } from "../../utils/notifications";
-import {
-  useCreateReview,
-  useReviews,
-  useReviewStories,
-} from "../../hooks/useReview";
+import { useCreateReview, useReviews, useReviewStories } from "../../hooks/useReview";
 import { useUserStore } from "../../stores/useUserStore";
-import { useNavigate } from "react-router-dom";
+import { showError, showSuccess } from "../../utils/notifications";
 
 function cleanReviewContent(html: string): string {
   return html
     .replace(/<p>\s*<\/p>/g, "")
-    .replace(/<p>([\s\S]*?)<\/p>/g, (_, p1) => `<p>${p1.trim()}</p>`)
+    .replace(/<p>([\s\S]*?)<\/p>/g, (_, p1) => `<p>${String(p1).trim()}</p>`)
     .replace(/\s+/g, " ")
     .trim();
 }
 
-function getPlainTextLength(html: string) {
-  return html
-    .replace(/<[^>]+>/g, "")
-    .replace(/\s+/g, " ")
-    .trim().length;
+function getPlainText(html: string): string {
+  return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function getPlainTextLength(html: string): number {
+  return getPlainText(html).length;
 }
 
 function formatTimeAgo(date?: string) {
   if (!date) return "Vừa xong";
 
-  const now = new Date().getTime();
+  const now = Date.now();
   const target = new Date(date).getTime();
 
   if (Number.isNaN(target)) return "Vừa xong";
@@ -70,49 +64,56 @@ function formatTimeAgo(date?: string) {
   const diffDays = Math.floor(diffHours / 24);
 
   if (diffMinutes < 1) return "Vừa xong";
-  if (diffMinutes < 60) return `Cách đây ${diffMinutes} phút`;
-  if (diffHours < 24) return `Cách đây ${diffHours} giờ`;
-  if (diffDays < 30) return `Cách đây ${diffDays} ngày`;
+  if (diffMinutes < 60) return `${diffMinutes} phút trước`;
+  if (diffHours < 24) return `${diffHours} giờ trước`;
+  if (diffDays < 30) return `${diffDays} ngày trước`;
 
   return new Date(date).toLocaleDateString("vi-VN");
 }
 
 export default function ReviewPage() {
+  const navigate = useNavigate();
   const user = useUserStore((state: any) => state.user);
   const isLoggedIn = !!user;
+
+  const [loginModalOpened, setLoginModalOpened] = useState(false);
 
   const [sortType, setSortType] = useState<"newest" | "oldest">("newest");
   const [genreFilter, setGenreFilter] = useState<string>("Tất cả");
   const [searchQuery, setSearchQuery] = useState("");
-  const [storySearch, setStorySearch] = useState("");
-  const [selectedStoryId, setSelectedStoryId] = useState<string>("");
-  const [reviewPayload, setReviewPayload] = useState<ContentPayload | null>(
-    null,
-  );
-  const [loginModalOpened, setLoginModalOpened] = useState(false);
-  const navigate = useNavigate();
 
-  const { data: stories, loading: storiesLoading } = useReviewStories("", 100);
+  const [storySearch, setStorySearch] = useState("");
+  const [selectedStoryId, setSelectedStoryId] = useState("");
+
+  const [reviewPayload, setReviewPayload] = useState<ContentPayload | null>(null);
+
+  const [page, setPage] = useState(1);
+  const limit = 5;
+
+  const [expandedReviews, setExpandedReviews] = useState<Record<string, boolean>>({});
+
+  const [editorKey, setEditorKey] = useState(0);
+
+  const {
+    data: stories,
+    loading: storiesLoading,
+  } = useReviewStories("", 100);
 
   const {
     data: reviews,
+    total,
     loading: reviewsLoading,
     error: reviewsError,
     refetch: refetchReviews,
   } = useReviews({
     sort: sortType,
     genre: genreFilter,
-    search: searchQuery,
-    page: 1,
-    limit: 50,
+    search: searchQuery.trim(),
+    page,
+    limit,
   });
 
   const { createReview, loading: creatingReview } = useCreateReview();
-
-  const selectedStory = useMemo(
-    () => stories.find((story) => story.id === selectedStoryId) || null,
-    [stories, selectedStoryId],
-  );
 
   const storyLookup = useMemo(() => {
     const map = new Map<string, (typeof stories)[number]>();
@@ -120,32 +121,47 @@ export default function ReviewPage() {
     for (const story of stories) {
       const title = (story.title || "").trim();
       if (!title) continue;
-      if (!map.has(title)) {
-        map.set(title, story);
+
+      if (!map.has(title.toLowerCase())) {
+        map.set(title.toLowerCase(), story);
       }
     }
 
     return map;
   }, [stories]);
 
-  const storyOptions = useMemo(
-    () =>
-      Array.from(storyLookup.keys()).map((title) => ({
-        value: title,
-        label: title,
-      })),
-    [storyLookup],
-  );
+  const storyOptions = useMemo(() => {
+    return stories.map((story) => ({
+      value: story.title,
+      label: story.title,
+    }));
+  }, [stories]);
+
+  const selectedStory = useMemo(() => {
+    return stories.find((story) => story.id === selectedStoryId) || null;
+  }, [stories, selectedStoryId]);
 
   const genreOptions = useMemo(() => {
     const uniqueGenres = Array.from(
       new Set(
-        stories.map((story) => (story.genre || "").trim()).filter(Boolean),
+        stories
+          .map((story) => (story.genre || "").trim())
+          .filter(Boolean),
       ),
     );
 
     return ["Tất cả", ...uniqueGenres];
   }, [stories]);
+
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+  const plainCharCount = getPlainTextLength(reviewPayload?.html || "");
+
+  const handleStoryChange = (value: string) => {
+    setStorySearch(value);
+
+    const found = storyLookup.get(value.trim().toLowerCase());
+    setSelectedStoryId(found?.id || "");
+  };
 
   const handleSubmitReview = async () => {
     if (!isLoggedIn) {
@@ -153,8 +169,13 @@ export default function ReviewPage() {
       return;
     }
 
-    if (!selectedStory) {
-      showError("Vui lòng chọn truyện trước khi gửi review!");
+    if (!storySearch.trim()) {
+      showError("Vui lòng nhập tên truyện trước khi gửi review");
+      return;
+    }
+
+    if (!selectedStoryId || !selectedStory) {
+      showError("Vui lòng chọn đúng truyện từ danh sách gợi ý");
       return;
     }
 
@@ -172,16 +193,15 @@ export default function ReviewPage() {
         content: html,
       });
 
-      showSuccess(
-        "Review của bạn đã được gửi thành công!",
-        "Gửi review thành công",
-      );
+      showSuccess("Review của bạn đã được gửi thành công!", "Thành công");
 
       setReviewPayload(null);
-      setSelectedStoryId("");
-      setStorySearch("");
+setSelectedStoryId("");
+setStorySearch("");
+setPage(1);
+setEditorKey((prev) => prev + 1);
 
-      refetchReviews();
+refetchReviews();
     } catch (error: any) {
       showError(
         error?.response?.data?.message ||
@@ -191,7 +211,12 @@ export default function ReviewPage() {
     }
   };
 
-  const charCount = getPlainTextLength(reviewPayload?.html || "");
+  const toggleExpandReview = (reviewId: string) => {
+    setExpandedReviews((prev) => ({
+      ...prev,
+      [reviewId]: !prev[reviewId],
+    }));
+  };
 
   return (
     <Container size="xl" py="xl">
@@ -204,11 +229,14 @@ export default function ReviewPage() {
         <Paper
           p="xs"
           radius="xl"
-          style={{ background: "linear-gradient(45deg, #ff6b00, #ff8c00)" }}
+          style={{
+            background: "linear-gradient(45deg, #ff6b00, #ff8c00)",
+          }}
         >
           <IconMessageCircle size={20} color="white" />
         </Paper>
-        <Title order={2} fw={600}>
+
+        <Title order={2} fw={700}>
           Review Truyện
         </Title>
       </Group>
@@ -220,42 +248,51 @@ export default function ReviewPage() {
           </Text>
 
           <Autocomplete
-            placeholder="Tìm tên truyện..."
+            placeholder="Nhập tên truyện để review..."
             data={storyOptions}
             value={storySearch}
-            onChange={(val) => {
-              setStorySearch(val);
-              const found = storyLookup.get(val);
+            onChange={handleStoryChange}
+            onBlur={() => {
+              const found = storyLookup.get(storySearch.trim().toLowerCase());
               setSelectedStoryId(found?.id || "");
             }}
             rightSection={
-              storiesLoading ? <Loader size={16} /> : <IconSearch size={18} />
+              storiesLoading ? <Loader size={16} /> : <IconSearch size={16} />
             }
-            size="sm"
           />
+
+          {storySearch.trim() && !selectedStoryId && (
+            <Text size="sm" c="red">
+              Vui lòng chọn truyện hợp lệ từ danh sách gợi ý.
+            </Text>
+          )}
+
+          {selectedStory && (
+            <Text size="sm" c="dimmed">
+              Đã chọn truyện: <b>{selectedStory.title}</b>
+            </Text>
+          )}
 
           <ChapterContentInput
-            onChange={setReviewPayload}
-            initialContent=""
-            error={
-              charCount > 0 && charCount < 50
-                ? "Review quá ngắn (ít nhất 50 ký tự)"
-                : undefined
-            }
-          />
+  key={editorKey}
+  onChange={setReviewPayload}
+  initialContent=""
+  error={
+    plainCharCount > 0 && plainCharCount < 50
+      ? "Review phải có ít nhất 50 ký tự"
+      : undefined
+  }
+/>
 
-          <Group justify="flex-end" mt="xs">
-            <Text size="xs" c="dimmed" mr="auto">
-              {charCount} ký tự
+          <Group justify="space-between" mt="xs">
+            <Text size="sm" c={plainCharCount < 50 ? "red" : "dimmed"}>
+              {plainCharCount}/50 ký tự tối thiểu
             </Text>
 
             <Button
-              leftSection={<IconSend size={14} />}
-              size="sm"
-              color="green"
+              leftSection={<IconSend size={16} />}
               onClick={handleSubmitReview}
               loading={creatingReview}
-              disabled={creatingReview || !selectedStory || charCount < 50}
             >
               Gửi review
             </Button>
@@ -264,28 +301,32 @@ export default function ReviewPage() {
       </Card>
 
       <Paper withBorder p="md" radius="md" mb="xl">
-        <Group justify="space-between" align="center" gap="lg" wrap="wrap">
+        <Group justify="space-between" align="center" gap="md" wrap="wrap">
           <Text fw={700} size="xl">
-            Review nổi bật
+            Danh sách review
           </Text>
 
-          <Group gap="md" align="center">
+          <Group gap="md" wrap="wrap">
             <TextInput
-              placeholder="Tìm theo tên truyện"
+              placeholder="Tìm theo tên truyện hoặc nội dung review"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.currentTarget.value)}
+              onChange={(e) => {
+                setSearchQuery(e.currentTarget.value);
+                setPage(1);
+              }}
               leftSection={<IconSearch size={16} />}
-              w={280}
-              size="sm"
+              w={300}
             />
 
             <Select
               placeholder="Thể loại"
               data={genreOptions}
               value={genreFilter}
-              onChange={(v) => setGenreFilter(v || "Tất cả")}
-              w={140}
-              size="sm"
+              onChange={(value) => {
+                setGenreFilter(value || "Tất cả");
+                setPage(1);
+              }}
+              w={160}
             />
 
             <Select
@@ -295,11 +336,11 @@ export default function ReviewPage() {
                 { value: "oldest", label: "Cũ nhất" },
               ]}
               value={sortType}
-              onChange={(v) =>
-                setSortType((v as "newest" | "oldest") || "newest")
-              }
-              w={120}
-              size="sm"
+              onChange={(value) => {
+                setSortType((value as "newest" | "oldest") || "newest");
+                setPage(1);
+              }}
+              w={140}
             />
           </Group>
         </Group>
@@ -313,19 +354,25 @@ export default function ReviewPage() {
         <Text ta="center" c="red" py="xl">
           {reviewsError}
         </Text>
+      ) : reviews.length === 0 ? (
+        <Text ta="center" c="dimmed" py="xl">
+          Chưa có review phù hợp
+        </Text>
       ) : (
         <Stack gap="xl">
-          {reviews.length === 0 ? (
-            <Text ta="center" c="dimmed" py="xl">
-              Chưa có review phù hợp
-            </Text>
-          ) : (
-            reviews.map((review) => (
+          {reviews.map((review) => {
+            const cleanedHtml = cleanReviewContent(review.content);
+            const plainLength = getPlainTextLength(cleanedHtml);
+            const isExpanded = !!expandedReviews[review.id];
+            const shouldShowToggle = plainLength > 220;
+
+            return (
               <Card key={review.id} withBorder shadow="xs" radius="md" p="sm">
-                <Grid gutter="xs">
+                <Grid gutter="md">
                   <Grid.Col span={{ base: 12, md: 9 }}>
                     <Group mb="md" wrap="nowrap">
                       <Avatar src={review.user.avatar} radius="xl" size="lg" />
+
                       <div>
                         <Text
                           fw={700}
@@ -338,28 +385,46 @@ export default function ReviewPage() {
                         >
                           {review.user.name}
                         </Text>
+
                         <Text size="xs" c="dimmed">
                           {formatTimeAgo(review.createdAt)}
                         </Text>
                       </div>
                     </Group>
 
-                    <Box
-                      dangerouslySetInnerHTML={{
-                        __html: cleanReviewContent(review.content),
-                      }}
-                      style={{
-                        lineHeight: 1.85,
-                        fontSize: "15.5px",
-                        paddingRight: "8px",
-                      }}
-                    />
+                    <Box>
+                      <Box
+                        dangerouslySetInnerHTML={{ __html: cleanedHtml }}
+                        style={{
+                          lineHeight: 1.8,
+                          fontSize: "15px",
+                          wordBreak: "break-word",
+                          display: isExpanded ? "block" : "-webkit-box",
+                          WebkitLineClamp: isExpanded ? "unset" : 8,
+                          WebkitBoxOrient: isExpanded ? "unset" : "vertical",
+                          overflow: "hidden",
+                        }}
+                      />
+
+                      {shouldShowToggle && (
+                        <Text
+                          mt="xs"
+                          size="sm"
+                          fw={600}
+                          c="blue"
+                          style={{ cursor: "pointer", width: "fit-content" }}
+                          onClick={() => toggleExpandReview(review.id)}
+                        >
+                          {isExpanded ? "Thu gọn" : "Xem thêm"}
+                        </Text>
+                      )}
+                    </Box>
 
                     <Divider my="md" />
 
                     <Group gap="xs">
                       <ActionIcon variant="subtle" color="pink" size="lg">
-                        <IconHeart size={22} />
+                        <IconHeart size={20} />
                       </ActionIcon>
 
                       <Text size="sm" c="dimmed">
@@ -368,40 +433,26 @@ export default function ReviewPage() {
                     </Group>
                   </Grid.Col>
 
-                  <Grid.Col
-                    span={{ base: 12, md: 3 }}
-                    style={{
-                      display: "flex",
-                      justifyContent: "flex-end",
-                      alignItems: "flex-start",
-                      paddingLeft: 0,
-                      paddingRight: 0,
-                    }}
-                  >
+                  <Grid.Col span={{ base: 12, md: 3 }}>
                     <div
                       style={{
                         width: "100%",
-                        maxWidth: "200px",
-                        transform: "scale(0.92)",
-                        transformOrigin: "top right",
-                        transition: "transform 0.2s ease",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = "scale(0.96)";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = "scale(0.92)";
+                        maxWidth: "210px",
+                        marginLeft: "auto",
                       }}
                     >
-                      <StoryCard
-                        story={review.story as any}
-                        type="home"
-                      />
+                      <StoryCard story={review.story as any} type="home" />
                     </div>
                   </Grid.Col>
                 </Grid>
               </Card>
-            ))
+            );
+          })}
+
+          {totalPages > 1 && (
+            <Group justify="center">
+              <Pagination value={page} onChange={setPage} total={totalPages} />
+            </Group>
           )}
         </Stack>
       )}
