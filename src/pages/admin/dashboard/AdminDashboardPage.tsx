@@ -11,6 +11,21 @@ import {
   Line,
   Legend,
 } from "recharts";
+import {
+  Alert,
+  Button,
+  Card,
+  Group,
+  Loader,
+  SegmentedControl,
+  SimpleGrid,
+  Stack,
+  Text,
+  Title,
+  useMantineColorScheme,
+  useMantineTheme,
+} from "@mantine/core";
+import { IconAlertCircle } from "@tabler/icons-react";
 import AdminDashboardService from "../../../services/adminDashboardService";
 import type { AdminDashboardOverview } from "../../../types/adminDashboard";
 import SummaryCard from "./SummaryCard";
@@ -34,6 +49,10 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [groupBy, setGroupBy] = useState<"day" | "month" | "year">("day");
+
+  const theme = useMantineTheme();
+  const { colorScheme } = useMantineColorScheme();
+  const isDark = colorScheme === "dark";
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -124,36 +143,57 @@ export default function AdminDashboardPage() {
     ];
   }, [summary]);
 
+  const chartTextColor = isDark ? theme.colors.dark[0] : theme.black;
+  const chartGridColor = isDark ? theme.colors.dark[4] : theme.colors.gray[3];
+  const chartAxisColor = isDark ? theme.colors.gray[5] : theme.colors.gray[7];
+  const chartTooltipStyle = {
+    backgroundColor: isDark ? theme.colors.dark[6] : theme.white,
+    border: `1px solid ${
+      isDark ? theme.colors.dark[4] : theme.colors.gray[3]
+    }`,
+    color: chartTextColor,
+    borderRadius: "8px",
+  };
+
   if (loading) {
     return (
-      <div className="p-6">
-        <h1 className="mb-4 text-2xl font-bold">Admin Dashboard</h1>
-        <div className="rounded-xl border bg-white p-6 text-gray-500">
-          Đang tải dashboard...
-        </div>
-      </div>
+      <Stack p="md">
+        <Title order={2}>Admin Dashboard</Title>
+        <Card withBorder radius="xl" p="lg">
+          <Group>
+            <Loader size="sm" />
+            <Text c="dimmed">Đang tải dashboard...</Text>
+          </Group>
+        </Card>
+      </Stack>
     );
   }
 
   if (error || !dashboard) {
     return (
-      <div className="p-6">
-        <h1 className="mb-4 text-2xl font-bold">Admin Dashboard</h1>
-        <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-red-600">
+      <Stack p="md">
+        <Title order={2}>Admin Dashboard</Title>
+        <Alert
+          icon={<IconAlertCircle size={16} />}
+          title="Lỗi dữ liệu"
+          color="red"
+          radius="xl"
+          variant="light"
+        >
           {error || "Không có dữ liệu dashboard"}
-        </div>
-      </div>
+        </Alert>
+      </Stack>
     );
   }
 
   return (
-    <div className="space-y-6 p-2">
+    <Stack gap="lg" p="xs">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Tổng quan hệ thống</h1>
+        <Title order={2}>Tổng quan hệ thống</Title>
       </div>
 
       <section>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <SimpleGrid cols={{ base: 1, sm: 2, xl: 5 }} spacing="md">
           {summaryCards.map((item) => (
             <SummaryCard
               key={item.title}
@@ -162,138 +202,125 @@ export default function AdminDashboardPage() {
               subtitle={item.subtitle}
             />
           ))}
-        </div>
+        </SimpleGrid>
       </section>
 
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-800">
-          Biểu đồ thống kê
-        </h2>
+      <Group justify="space-between" align="center">
+        <Title order={3}>Biểu đồ thống kê</Title>
 
-        <div className="flex items-center gap-2 rounded-lg border bg-white p-1 shadow-sm">
-          <button
-            type="button"
-            onClick={() => setGroupBy("day")}
-            className={`rounded-md px-4 py-2 text-sm font-medium ${
-              groupBy === "day"
-                ? "bg-blue-600 text-white"
-                : "text-gray-600 hover:bg-gray-100"
-            }`}
-          >
-            Ngày
-          </button>
+        <SegmentedControl
+          value={groupBy}
+          onChange={(value) => setGroupBy(value as "day" | "month" | "year")}
+          data={[
+            { label: "Ngày", value: "day" },
+            { label: "Tháng", value: "month" },
+            { label: "Năm", value: "year" },
+          ]}
+        />
+      </Group>
 
-          <button
-            type="button"
-            onClick={() => setGroupBy("month")}
-            className={`rounded-md px-4 py-2 text-sm font-medium ${
-              groupBy === "month"
-                ? "bg-blue-600 text-white"
-                : "text-gray-600 hover:bg-gray-100"
-            }`}
-          >
-            Tháng
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setGroupBy("year")}
-            className={`rounded-md px-4 py-2 text-sm font-medium ${
-              groupBy === "year"
-                ? "bg-blue-600 text-white"
-                : "text-gray-600 hover:bg-gray-100"
-            }`}
-          >
-            Năm
-          </button>
-        </div>
-      </div>
-
-      <section className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-        <div className="rounded-xl border bg-white p-4 shadow-sm">
-          <h3 className="mb-4 text-lg font-semibold text-gray-800">
+      <SimpleGrid cols={{ base: 1, xl: 2 }} spacing="lg">
+        <Card withBorder radius="xl" p="md" shadow="sm">
+          <Title order={4} mb="md">
             User mới theo ngày
-          </h3>
-          <div className="h-80">
+          </Title>
+          <div style={{ height: 320 }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={charts?.newUsers || []}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="label" />
-                <YAxis allowDecimals={false} />
-                <Tooltip />
+                <CartesianGrid stroke={chartGridColor} strokeDasharray="3 3" />
+                <XAxis dataKey="label" stroke={chartAxisColor} />
+                <YAxis allowDecimals={false} stroke={chartAxisColor} />
+                <Tooltip contentStyle={chartTooltipStyle} />
                 <Legend />
                 <Line
                   type="monotone"
                   dataKey="value"
                   name="User mới"
-                  stroke="#2563eb"
+                  stroke={theme.colors.blue[6]}
                   strokeWidth={2}
                 />
               </LineChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </Card>
 
-        <div className="rounded-xl border bg-white p-4 shadow-sm">
-          <h3 className="mb-4 text-lg font-semibold text-gray-800">
+        <Card withBorder radius="xl" p="md" shadow="sm">
+          <Title order={4} mb="md">
             Lượt đọc theo ngày
-          </h3>
-          <div className="h-80">
+          </Title>
+          <div style={{ height: 320 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={charts?.reads || []}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="label" />
-                <YAxis allowDecimals={false} />
-                <Tooltip formatter={(value) => formatNumber(Number(value))} />
+                <CartesianGrid stroke={chartGridColor} strokeDasharray="3 3" />
+                <XAxis dataKey="label" stroke={chartAxisColor} />
+                <YAxis allowDecimals={false} stroke={chartAxisColor} />
+                <Tooltip
+                  formatter={(value) => formatNumber(Number(value))}
+                  contentStyle={chartTooltipStyle}
+                />
                 <Legend />
-                <Bar dataKey="value" name="Lượt đọc" fill="#16a34a" />
+                <Bar
+                  dataKey="value"
+                  name="Lượt đọc"
+                  fill={theme.colors.green[6]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </Card>
 
-        <div className="rounded-xl border bg-white p-4 shadow-sm">
-          <h3 className="mb-4 text-lg font-semibold text-gray-800">
+        <Card withBorder radius="xl" p="md" shadow="sm">
+          <Title order={4} mb="md">
             Doanh thu theo ngày
-          </h3>
-          <div className="h-80">
+          </Title>
+          <div style={{ height: 320 }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={charts?.revenue || []}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="label" />
-                <YAxis />
-                <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                <CartesianGrid stroke={chartGridColor} strokeDasharray="3 3" />
+                <XAxis dataKey="label" stroke={chartAxisColor} />
+                <YAxis stroke={chartAxisColor} />
+                <Tooltip
+                  formatter={(value) => formatCurrency(Number(value))}
+                  contentStyle={chartTooltipStyle}
+                />
                 <Legend />
                 <Line
                   type="monotone"
                   dataKey="value"
                   name="Doanh thu"
-                  stroke="#f59e0b"
+                  stroke={theme.colors.yellow[6]}
                   strokeWidth={2}
                 />
               </LineChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </Card>
 
-        <div className="rounded-xl border bg-white p-4 shadow-sm">
-          <h3 className="mb-4 text-lg font-semibold text-gray-800">
+        <Card withBorder radius="xl" p="md" shadow="sm">
+          <Title order={4} mb="md">
             Số truyện được đăng theo tháng
-          </h3>
-          <div className="h-80">
+          </Title>
+          <div style={{ height: 320 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={charts?.stories || []}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="label" />
-                <YAxis allowDecimals={false} />
-                <Tooltip formatter={(value) => formatNumber(Number(value))} />
+                <CartesianGrid stroke={chartGridColor} strokeDasharray="3 3" />
+                <XAxis dataKey="label" stroke={chartAxisColor} />
+                <YAxis allowDecimals={false} stroke={chartAxisColor} />
+                <Tooltip
+                  formatter={(value) => formatNumber(Number(value))}
+                  contentStyle={chartTooltipStyle}
+                />
                 <Legend />
-                <Bar dataKey="value" name="Số truyện" fill="#8b5cf6" />
+                <Bar
+                  dataKey="value"
+                  name="Số truyện"
+                  fill={theme.colors.grape[6]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </div>
-      </section>
-    </div>
+        </Card>
+      </SimpleGrid>
+    </Stack>
   );
 }
