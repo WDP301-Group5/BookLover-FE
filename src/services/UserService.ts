@@ -3,7 +3,7 @@ import axiosClient from "../api/axiosClient";
 import { instance } from "./../lib/axios";
 
 export interface LoginCredentials {
-  email: string;
+  account: string;
   password: string;
   rememberMe?: boolean;
 }
