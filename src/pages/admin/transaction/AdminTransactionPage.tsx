@@ -270,7 +270,7 @@ function getColumns({
       header: "Mã giao dịch",
       cell: ({ row }) => (
         <div className="max-w-[150px] truncate font-medium">
-          {row.original.id}
+          {row.original._id}
         </div>
       ),
     },
