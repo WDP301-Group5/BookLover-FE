@@ -270,7 +270,7 @@ function getColumns({
       header: "Mã giao dịch",
       cell: ({ row }) => (
         <div className="max-w-[150px] truncate font-medium">
-          {row.original.id}
+          {row.original._id}
         </div>
       ),
     },
@@ -425,64 +425,6 @@ function getColumns({
       header: "Thời gian",
       cell: ({ row }) =>
         new Date(row.original.createdAt).toLocaleString("vi-VN"),
-    },
-    {
-      id: "actions",
-      header: "Hành động",
-      cell: ({ row }) => {
-        const transaction = row.original;
-
-        return (
-          <Menu shadow="md" width={220}>
-            <Menu.Target>
-              <ActionIcon variant="subtle">
-                <IconDotsVertical size={16} />
-              </ActionIcon>
-            </Menu.Target>
-
-            <Menu.Dropdown>
-              <Menu.Item
-                leftSection={<IconEdit size={16} />}
-                onClick={() => onEdit(transaction)}
-              >
-                Chỉnh sửa
-              </Menu.Item>
-
-              <Menu.Item
-                leftSection={<IconBan size={16} />}
-                onClick={() => onBan(transaction)}
-              >
-                Khóa giao dịch
-              </Menu.Item>
-
-              <Menu.Item
-                color="green"
-                leftSection={<IconCheck size={16} />}
-                onClick={() => onUnban(transaction)}
-              >
-                Mở khóa giao dịch
-              </Menu.Item>
-
-              <Menu.Label>Thay đổi trạng thái</Menu.Label>
-              <Menu.Item
-                onClick={() => onChangeStatus(transaction, "success")}
-              >
-                Đặt là Thành công
-              </Menu.Item>
-              <Menu.Item
-                onClick={() => onChangeStatus(transaction, "failed")}
-              >
-                Đặt là Thất bại
-              </Menu.Item>
-              <Menu.Item
-                onClick={() => onChangeStatus(transaction, "pending")}
-              >
-                Đặt là Đang xử lý
-              </Menu.Item>
-            </Menu.Dropdown>
-          </Menu>
-        );
-      },
     },
   ];
 }
