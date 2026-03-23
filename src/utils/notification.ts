@@ -38,6 +38,25 @@ export const getNotificationLink = (notification: NotificationItem) => {
     case "new_chapter_from_followed_story":
       return data.storySlug ? `/story/${data.storySlug}` : "/notifications";
 
+    case "forum_post_commented":
+    case "forum_post_reacted": {
+      if (typeof data.forumCategorySlug === "string" && data.forumCategorySlug) {
+        if (typeof data.forumPostId === "string" && data.forumPostId) {
+          return `/forum/category/${data.forumCategorySlug}#post-${data.forumPostId}`;
+        }
+        return `/forum/category/${data.forumCategorySlug}`;
+      }
+
+      if (typeof data.forumCategoryId === "string" && data.forumCategoryId) {
+        if (typeof data.forumPostId === "string" && data.forumPostId) {
+          return `/forum/category/${data.forumCategoryId}#post-${data.forumPostId}`;
+        }
+        return `/forum/category/${data.forumCategoryId}`;
+      }
+
+      return "/forum";
+    }
+
     default:
       return "/notifications";
   }

@@ -5,12 +5,15 @@ export type NotificationType =
   | "story_approved"
   | "new_story_from_followed_author"
   | "chapter_approved"
-  | "new_chapter_from_followed_story";
+  | "new_chapter_from_followed_story"
+  | "forum_post_commented"
+  | "forum_post_reacted";
 
 export interface NotificationUser {
   _id: string;
   username: string;
   fullName: string;
+  nickName?: string;
   avatarURL?: string;
 }
 
