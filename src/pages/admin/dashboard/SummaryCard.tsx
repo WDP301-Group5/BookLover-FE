@@ -1,3 +1,5 @@
+import { Card, Text, Title } from "@mantine/core";
+
 type SummaryCardProps = {
   title: string;
   value: string | number;
@@ -10,12 +12,20 @@ export default function SummaryCard({
   subtitle,
 }: SummaryCardProps) {
   return (
-    <div className="rounded-xl border bg-white p-4 shadow-sm">
-      <p className="text-sm text-gray-500">{title}</p>
-      <h3 className="mt-2 text-2xl font-bold text-gray-900">{value}</h3>
+    <Card withBorder radius="xl" p="md" shadow="sm">
+      <Text size="sm" c="dimmed">
+        {title}
+      </Text>
+
+      <Title order={3} mt="sm">
+        {value}
+      </Title>
+
       {subtitle ? (
-        <p className="mt-1 text-xs text-gray-400">{subtitle}</p>
+        <Text size="xs" c="dimmed" mt={4}>
+          {subtitle}
+        </Text>
       ) : null}
-    </div>
+    </Card>
   );
 }
