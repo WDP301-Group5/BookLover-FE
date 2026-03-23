@@ -5,6 +5,8 @@ import {
   BookOpen,
   CheckCircle2,
   BellRing,
+  MessageCircle,
+  Heart,
 } from "lucide-react";
 import { Avatar } from "@mantine/core";
 import type { NotificationItem } from "../../services/NotificationService";
@@ -28,6 +30,11 @@ const getIcon = (type: NotificationItem["type"]) => {
     case "new_story_from_followed_author":
     case "new_chapter_from_followed_story":
       return <BookOpen className="w-4 h-4 text-blue-600" />;
+    case "forum_post_commented":
+      return <MessageCircle className="w-4 h-4 text-blue-600" />;
+
+    case "forum_post_reacted":
+      return <Heart className="w-4 h-4 text-blue-600" />;
     default:
       return <BellRing className="w-4 h-4 text-blue-600" />;
   }
