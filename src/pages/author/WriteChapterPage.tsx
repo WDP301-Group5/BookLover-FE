@@ -18,7 +18,6 @@
   TextInput,
   ScrollArea,
   Title,
-  Alert,
 } from "@mantine/core";
 import {
   ChapterContentInput,
@@ -28,6 +27,7 @@ import { useForm } from "@mantine/form";
 import { zod4Resolver } from "mantine-form-zod-resolver";
 import {
   ChevronDown,
+  ChevronLeft,
   Send,
   Save,
   MoreVertical,
@@ -36,7 +36,12 @@ import {
   Trash2,
 } from "lucide-react";
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import {
+  useNavigate,
+  useParams,
+  useSearchParams,
+  useLocation,
+} from "react-router-dom";
 import { z } from "zod";
 import type { Story } from "../../interfaces/Story";
 import type { Chapter } from "../../interfaces/Chapter";
@@ -65,15 +70,22 @@ const statusConfig: Record<string, { label: string; color: string }> = {
   draft: { label: "Bản nháp", color: "gray" },
   pending: { label: "Chờ duyệt", color: "yellow" },
   active: { label: "Đã duyệt", color: "green" },
+  inactive: { label: "Không hoạt động", color: "gray" },
+  private: { label: "Riêng tư", color: "blue" },
+  error: { label: "Lỗi", color: "orange" },
   rejected: { label: "Bị từ chối", color: "red" },
   banned: { label: "Bị cấm", color: "red.9" },
 };
 
 export default function WriteChapterPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { storySlug } = useParams<{ storySlug: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const chapterParam = searchParams.get("chapter");
+  const returnTo =
+    searchParams.get("returnTo") ||
+    (location.state?.returnTo as string | undefined);
   const [story, setStory] = useState<Story | null>(null);
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [storyLoading, setStoryLoading] = useState(true);
@@ -175,7 +187,7 @@ export default function WriteChapterPage() {
           chapters: chapterList,
         }));
       })
-      .then(async ({ story: storyData, chapters: chapterList }) => {
+      .then(async ({ chapters: chapterList }) => {
         // Select chapter from URL param, or start in new-chapter mode if no param
         const parsedParam = chapterParam ? Number(chapterParam) : null;
         const isValidParam =
@@ -718,6 +730,16 @@ export default function WriteChapterPage() {
           <Group justify="space-between" align="center">
             {/* Left: Back + Story info + Chapter dropdown */}
             <Group align="center" gap="sm">
+              {/* Back button */}
+              <ActionIcon
+                variant="subtle"
+                color="gray"
+                onClick={() => navigate(-1)}
+                title="Quay lại"
+              >
+                <ChevronLeft size={20} />
+              </ActionIcon>
+
               {/* Story thumbnail */}
               {story?.image && (
                 <Image
@@ -977,8 +999,13 @@ export default function WriteChapterPage() {
               onClick={() => {
                 isExitingRef.current = true;
                 setUnsavedExitModalOpened(false);
-                // Go back past all pushed dummy states + 1 to reach the actual previous page
-                window.history.go(-(extraPushesRef.current + 1));
+                // If returnTo URL is available, use it; otherwise fall back to history.go()
+                if (returnTo) {
+                  navigate(returnTo, { replace: true });
+                } else {
+                  // Go back past all pushed dummy states + 1 to reach the actual previous page
+                  window.history.go(-(extraPushesRef.current + 1));
+                }
               }}
             >
               Thoát không lưu

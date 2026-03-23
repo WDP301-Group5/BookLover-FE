@@ -1,6 +1,6 @@
 import { Box, Tabs, useMantineColorScheme } from "@mantine/core";
 import { AuthorHeader } from "../../components/author/AuthorHeader";
-import { ConversationTab } from "../../components/author/ConversationTab.tsx";
+import { ReadingListTab } from "../../components/author/ReadingListTab.tsx";
 import { FollowingTab } from "../../components/author/FollowingTab.tsx";
 import { IntroductionTab } from "../../components/author/IntroductionTab";
 import { useParams } from "react-router-dom";
@@ -83,7 +83,7 @@ export function AuthorProfile() {
         </Tabs.Panel>
 
         <Tabs.Panel value="conversation" pt="xl">
-          <ConversationTab />
+          <ReadingListTab />
         </Tabs.Panel>
 
         <Tabs.Panel value="following" pt="xl">
