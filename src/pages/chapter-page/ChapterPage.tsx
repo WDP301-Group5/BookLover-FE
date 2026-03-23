@@ -60,7 +60,7 @@ import {
 } from "../../interfaces/ReactComment";
 import ReactCommentService from "../../services/ReactCommentService";
 import { getReactColor, totalReact } from "../../utils/reactComment";
-import { ReactIcons } from "../../components/reactComment/ReactIcon";
+import { ReactIconList } from "../../components/reactComment/ReactIcon";
 import { ChapterPageService } from "../../services/ChapterService";
 
 export interface ReaderSettings {
@@ -816,15 +816,9 @@ const ChapterPage = () => {
                           }
                         >
                           <Group gap={6}>
-                            {
-                              ReactIcons[
-                                (userReactMap?.get(c.id) as ReactTypeValue) ||
-                                  ReactType.UNLIKE
-                              ]
-                            }
-                            <Text size="sm" fw={500}>
-                              {totalReact(c?.react as Record<string, number>) ||
-                                0}
+                            <Text size="sm" fw={500} className="flex justify-center items-center align-middle min-w-[80px]">
+                                {totalReact(c?.react as Record<string, number>) > 0 && <ReactIconList react={c?.react} />}
+                              {totalReact(c?.react as Record<string, number>) || 0}
                             </Text>
                           </Group>
                         </Button>
