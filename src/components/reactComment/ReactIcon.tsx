@@ -20,7 +20,6 @@ export const ReactIconList = ({ react }: { react: IReact }) => {
     }));
     const sorted = mapReact.sort((a, b) => b.value - a.value);
     const top3 = sorted.slice(0, 3);
-    console.log("sprt", sorted)
     return (
         <div className="flex flex-col justify-center">
             <span className="w-full min-w-[50px] h-full min-h-5 flex gap-2">
