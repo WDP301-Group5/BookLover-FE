@@ -205,8 +205,8 @@ const ChapterPage = () => {
   });
   const effectiveContentURL =
     isGated &&
-    authorOverride?.contentURL &&
-    !authorOverride.contentURL.startsWith("status-")
+      authorOverride?.contentURL &&
+      !authorOverride.contentURL.startsWith("status-")
       ? authorOverride.contentURL
       : chapter?.contentURL;
 
@@ -373,6 +373,35 @@ const ChapterPage = () => {
     }
   };
 
+  useEffect(() => {
+    if (!chapter?.id || (!nextChapter && !prevChapter)) return;
+
+    let isNavigating = false;
+
+    const handleKeyDown = async (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+
+      if (isNavigating) return;
+
+      if (e.key === "ArrowRight" && nextChapter) {
+        isNavigating = true;
+        navigate(`/truyen/${storySlug}/chuong/${nextChapter.chapterNumber}`);
+      }
+
+      if (e.key === "ArrowLeft" && prevChapter) {
+        isNavigating = true;
+        navigate(`/truyen/${storySlug}/chuong/${prevChapter.chapterNumber}`);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [nextChapter, prevChapter, chapter?.id, navigate, storySlug]);
+
   return (
     <Container size="md" py="xl">
       <Stack gap="xl">
@@ -490,7 +519,7 @@ const ChapterPage = () => {
                 onClick={handleChangeUserFollowStory}
               >
                 {isFollowStory?.status === "follow" ||
-                isFollowStory?.status === "unsend" ? (
+                  isFollowStory?.status === "unsend" ? (
                   <IconHeartFilled size={16} />
                 ) : (
                   <IconHeartPlus size={16} />
@@ -500,7 +529,7 @@ const ChapterPage = () => {
             <HoverCard.Dropdown>
               <Text size="sm">
                 {isFollowStory?.status === "follow" ||
-                isFollowStory?.status === "unsend"
+                  isFollowStory?.status === "unsend"
                   ? "Bỏ Theo Dõi"
                   : "Theo Dõi"}
               </Text>
@@ -817,7 +846,7 @@ const ChapterPage = () => {
                         >
                           <Group gap={6}>
                             <Text size="sm" fw={500} className="flex justify-center items-center align-middle min-w-[80px]">
-                                {totalReact(c?.react as Record<string, number>) > 0 && <ReactIconList react={c?.react} />}
+                              {totalReact(c?.react as Record<string, number>) > 0 && <ReactIconList react={c?.react} />}
                               {totalReact(c?.react as Record<string, number>) || 0}
                             </Text>
                           </Group>
