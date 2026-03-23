@@ -718,29 +718,6 @@ const StoryDetailPage: FC = () => {
         </Stack>
       </Paper>
 
-      <Paper withBorder radius="md" p="md">
-        <Group mb="xs">
-          <MessageCircle size={16} />
-          <Title order={4}>Bình luận</Title>
-        </Group>
-
-        <Stack gap="xs">
-          <Textarea size="sm" minRows={3} placeholder="Viết bình luận..." />
-          <Button
-            size="xs"
-            w="fit-content"
-            onClick={() => {
-              if (!isLoggedIn) {
-                setLoginModalOpened(true);
-                return;
-              }
-            }}
-          >
-            Gửi bình luận
-          </Button>
-        </Stack>
-      </Paper>
-
       <RequireLoginModal
         opened={loginModalOpened}
         onClose={() => setLoginModalOpened(false)}
