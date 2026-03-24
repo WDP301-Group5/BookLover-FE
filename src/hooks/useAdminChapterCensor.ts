@@ -1,8 +1,8 @@
 import { notifications } from "@mantine/notifications";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
-import { AdminChapterCensorService } from "../services/AdminChapterCensorService";
 import socket from "../lib/socket";
+import { AdminChapterCensorService } from "../services/AdminChapterCensorService";
 
 interface ModerationAction {
   id: string;
@@ -126,7 +126,11 @@ export const useUnbanChapter = () => {
 export const useOverrideDecision = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, decision, reason }: ModerationAction & { decision: "active" | "rejected" }) =>
+    mutationFn: ({
+      id,
+      decision,
+      reason,
+    }: ModerationAction & { decision: "active" | "rejected" }) =>
       AdminChapterCensorService.overrideDecision(id, decision, reason || ""),
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -177,8 +181,7 @@ export const useRetryFailedJobs = () => {
     onError: (error: AxiosError) => {
       notifications.show({
         title: "Lỗi",
-        message:
-          error.response?.data?.message || "Không thể retry jobs",
+        message: error.response?.data?.message || "Không thể retry jobs",
         color: "red",
       });
     },
@@ -203,8 +206,12 @@ export const useTriggerAIAnalysis = (onComplete?: () => void) => {
       }
 
       const handleAIComplete = () => {
-        queryClient.invalidateQueries({ queryKey: ["admin", "chapters", "pending"] });
-        queryClient.invalidateQueries({ queryKey: ["admin", "chapters", "managed"] });
+        queryClient.invalidateQueries({
+          queryKey: ["admin", "chapters", "pending"],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["admin", "chapters", "managed"],
+        });
         socket.off("ai-analysis-complete", handleAIComplete);
         onComplete?.();
       };
@@ -218,6 +225,10 @@ export const useTriggerAIAnalysis = (onComplete?: () => void) => {
       return result;
     },
     onSuccess: () => {
+      // Immediately refetch data table after API call completes
+      queryClient.invalidateQueries({
+        queryKey: ["admin", "chapters", "pending"],
+      });
       notifications.show({
         title: "Thành công",
         message: "Đã bắt đầu phân tích AI",
@@ -227,8 +238,7 @@ export const useTriggerAIAnalysis = (onComplete?: () => void) => {
     onError: (error: AxiosError) => {
       notifications.show({
         title: "Lỗi",
-        message:
-          error.response?.data?.message || "Không thể phân tích AI",
+        message: error.response?.data?.message || "Không thể phân tích AI",
         color: "red",
       });
     },
