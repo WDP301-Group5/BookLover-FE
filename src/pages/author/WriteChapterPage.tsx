@@ -62,6 +62,10 @@ const writeChapterSchema = z.object({
     .int("Giá phải là số nguyên")
     .min(1, "Giá phải lớn hơn 0")
     .optional(),
+  chapterNumber: z
+    .number({ error: "Số chương phải lớn hơn hoặc bằng 0" })
+    .int("Số chương phải lớn hơn hoặc bằng 0")
+    .min(0, "Số chương phải lớn hơn hoặc bằng 0"),
 });
 
 type WriteChapterFormValues = z.infer<typeof writeChapterSchema>;
@@ -101,6 +105,7 @@ export default function WriteChapterPage() {
     null,
   );
   const [contentError, setContentError] = useState<string | undefined>();
+  const [chapterError, setChapterError] = useState<string | undefined>();
   const [editorInitialContent, setEditorInitialContent] = useState<string>("");
   const [editorResetKey, setEditorResetKey] = useState(0);
   const [publishModalOpened, setPublishModalOpened] = useState(false);
@@ -110,6 +115,7 @@ export default function WriteChapterPage() {
   const [unsavedPublishModalOpened, setUnsavedPublishModalOpened] =
     useState(false);
   const titleInputRef = useRef<HTMLInputElement>(null);
+  const chapterNumberInputRef = useRef<HTMLInputElement>(null);
   const isExitingRef = useRef(false);
   const hasStateRef = useRef(false);
   const extraPushesRef = useRef(0);
@@ -122,6 +128,7 @@ export default function WriteChapterPage() {
       title: "",
       chapterType: "free",
       price: 1,
+      chapterNumber: 1,
     },
     validate: zod4Resolver(writeChapterSchema),
   });
@@ -157,6 +164,7 @@ export default function WriteChapterPage() {
         title: ch.title,
         chapterType: ch.isPremium ? "vip" : "free",
         price: ch.price || 1,
+        chapterNumber: ch.chapterNumber,
       });
       setContentError(undefined);
       setSaved(false);
@@ -219,7 +227,7 @@ export default function WriteChapterPage() {
               ? 1
               : Math.max(...chapterList.map((c) => c.chapterNumber)) + 1;
           const newTitle = `Chương ${nextNum}`;
-          form.setValues({ title: newTitle, chapterType: "free", price: 1 });
+          form.setValues({ title: newTitle, chapterType: "free", price: 1, chapterNumber: nextNum });
           return;
         }
 
@@ -238,6 +246,7 @@ export default function WriteChapterPage() {
           title: ch.title,
           chapterType: ch.isPremium ? "vip" : "free",
           price: ch.price || 1,
+          chapterNumber: ch.chapterNumber,
         });
         setContentError(undefined);
         setSaved(true);
@@ -337,7 +346,7 @@ export default function WriteChapterPage() {
 
     // Pre-fill UI immediately for instant feedback
     setSelectedChapterIndex(null);
-    form.setValues({ title: newTitle, chapterType: "free", price: 1 });
+    form.setValues({ title: newTitle, chapterType: "free", price: 1, chapterNumber: newNum });
     setEditorInitialContent("");
     setEditorResetKey((k) => k + 1);
     setContentPayload(null);
@@ -382,6 +391,17 @@ export default function WriteChapterPage() {
   ): FormData | null => {
     if (!story) return null;
 
+    const isDuplicate = chapters.some(
+      (c) =>
+        c.chapterNumber === values.chapterNumber &&
+        (selectedChapterIndex === null ||
+          chapters[selectedChapterIndex].id !== c.id)
+    );
+    if (isDuplicate) {
+      setChapterError("Chương số đã tồn tại. Vui lòng chọn số khác.");
+      return null;
+    }
+
     if (!contentPayload) {
       setContentError("Vui lòng nhập nội dung chương");
       return null;
@@ -403,18 +423,12 @@ export default function WriteChapterPage() {
       return null;
     }
 
+    setChapterError(undefined);
     setContentError(undefined);
 
     const formData = new FormData();
     formData.append("storyId", story._id);
-    formData.append(
-      "chapterNumber",
-      String(
-        selectedChapterIndex !== null
-          ? chapters[selectedChapterIndex].chapterNumber
-          : nextChapterNumber,
-      ),
-    );
+    formData.append("chapterNumber", String(values.chapterNumber));
     formData.append("title", values.title);
     formData.append("status", status);
 
@@ -445,6 +459,7 @@ export default function WriteChapterPage() {
     try {
       if (selectedChapterIndex !== null) {
         // Update existing chapter
+        
         const chapterId = chapters[selectedChapterIndex].id;
         await AuthorService.updateChapter(chapterId, formData);
       } else {
@@ -566,6 +581,7 @@ export default function WriteChapterPage() {
           title: ch.title,
           chapterType: ch.isPremium ? "vip" : "free",
           price: ch.price || 1,
+          chapterNumber: ch.chapterNumber,
         });
         const fullChapter = await AuthorService.getChapterById(ch.id);
         const html = fullChapter.contentURL ?? "";
@@ -579,6 +595,7 @@ export default function WriteChapterPage() {
           title: `Chương ${nextNum}`,
           chapterType: "free",
           price: 1,
+          chapterNumber: nextNum,
         });
         setEditorInitialContent("");
         setEditorResetKey((k) => k + 1);
@@ -734,7 +751,7 @@ export default function WriteChapterPage() {
               <ActionIcon
                 variant="subtle"
                 color="gray"
-                onClick={() => navigate(-1)}
+                onClick={() => navigate("/author/my-stories?tab=all&page=1")}
                 title="Quay lại"
               >
                 <ChevronLeft size={20} />
@@ -914,26 +931,35 @@ export default function WriteChapterPage() {
       <Container size="md" py="xl">
         <form onSubmit={(e) => e.preventDefault()}>
           <Stack gap="lg">
+            <NumberInput 
+              label="Chương số"
+              ref={chapterNumberInputRef}
+              size="md"
+              withAsterisk
+              {...form.getInputProps("chapterNumber")}
+              error={chapterError}
+              placeholder={selectedChapterIndex !== null ? (chapters[selectedChapterIndex].chapterNumber).toString() : (nextChapterNumber-1).toString()}
+            />
             {/* Chapter title input - centered, clean */}
             <TextInput
+              label="Tiêu đề"
+              withAsterisk
               ref={titleInputRef}
               placeholder="Tiêu đề chương..."
-              variant="unstyled"
-              size="xl"
+              variant="default"
+              size="md"
               styles={{
                 input: {
-                  textAlign: "center",
-                  fontSize: 24,
-                  fontWeight: 600,
-                  color: "var(--mantine-color-text)",
-                  border: "none",
-                  background: "transparent",
+                  fontWeight: 500,
+                  color: "var(--mantine-color-text)"
                 },
               }}
               {...form.getInputProps("title")}
             />
 
             {/* Chapter content editor */}
+            <Box>
+            <Text size="md" fw={500} >Nội dung<span className="text-red-500 ml-1">*</span></Text>
             <Box
               className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
               p="md"
@@ -948,6 +974,7 @@ export default function WriteChapterPage() {
                 initialContent={editorInitialContent}
                 error={contentError}
               />
+            </Box>
             </Box>
 
             {/* Word count warning below editor */}
