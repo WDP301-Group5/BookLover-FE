@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Autocomplete,
   Avatar,
@@ -18,6 +18,7 @@ import {
   Text,
   TextInput,
   Title,
+  Popover,
 } from "@mantine/core";
 import {
   IconHeart,
@@ -44,11 +45,15 @@ import {
   useReviews,
   useReviewStories,
 } from "../../hooks/useReview";
-import { useReactReview, useUserReactReviews } from "../../hooks/useReactReview";
+import {
+  useReactReview,
+  useUserReactReviews,
+} from "../../hooks/useReactReview";
 import type { ReactReviewTypeValue } from "../../services/ReactReviewService";
 import { useUserStore } from "../../stores/useUserStore";
-import { getReactColor, totalReact } from "../../utils/reactComment";
 import { showError, showSuccess } from "../../utils/notifications";
+
+type ReviewReactCount = Record<string, number>;
 
 function cleanReviewContent(html: string): string {
   return html
@@ -59,7 +64,10 @@ function cleanReviewContent(html: string): string {
 }
 
 function getPlainText(html: string): string {
-  return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  return html
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function getPlainTextLength(html: string): number {
@@ -87,9 +95,35 @@ function formatTimeAgo(date?: string) {
   return new Date(date).toLocaleDateString("vi-VN");
 }
 
+function getReactColor(react?: ReactReviewTypeValue) {
+  switch (react) {
+    case "like":
+      return "blue";
+    case "love":
+      return "pink";
+    case "haha":
+      return "yellow";
+    case "wow":
+      return "orange";
+    case "sad":
+      return "cyan";
+    case "angry":
+      return "red";
+    default:
+      return "gray";
+  }
+}
+
+function totalReact(react: ReviewReactCount): number {
+  return Object.values(react || {}).reduce(
+    (sum, value) => sum + Number(value || 0),
+    0,
+  );
+}
+
 export default function ReviewPage() {
   const navigate = useNavigate();
-  const user = useUserStore((state: any) => state.user);
+  const user = useUserStore((state: { user: unknown }) => state.user);
   const isLoggedIn = !!user;
 
   const [loginModalOpened, setLoginModalOpened] = useState(false);
@@ -111,14 +145,18 @@ export default function ReviewPage() {
   const [expandedReviews, setExpandedReviews] = useState<
     Record<string, boolean>
   >({});
-
   const contentRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [showToggleMap, setShowToggleMap] = useState<Record<string, boolean>>(
     {},
   );
-
   const [editorKey, setEditorKey] = useState(0);
-  const [localReactMap, setLocalReactMap] = useState<Record<string, any>>({});
+
+  const [localReactMap, setLocalReactMap] = useState<
+    Record<string, ReviewReactCount>
+  >({});
+  const [openedReactCountId, setOpenedReactCountId] = useState<string | null>(
+    null,
+  );
 
   const { data: stories = [], loading: storiesLoading } = useReviewStories(
     "",
@@ -139,27 +177,29 @@ export default function ReviewPage() {
     limit,
   });
 
-  const reviewIds = (reviews || []).map((review) => review.id).filter(Boolean);
+  const reviewIds = reviews.map((review) => review.id).filter(Boolean);
 
-  const {
-    data: userReactReviews = [],
-    refetch: refetchUserReactReviews,
-  } = useUserReactReviews(isLoggedIn ? reviewIds : []);
+  const { data: userReactReviews = [], refetch: refetchUserReactReviews } =
+    useUserReactReviews(isLoggedIn ? reviewIds : []);
 
   const { mutateAsync: submitReactReview } = useReactReview();
   const { createReview, loading: creatingReview } = useCreateReview();
 
-  const userReactMap = new Map(
-    (userReactReviews || []).map((item: any) => [
-      String(item.reviewId),
-      item.react,
-    ]),
-  );
+  const userReactMap = useMemo(() => {
+    return new Map<string, ReactReviewTypeValue>(
+      (userReactReviews || []).map(
+        (item: { reviewId: string; react: ReactReviewTypeValue }) => [
+          String(item.reviewId),
+          item.react,
+        ],
+      ),
+    );
+  }, [userReactReviews]);
 
   useEffect(() => {
-    const nextMap: Record<string, any> = {};
+    const nextMap: Record<string, ReviewReactCount> = {};
 
-    (reviews || []).forEach((review) => {
+    reviews.forEach((review) => {
       nextMap[review.id] = { ...(review.react || {}) };
     });
 
@@ -170,7 +210,7 @@ export default function ReviewPage() {
     const timer = setTimeout(() => {
       const nextMap: Record<string, boolean> = {};
 
-      (reviews || []).forEach((review) => {
+      reviews.forEach((review) => {
         const el = contentRefs.current[review.id];
         if (!el) {
           nextMap[review.id] = false;
@@ -232,6 +272,220 @@ export default function ReviewPage() {
     setSelectedStoryId(found?.id || "");
   };
 
+  const toggleExpandReview = (reviewId: string) => {
+    setExpandedReviews((prev) => ({
+      ...prev,
+      [reviewId]: !prev[reviewId],
+    }));
+  };
+
+  const safeDecreaseReactCount = (
+    reactObj: ReviewReactCount,
+    reactKey: ReactReviewTypeValue,
+  ): ReviewReactCount => {
+    const currentValue = Number(reactObj?.[reactKey] || 0);
+
+    return {
+      ...reactObj,
+      [reactKey]: Math.max(0, currentValue - 1),
+    };
+  };
+
+  const safeIncreaseReactCount = (
+    reactObj: ReviewReactCount,
+    reactKey: ReactReviewTypeValue,
+  ): ReviewReactCount => {
+    const currentValue = Number(reactObj?.[reactKey] || 0);
+
+    return {
+      ...reactObj,
+      [reactKey]: currentValue + 1,
+    };
+  };
+
+  const handleRemoveReactReview = async (reviewId: string) => {
+    if (!isLoggedIn) {
+      setLoginModalOpened(true);
+      return;
+    }
+
+    const currentReact = userReactMap.get(reviewId);
+    const previousReactState = { ...(localReactMap[reviewId] || {}) };
+
+    if (!currentReact || currentReact === "unlike") return;
+
+    setLocalReactMap((prev) => {
+      let updated = { ...(prev[reviewId] || {}) };
+      updated = safeDecreaseReactCount(updated, currentReact);
+
+      return {
+        ...prev,
+        [reviewId]: updated,
+      };
+    });
+
+    try {
+      await submitReactReview({
+        reviewId,
+        react: "unlike",
+      });
+
+      await refetchUserReactReviews();
+    } catch (error: unknown) {
+      setLocalReactMap((prev) => ({
+        ...prev,
+        [reviewId]: previousReactState,
+      }));
+
+      const err = error as {
+        response?: { data?: { message?: string } };
+        message?: string;
+      };
+
+      console.error("Remove react review failed:", err);
+      showError(
+        err?.response?.data?.message || err?.message || "Bỏ cảm xúc thất bại",
+      );
+    }
+  };
+
+  const handleReactReview = async (
+    reviewId: string,
+    react: Exclude<ReactReviewTypeValue, "unlike">,
+  ) => {
+    if (!isLoggedIn) {
+      setLoginModalOpened(true);
+      return;
+    }
+
+    const currentReact = userReactMap.get(reviewId);
+    const nextReact: ReactReviewTypeValue =
+      currentReact === react ? "unlike" : react;
+    const previousReactState = { ...(localReactMap[reviewId] || {}) };
+
+    setLocalReactMap((prev) => {
+      let updated = { ...(prev[reviewId] || {}) };
+
+      if (currentReact && currentReact !== "unlike") {
+        updated = safeDecreaseReactCount(updated, currentReact);
+      }
+
+      if (nextReact !== "unlike") {
+        updated = safeIncreaseReactCount(updated, nextReact);
+      }
+
+      return {
+        ...prev,
+        [reviewId]: updated,
+      };
+    });
+
+    try {
+      await submitReactReview({
+        reviewId,
+        react: nextReact,
+      });
+
+      await refetchUserReactReviews();
+    } catch (error: unknown) {
+      setLocalReactMap((prev) => ({
+        ...prev,
+        [reviewId]: previousReactState,
+      }));
+
+      const err = error as {
+        response?: { data?: { message?: string } };
+        message?: string;
+      };
+
+      console.error("React review failed:", err);
+      showError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Thả cảm xúc review thất bại",
+      );
+    }
+  };
+
+  const getReactDisplay = (react?: ReactReviewTypeValue) => {
+    switch (react) {
+      case "like":
+        return {
+          label: "Thích",
+          icon: <IconThumbUp size={16} className="text-blue-500" />,
+        };
+      case "love":
+        return {
+          label: "Yêu thích",
+          icon: <IconHeartFilled size={16} className="text-pink-500" />,
+        };
+      case "haha":
+        return {
+          label: "Haha",
+          icon: <IconMoodSmile size={16} className="text-yellow-500" />,
+        };
+      case "wow":
+        return {
+          label: "Wow",
+          icon: <IconMoodSurprised size={16} className="text-orange-500" />,
+        };
+      case "sad":
+        return {
+          label: "Buồn",
+          icon: <IconMoodSad size={16} className="text-blue-400" />,
+        };
+      case "angry":
+        return {
+          label: "Phẫn nộ",
+          icon: <IconMoodAngry size={16} className="text-red-600" />,
+        };
+      default:
+        return {
+          label: "Thả cảm xúc",
+          icon: <IconHeart size={16} />,
+        };
+    }
+  };
+
+  const getReactionStats = (react: ReviewReactCount) => [
+    {
+      key: "like",
+      icon: <IconThumbUp size={16} className="text-blue-500" />,
+      label: "Thích",
+      count: react?.like || 0,
+    },
+    {
+      key: "love",
+      icon: <IconHeartFilled size={16} className="text-pink-500" />,
+      label: "Yêu thích",
+      count: react?.love || 0,
+    },
+    {
+      key: "haha",
+      icon: <IconMoodSmile size={16} className="text-yellow-500" />,
+      label: "Haha",
+      count: react?.haha || 0,
+    },
+    {
+      key: "wow",
+      icon: <IconMoodSurprised size={16} className="text-orange-500" />,
+      label: "Wow",
+      count: react?.wow || 0,
+    },
+    {
+      key: "sad",
+      icon: <IconMoodSad size={16} className="text-blue-400" />,
+      label: "Buồn",
+      count: react?.sad || 0,
+    },
+    {
+      key: "angry",
+      icon: <IconMoodAngry size={16} className="text-red-600" />,
+      label: "Phẫn nộ",
+      count: react?.angry || 0,
+    },
+  ];
+
   const handleSubmitReview = async () => {
     if (!isLoggedIn) {
       setLoginModalOpened(true);
@@ -271,179 +525,15 @@ export default function ReviewPage() {
       setEditorKey((prev) => prev + 1);
 
       refetchReviews();
-    } catch (error: any) {
-      showError(
-        error?.response?.data?.message ||
-          error?.message ||
-          "Gửi review thất bại",
-      );
-    }
-  };
-
-  const toggleExpandReview = (reviewId: string) => {
-    setExpandedReviews((prev) => ({
-      ...prev,
-      [reviewId]: !prev[reviewId],
-    }));
-  };
-
-  const safeDecreaseReactCount = (
-    reactObj: Record<string, number>,
-    reactKey: string,
-  ) => {
-    const currentValue = Number(reactObj?.[reactKey] || 0);
-
-    return {
-      ...reactObj,
-      [reactKey]: Math.max(0, currentValue - 1),
-    };
-  };
-
-  const safeIncreaseReactCount = (
-    reactObj: Record<string, number>,
-    reactKey: string,
-  ) => {
-    const currentValue = Number(reactObj?.[reactKey] || 0);
-
-    return {
-      ...reactObj,
-      [reactKey]: currentValue + 1,
-    };
-  };
-
-  const handleRemoveReactReview = async (reviewId: string) => {
-    if (!isLoggedIn) {
-      setLoginModalOpened(true);
-      return;
-    }
-
-    const currentReact = userReactMap.get(reviewId);
-    const previousReactState = { ...(localReactMap[reviewId] || {}) };
-
-    setLocalReactMap((prev) => {
-      let updated = { ...(prev[reviewId] || {}) };
-
-      if (currentReact && currentReact !== "unlike") {
-        updated = safeDecreaseReactCount(updated, currentReact);
-      }
-
-      return {
-        ...prev,
-        [reviewId]: updated,
+    } catch (error: unknown) {
+      const err = error as {
+        response?: { data?: { message?: string } };
+        message?: string;
       };
-    });
 
-    try {
-      await submitReactReview({
-        reviewId,
-        react: "unlike",
-      });
-
-      await refetchUserReactReviews();
-    } catch (error: any) {
-      setLocalReactMap((prev) => ({
-        ...prev,
-        [reviewId]: previousReactState,
-      }));
-
-      console.error("Remove react review failed:", error);
       showError(
-        error?.response?.data?.message ||
-          error?.message ||
-          "Bỏ cảm xúc thất bại",
+        err?.response?.data?.message || err?.message || "Gửi review thất bại",
       );
-    }
-  };
-
-  const handleReactReview = async (
-    reviewId: string,
-    react: ReactReviewTypeValue,
-  ) => {
-    if (!isLoggedIn) {
-      setLoginModalOpened(true);
-      return;
-    }
-
-    const currentReact = userReactMap.get(reviewId);
-    const nextReact = currentReact === react ? "unlike" : react;
-    const previousReactState = { ...(localReactMap[reviewId] || {}) };
-
-    setLocalReactMap((prev) => {
-      let updated = { ...(prev[reviewId] || {}) };
-
-      if (currentReact && currentReact !== "unlike") {
-        updated = safeDecreaseReactCount(updated, currentReact);
-      }
-
-      if (nextReact !== "unlike") {
-        updated = safeIncreaseReactCount(updated, nextReact);
-      }
-
-      return {
-        ...prev,
-        [reviewId]: updated,
-      };
-    });
-
-    try {
-      await submitReactReview({
-        reviewId,
-        react: nextReact,
-      });
-
-      await refetchUserReactReviews();
-    } catch (error: any) {
-      setLocalReactMap((prev) => ({
-        ...prev,
-        [reviewId]: previousReactState,
-      }));
-
-      console.error("React review failed:", error);
-      showError(
-        error?.response?.data?.message ||
-          error?.message ||
-          "Thả cảm xúc review thất bại",
-      );
-    }
-  };
-
-  const getReactDisplay = (react?: string) => {
-    switch (react) {
-      case "like":
-        return {
-          label: "Thích",
-          icon: <IconThumbUp size={16} className="text-blue-500" />,
-        };
-      case "love":
-        return {
-          label: "Yêu thích",
-          icon: <IconHeartFilled size={16} className="text-pink-500" />,
-        };
-      case "haha":
-        return {
-          label: "Haha",
-          icon: <IconMoodSmile size={16} className="text-yellow-500" />,
-        };
-      case "wow":
-        return {
-          label: "Wow",
-          icon: <IconMoodSurprised size={16} className="text-orange-500" />,
-        };
-      case "sad":
-        return {
-          label: "Buồn",
-          icon: <IconMoodSad size={16} className="text-blue-400" />,
-        };
-      case "angry":
-        return {
-          label: "Phẫn nộ",
-          icon: <IconMoodAngry size={16} className="text-red-600" />,
-        };
-      default:
-        return {
-          label: "Thả cảm xúc",
-          icon: <IconHeart size={16} />,
-        };
     }
   };
 
@@ -583,16 +673,20 @@ export default function ReviewPage() {
         <Text ta="center" c="red" py="xl">
           {reviewsError}
         </Text>
-      ) : (reviews || []).length === 0 ? (
+      ) : reviews.length === 0 ? (
         <Text ta="center" c="dimmed" py="xl">
           Chưa có review phù hợp
         </Text>
       ) : (
         <Stack gap="xl">
-          {(reviews || []).map((review) => {
+          {reviews.map((review) => {
             const cleanedHtml = cleanReviewContent(review.content);
             const isExpanded = !!expandedReviews[review.id];
             const shouldShowToggle = !!showToggleMap[review.id];
+            const currentReact = userReactMap.get(review.id);
+            const currentReactDisplay = getReactDisplay(currentReact);
+            const currentReactCount =
+              localReactMap[review.id] || review.react || {};
 
             return (
               <Card key={review.id} withBorder shadow="xs" radius="md" p="sm">
@@ -653,7 +747,12 @@ export default function ReviewPage() {
 
                     <Divider my="md" />
 
-                    <Group justify="space-between" align="center" wrap="wrap" gap="sm">
+                    <Group
+                      justify="space-between"
+                      align="center"
+                      wrap="wrap"
+                      gap="sm"
+                    >
                       <HoverCard
                         width="auto"
                         shadow="lg"
@@ -666,20 +765,15 @@ export default function ReviewPage() {
                             variant="subtle"
                             radius="xl"
                             size="sm"
-                            leftSection={getReactDisplay(userReactMap.get(review.id)).icon}
-                            color={getReactColor(
-                              (userReactMap.get(review.id) ||
-                                "unlike") as ReactReviewTypeValue,
-                            )}
+                            leftSection={currentReactDisplay.icon}
+                            color={getReactColor(currentReact)}
                             onClick={() => {
-                              const currentReact = userReactMap.get(review.id);
-
                               if (currentReact && currentReact !== "unlike") {
                                 handleRemoveReactReview(review.id);
                               }
                             }}
                           >
-                            {getReactDisplay(userReactMap.get(review.id)).label}
+                            {currentReactDisplay.label}
                           </Button>
                         </HoverCard.Target>
 
@@ -693,9 +787,14 @@ export default function ReviewPage() {
                               radius="xl"
                               size="xs"
                               className="transition-all duration-200 hover:-translate-y-1 hover:scale-125"
-                              onClick={() => handleReactReview(review.id, "like")}
+                              onClick={() =>
+                                handleReactReview(review.id, "like")
+                              }
                             >
-                              <IconThumbUp size={18} className="text-blue-500" />
+                              <IconThumbUp
+                                size={18}
+                                className="text-blue-500"
+                              />
                             </Button>
 
                             <Button
@@ -703,7 +802,9 @@ export default function ReviewPage() {
                               radius="xl"
                               size="xs"
                               className="transition-all duration-200 hover:-translate-y-1 hover:scale-125"
-                              onClick={() => handleReactReview(review.id, "love")}
+                              onClick={() =>
+                                handleReactReview(review.id, "love")
+                              }
                             >
                               <IconHeartFilled
                                 size={18}
@@ -716,7 +817,9 @@ export default function ReviewPage() {
                               radius="xl"
                               size="xs"
                               className="transition-all duration-200 hover:-translate-y-1 hover:scale-125"
-                              onClick={() => handleReactReview(review.id, "haha")}
+                              onClick={() =>
+                                handleReactReview(review.id, "haha")
+                              }
                             >
                               <IconMoodSmile
                                 size={18}
@@ -729,7 +832,9 @@ export default function ReviewPage() {
                               radius="xl"
                               size="xs"
                               className="transition-all duration-200 hover:-translate-y-1 hover:scale-125"
-                              onClick={() => handleReactReview(review.id, "wow")}
+                              onClick={() =>
+                                handleReactReview(review.id, "wow")
+                              }
                             >
                               <IconMoodSurprised
                                 size={18}
@@ -742,9 +847,14 @@ export default function ReviewPage() {
                               radius="xl"
                               size="xs"
                               className="transition-all duration-200 hover:-translate-y-1 hover:scale-125"
-                              onClick={() => handleReactReview(review.id, "sad")}
+                              onClick={() =>
+                                handleReactReview(review.id, "sad")
+                              }
                             >
-                              <IconMoodSad size={18} className="text-blue-400" />
+                              <IconMoodSad
+                                size={18}
+                                className="text-blue-400"
+                              />
                             </Button>
 
                             <Button
@@ -752,18 +862,65 @@ export default function ReviewPage() {
                               radius="xl"
                               size="xs"
                               className="transition-all duration-200 hover:-translate-y-1 hover:scale-125"
-                              onClick={() => handleReactReview(review.id, "angry")}
+                              onClick={() =>
+                                handleReactReview(review.id, "angry")
+                              }
                             >
-                              <IconMoodAngry size={18} className="text-red-600" />
+                              <IconMoodAngry
+                                size={18}
+                                className="text-red-600"
+                              />
                             </Button>
                           </Group>
                         </HoverCard.Dropdown>
                       </HoverCard>
 
-                      <Text size="sm" c="dimmed">
-                        {totalReact(localReactMap[review.id] || review.react || {})} lượt
-                        cảm xúc
-                      </Text>
+                      <Popover
+                        opened={openedReactCountId === review.id}
+                        onChange={(opened) =>
+                          setOpenedReactCountId(opened ? review.id : null)
+                        }
+                        position="top-end"
+                        withArrow
+                        shadow="md"
+                        radius="md"
+                      >
+                        <Popover.Target>
+                          <Text
+                            size="sm"
+                            c="dimmed"
+                            style={{ cursor: "pointer" }}
+                            onClick={() =>
+                              setOpenedReactCountId((prev) =>
+                                prev === review.id ? null : review.id,
+                              )
+                            }
+                          >
+                            {totalReact(currentReactCount)} lượt cảm xúc
+                          </Text>
+                        </Popover.Target>
+
+                        <Popover.Dropdown p="sm">
+                          <Stack gap={8}>
+                            {getReactionStats(currentReactCount).map((item) => (
+                              <Group
+                                key={item.key}
+                                justify="space-between"
+                                gap="lg"
+                              >
+                                <Group gap="xs">
+                                  {item.icon}
+                                  <Text size="sm">{item.label}</Text>
+                                </Group>
+
+                                <Text size="sm" fw={600}>
+                                  {item.count}
+                                </Text>
+                              </Group>
+                            ))}
+                          </Stack>
+                        </Popover.Dropdown>
+                      </Popover>
                     </Group>
                   </Grid.Col>
 
@@ -775,7 +932,7 @@ export default function ReviewPage() {
                         marginLeft: "auto",
                       }}
                     >
-                      <StoryCard story={review.story as any} type="home" />
+                      <StoryCard story={review.story as never} type="home" />
                     </div>
                   </Grid.Col>
                 </Grid>
