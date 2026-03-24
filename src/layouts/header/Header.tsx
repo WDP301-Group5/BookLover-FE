@@ -1,5 +1,5 @@
 // src/layouts/header/Header.tsx
-import { Box, Menu as MantineMenu, useMantineColorScheme } from "@mantine/core";
+import { Avatar, Box, Menu as MantineMenu, useMantineColorScheme } from "@mantine/core";
 import {
   BookOpen,
   ChevronDown,
@@ -238,8 +238,8 @@ const Header = () => {
               <MantineMenu.Target>
                 <button className="hidden sm:flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors duration-200 cursor-pointer">
                   {isLoggedIn ? (
-                    <img
-                      src={user?.avatarURL || "/images/default-avatar.png"}
+                    <Avatar
+                      src={user?.avatarURL || "./../assets/images/default-avatar.png"}
                       alt="avatar"
                       className="w-8 h-8 rounded-full object-cover border"
                     />

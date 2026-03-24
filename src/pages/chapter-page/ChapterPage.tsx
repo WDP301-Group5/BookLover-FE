@@ -101,6 +101,7 @@ const ChapterPage = () => {
   const [loginNotice, setLoginNotice] = useState(false);
   const [comment, setComment] = useState("");
   const [commentPage, setCommentPage] = useState(1);
+  const [buyChapterLoading, setBuyChapterLoading] = useState(false);
 
   const [replyingCommentId, setReplyingCommentId] = useState<string | null>(
     null,
@@ -350,14 +351,16 @@ const ChapterPage = () => {
   }, [chapter?.id, chapterNumber]);
 
   const handleBuyChapter = async () => {
+    if (!chapter?.id) return;
+    setBuyChapterLoading(true);
     // gọi API mua chương ở đây
     const result = await ChapterPageService.buyChapter(
       chapter?.id || "",
       user?.spiritStones || 0,
     );
-    console.log("Buy chapter", result);
     closeBuyChapter();
     closeConfirmBuyChapter();
+    setBuyChapterLoading(false);
     if (result && result?.success) {
       showSuccess("Mua chương thành công");
       updateUser({
@@ -668,7 +671,10 @@ const ChapterPage = () => {
                         ))}
 
                       <Group justify="flex-end">
-                        <Button variant="default" onClick={closeBuyChapter}>
+                        <Button variant="default"
+                          onClick={closeBuyChapter} 
+                          disabled={buyChapterLoading}
+                        >
                           Hủy
                         </Button>
 
@@ -676,8 +682,9 @@ const ChapterPage = () => {
                           color="blue"
                           onClick={openConfirmBuyChapter}
                           disabled={
-                            !user || user?.spiritStones < chapter?.price
+                            !user || user?.spiritStones < chapter?.price || buyChapterLoading
                           }
+                          loading={buyChapterLoading}
                         >
                           Xác nhận mua
                         </Button>
@@ -703,6 +710,7 @@ const ChapterPage = () => {
                             closeConfirmBuyChapter();
                             closeBuyChapter();
                           }}
+                          disabled={buyChapterLoading}
                         >
                           Hủy
                         </Button>
@@ -711,8 +719,9 @@ const ChapterPage = () => {
                           color="blue"
                           onClick={handleBuyChapter}
                           disabled={
-                            !user || user?.spiritStones < chapter?.price
+                            !user || user?.spiritStones < chapter?.price || buyChapterLoading
                           }
+                          loading={buyChapterLoading}
                         >
                           Xác nhận
                         </Button>
