@@ -20,3 +20,12 @@ export interface ReactComment {
   createdAt?: string;
   updatedAt?: string;
 }
+
+export interface IReact {
+  like: number;
+  love: number;
+  haha: number;
+  wow: number;
+  sad: number;
+  angry: number;
+}

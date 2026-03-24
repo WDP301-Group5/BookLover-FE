@@ -1,3 +1,4 @@
+// src/utils/reactComment.ts
 import { ReactType, type ReactTypeValue } from "../interfaces/ReactComment";
 
 export const getReactColor = (react: ReactTypeValue) => {

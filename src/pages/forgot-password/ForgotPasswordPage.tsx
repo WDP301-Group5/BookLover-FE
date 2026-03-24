@@ -21,6 +21,7 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { showSuccess, showError, showWarning } from "../../utils/notifications";
 import UserService from "../../services/UserService";
+import { useUserStore } from "../../stores/useUserStore";
 
 const forgotPasswordSchema = z.object({
   email: z.email("Định dạng email không hợp lệ"),
@@ -32,6 +33,7 @@ type Status = "idle" | "loading" | "waiting" | "error";
 
 export default function ForgotPasswordPage() {
   const navigate = useNavigate();
+  const { isLoggedIn } = useUserStore();
   const [status, setStatus] = useState<Status>("idle");
   const [email, setEmail] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -155,14 +157,24 @@ export default function ForgotPasswordPage() {
             )}
 
             <Group justify="space-between" mt="lg" className={classes.controls}>
-              <Anchor c="dimmed" size="sm" className={classes.control}>
-                <Center inline>
-                  <IconArrowLeft size={12} stroke={1.5} />
-                  <Box ml={5} onClick={() => navigate("/login")}>
-                    Quay lại trang đăng nhập
-                  </Box>
-                </Center>
-              </Anchor>
+              {isLoggedIn ? (
+                <Button
+                  variant="subtle"
+                  onClick={() => navigate(-1)}
+                  className={classes.control}
+                >
+                  Hủy bỏ
+                </Button>
+              ) : (
+                <Anchor c="dimmed" size="sm" className={classes.control}>
+                  <Center inline>
+                    <IconArrowLeft size={12} stroke={1.5} />
+                    <Box ml={5} onClick={() => navigate("/login")}>
+                      Quay lại trang đăng nhập
+                    </Box>
+                  </Center>
+                </Anchor>
+              )}
               <Button
                 className={classes.control}
                 loading={status === "loading"}
@@ -212,14 +224,25 @@ export default function ForgotPasswordPage() {
             </Button>
           </Group>
 
-          <Button
-            fullWidth
-            variant="subtle"
-            onClick={() => navigate("/login")}
-            mt="lg"
-          >
-            Quay lại đăng nhập
-          </Button>
+          {isLoggedIn ? (
+            <Button
+              fullWidth
+              variant="subtle"
+              onClick={() => navigate(-1)}
+              mt="lg"
+            >
+              Hủy bỏ
+            </Button>
+          ) : (
+            <Button
+              fullWidth
+              variant="subtle"
+              onClick={() => navigate("/login")}
+              mt="lg"
+            >
+              Quay lại đăng nhập
+            </Button>
+          )}
         </Stack>
       </Paper>
     </Container>

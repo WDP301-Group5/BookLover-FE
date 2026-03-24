@@ -10,8 +10,18 @@ export const AuthorService = {
     return response.data;
   },
 
-  getMyStories: async (): Promise<Story[]> => {
-    const response = await axios.get("/story/my-stories");
+  getMyStories: async (
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{
+    stories: Story[];
+    total: number;
+    offset: number;
+    limit: number;
+  }> => {
+    const response = await axios.get("/story/my-stories", {
+      params: { page, limit },
+    });
     return response.data;
   },
 
@@ -77,5 +87,9 @@ export const AuthorService = {
 
   deleteChapter: async (id: string): Promise<void> => {
     await axios.delete(`/chapter/${id}`);
+  },
+
+  submitChapterForReview: async (id: string): Promise<void> => {
+    await axios.patch(`/chapter/${id}/review`);
   },
 };

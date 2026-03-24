@@ -109,47 +109,11 @@ const Header = () => {
             </Link>
 
             {/* Browse Dropdown */}
-            <MantineMenu shadow="md" width={224} position="bottom-start">
-              <MantineMenu.Target>
+              <Link to="/community/forums" >
                 <button className="hidden md:flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors duration-200 cursor-pointer">
-                  Duyệt
-                  <ChevronDown className="w-4 h-4" />
+                  Diễn đàn
                 </button>
-              </MantineMenu.Target>
-
-              <MantineMenu.Dropdown className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                <MantineMenu.Item
-                  component={Link}
-                  to="/browse/featured"
-                  className="text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                  Nổi bật
-                </MantineMenu.Item>
-                <MantineMenu.Item
-                  component={Link}
-                  to="/browse/trending"
-                  className="text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                  Xu hướng
-                </MantineMenu.Item>
-                <MantineMenu.Item
-                  component={Link}
-                  to="/browse/new"
-                  className="text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                  Mới phát hành
-                </MantineMenu.Item>
-                <MantineMenu.Divider className="border-gray-200 dark:border-gray-700" />
-                <MantineMenu.Item
-                  component={Link}
-                  to="/browse/genres"
-                  className="text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                  Tất cả thể loại
-                </MantineMenu.Item>
-              </MantineMenu.Dropdown>
-            </MantineMenu>
-
+              </Link>
             {/* Community Dropdown */}
             <MantineMenu shadow="md" width={224} position="bottom-start">
               <MantineMenu.Target>
@@ -162,31 +126,17 @@ const Header = () => {
               <MantineMenu.Dropdown className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
                 <MantineMenu.Item
                   component={Link}
-                  to="/community/forums"
-                  className="text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                  Diễn đàn
-                </MantineMenu.Item>
-                <MantineMenu.Item
-                  component={Link}
-                  to="/community/events"
-                  className="text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                  Sự kiện
-                </MantineMenu.Item>
-                <MantineMenu.Item
-                  component={Link}
-                  to="/community/contests"
-                  className="text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                  Cuộc thi
-                </MantineMenu.Item>
-                <MantineMenu.Item
-                  component={Link}
                   to="/ranking"
                   className="text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
                   Bảng xếp hạng
+                </MantineMenu.Item>
+                <MantineMenu.Item
+                  component={Link}
+                  to="/review-story"
+                  className="text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  Review
                 </MantineMenu.Item>
                 <MantineMenu.Divider className="border-gray-200 dark:border-gray-700" />
                 <MantineMenu.Item
@@ -408,10 +358,10 @@ const Header = () => {
             {/* Browse Section */}
             <div className="space-y-1">
               <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Duyệt
+                Diễn đàn
               </div>
               <Link
-                to="/browse/featured"
+                to="/community/forums"
                 className="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -445,27 +395,6 @@ const Header = () => {
               <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Cộng đồng
               </div>
-              <Link
-                to="/community/forums"
-                className="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Diễn đàn
-              </Link>
-              <Link
-                to="/community/events"
-                className="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Sự kiện
-              </Link>
-              <Link
-                to="/community/contests"
-                className="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Cuộc thi
-              </Link>
               <Link
                 to="/community/guidelines"
                 className="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"

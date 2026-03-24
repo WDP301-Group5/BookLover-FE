@@ -8,6 +8,12 @@ export const useNotification = (enabled: boolean = true) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
 
+  const resetNotifications = useCallback(() => {
+    setNotifications([]);
+    setUnreadCount(0);
+    setLoading(false);
+  }, []);
+
   const fetchNotifications = useCallback(async () => {
     if (!enabled) return;
 
@@ -88,9 +94,13 @@ export const useNotification = (enabled: boolean = true) => {
   }, [notifications]);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled) {
+      resetNotifications();
+      return;
+    }
+
     fetchUnreadCount();
-  }, [enabled, fetchUnreadCount]);
+  }, [enabled, fetchUnreadCount, resetNotifications]);
 
   return {
     notifications,
@@ -101,5 +111,6 @@ export const useNotification = (enabled: boolean = true) => {
     markOneAsRead,
     markAllAsRead,
     deleteOne,
+    resetNotifications,
   };
 };

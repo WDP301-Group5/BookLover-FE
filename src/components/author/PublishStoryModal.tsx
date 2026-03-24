@@ -172,8 +172,8 @@ export default function PublishStoryModal({
     <Modal
       opened={opened}
       onClose={onClose}
-      title="Trước khi xuất bản"
-      size="lg"
+      title="Xác nhận trước khi xuất bản"
+      size="xl"
       centered
       styles={{
         title: { fontWeight: 700, fontSize: 20 },
@@ -300,14 +300,14 @@ export default function PublishStoryModal({
               label="Truyện đã hoàn thành"
               checked={isFinish}
               onChange={(e) => setIsFinish(e.currentTarget.checked)}
-              color="orange"
+              color="blue"
             />
 
             <Checkbox
               label="Tôi xác nhận đây là tác phẩm do tôi sáng tác và không vi phạm bản quyền"
               checked={copyrightConfirm}
               onChange={(e) => setCopyrightConfirm(e.currentTarget.checked)}
-              color="orange"
+              color="blue"
               styles={{ label: { fontSize: 13 } }}
             />
 
@@ -316,7 +316,7 @@ export default function PublishStoryModal({
                 Quay lại
               </Button>
               <Button
-                color="orange"
+                color="blue"
                 loading={loading}
                 onClick={handlePublish}
                 disabled={!copyrightConfirm}

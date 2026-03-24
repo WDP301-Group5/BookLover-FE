@@ -137,6 +137,53 @@ const HistoryService = {
       throw error;
     }
   },
+
+  async getReadingHistoryByStory(storyId: string) {
+  try {
+    const response = await instance
+      .get(`/user/history/reading/${storyId}`)
+      .then((res) => res?.data || null)
+      .catch((err) => {
+        console.error("Error fetching reading history by story:", err);
+        throw err;
+      });
+
+    return response?.data;
+  } catch (error) {
+    console.error("Error fetching reading history by story:", error);
+    throw error;
+  }
+},
+
+async saveReadingHistory(
+  storyId: string,
+  chapterNumber: number,
+  userId: string,
+) {
+  try {
+    const response = await instance
+      .put(
+        "/user/history/reading",
+        {
+          storyId,
+          chapterNumber,
+        },
+        {
+          params: { userId },
+        },
+      )
+      .then((res) => res?.data || null)
+      .catch((err) => {
+        console.error("Error saving reading history:", err);
+        throw err;
+      });
+
+    return response?.data;
+  } catch (error) {
+    console.error("Error saving reading history:", error);
+    throw error;
+  }
+}
 };
 
 export default HistoryService;

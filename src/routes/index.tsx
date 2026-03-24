@@ -22,6 +22,12 @@ import HistoryPage from "../pages/history-page/HistoryPage";
 import NotificationPage from "../pages/notification-page/NotificationPage";
 import RankingPage from "../pages/ranking-page/RankingPage";
 import ChatingPage from "../pages/chat-page/ChatPage";
+import ForumCategoriesPage from "../pages/forum/ForumCategoryPage";
+import ForumTopicPage from "../pages/forum/ForumTopicPage";
+import ForumPostPage from "../pages/forum/ForumPostPage";
+import ReviewPage from "../pages/review-story-page/ReviewPage";
+import ReadingListDetailPage from "../pages/reading-list/ReadingListDetailPage";
+import ReadingListManagementPage from "../pages/reading-list/ReadingListManagementPage";
 
 const routes = createBrowserRouter([
   UserWriteStoryRoute,
@@ -65,6 +71,14 @@ const routes = createBrowserRouter([
         element: <AuthorProfile />,
       },
       {
+        path: "reading-list/:listId",
+        element: <ReadingListDetailPage />,
+      },
+      {
+        path: "reading-list/:listId/manage",
+        element: <ReadingListManagementPage />,
+      },
+      {
         path: "purchase/spirit-stone",
         element: <BuyStonePage />,
       },
@@ -88,7 +102,7 @@ const routes = createBrowserRouter([
         path: "history",
         element: <HistoryPage />,
       },
-       {
+      {
         path: "ranking",
         element: <RankingPage />,
       },
@@ -99,6 +113,22 @@ const routes = createBrowserRouter([
       {
         path: "chating",
         element: <ChatingPage />,
+      },
+      {
+        path: "community/forums",
+        element: <ForumCategoriesPage />,
+      },
+      {
+        path: "community/forums/:slug",
+        element: <ForumTopicPage />,
+      },
+      {
+        path: "review-story",
+        element: <ReviewPage />,
+      },
+      {
+        path: "community/forums/:slug/:topicSlug",
+        element: <ForumPostPage />,
       },
       // Routes below require the user to be authenticated with a valid token.
       {

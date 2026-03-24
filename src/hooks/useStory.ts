@@ -51,10 +51,11 @@ export const useCreateStory = () => {
   });
 };
 
-export const useMyStories = () => {
+export const useMyStories = (page: number = 1, limit: number = 10) => {
   return useQuery({
-    queryKey: ["my-stories"],
-    queryFn: () => StoryService.getMyStories(),
+    queryKey: ["my-stories", page, limit],
+    queryFn: () => AuthorService.getMyStories(page, limit),
+    placeholderData: keepPreviousData,
   });
 };
 
@@ -114,17 +115,19 @@ export const useStoryDetailWithAuthor = (slug: string) =>
     return res.data;
   });
 
-  export const useRateStory = (slug?: string) => {
+export const useAllStory = () => {
+  return useQuery({
+    queryKey: ["allStory"],
+    queryFn: () => StoryService.getAllStory(),
+  });
+};
+
+export const useRateStory = (slug?: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      storyId,
-      rate,
-    }: {
-      storyId: string;
-      rate: number;
-    }) => StoryService.rateStory(storyId, rate),
+    mutationFn: ({ storyId, rate }: { storyId: string; rate: number }) =>
+      StoryService.rateStory(storyId, rate),
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["story", slug] });

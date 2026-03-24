@@ -1,6 +1,6 @@
 import { Box, Tabs, useMantineColorScheme } from "@mantine/core";
 import { AuthorHeader } from "../../components/author/AuthorHeader";
-import { ConversationTab } from "../../components/author/ConversationTab.tsx";
+import { ReadingListTab } from "../../components/author/ReadingListTab.tsx";
 import { FollowingTab } from "../../components/author/FollowingTab.tsx";
 import { IntroductionTab } from "../../components/author/IntroductionTab";
 import { useParams } from "react-router-dom";
@@ -10,7 +10,9 @@ import Followers from "../../components/user/user-navbar/Followers.tsx";
 
 export function AuthorProfile() {
   const { authorId } = useParams<{ authorId: string }>();
-  const [authorData, setAuthorData] = useState<AuthorPublicProfile | null>(null);
+  const [authorData, setAuthorData] = useState<AuthorPublicProfile | null>(
+    null,
+  );
   const [refreshRelationsKey, setRefreshRelationsKey] = useState(0);
   const { colorScheme } = useMantineColorScheme();
 
@@ -65,7 +67,7 @@ export function AuthorProfile() {
               Giới thiệu
             </Tabs.Tab>
             <Tabs.Tab value="conversation" className="min-h-[52px]">
-              Hội thoại
+              Danh sách đọc
             </Tabs.Tab>
             <Tabs.Tab value="following" className="min-h-[52px]">
               Đang theo dõi
@@ -81,7 +83,7 @@ export function AuthorProfile() {
         </Tabs.Panel>
 
         <Tabs.Panel value="conversation" pt="xl">
-          <ConversationTab />
+          <ReadingListTab />
         </Tabs.Panel>
 
         <Tabs.Panel value="following" pt="xl">
