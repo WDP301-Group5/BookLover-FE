@@ -1,4 +1,6 @@
 // src/interfaces/Story.ts
+import type { AIAnalysis } from "./AIAnalysis";
+
 export interface Story {
   _id: string;
   id: string;
@@ -26,6 +28,9 @@ export interface Story {
   createdAt: string;
   updatedAt: string;
   author?: StoryAuthor | null;
+  // AI Analysis fields (added when fetching with AI analysis enabled)
+  aiAnalysis?: AIAnalysis;
+  aiDecision?: "auto-approved" | "flagged" | "auto-rejected";
 }
 
 export interface StoryItem {

@@ -120,3 +120,58 @@ export const useUnbanStory = () => {
     },
   });
 };
+
+// ── AI Analysis Hooks ────────────────────────────────────────────────────────────
+
+import { useQuery } from "@tanstack/react-query";
+import type { AIAnalysis, Story } from "../interfaces/AIAnalysis";
+
+export interface AnalyzeStoryResponse {
+  story: Story;
+  analysis: AIAnalysis;
+}
+
+/**
+ * Hook to run AI analysis on a story
+ */
+export const useAnalyzeStory = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => AdminCensorService.analyzeStory(id),
+    onSuccess: () => {
+      // Invalidate pending stories to refresh with AI data
+      queryClient.invalidateQueries({
+        queryKey: ["admin", "stories", "pending"],
+      });
+      // Also invalidate the data table query key used in AdminPendingStories
+      queryClient.invalidateQueries({
+        queryKey: ["pending-stories", "with-ai"],
+      });
+      notifications.show({
+        title: "Thành công",
+        message: "Đã phân tích AI thành công",
+        color: "green",
+      });
+    },
+    onError: (error: AxiosError<ErrorResponse>) => {
+      notifications.show({
+        title: "Lỗi",
+        message:
+          error.response?.data?.message || "Có lỗi xảy ra khi phân tích AI",
+        color: "red",
+      });
+    },
+  });
+};
+
+/**
+ * Hook to get AI analysis for a specific story
+ */
+export const useStoryAIAnalysis = (storyId: string | null) => {
+  return useQuery({
+    queryKey: ["admin", "story", "ai-analysis", storyId],
+    queryFn: () => AdminCensorService.getStoryAIAnalysis(storyId!),
+    enabled: !!storyId,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+};

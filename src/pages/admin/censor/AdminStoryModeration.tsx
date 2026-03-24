@@ -23,11 +23,18 @@ import {
   IconClockHour4,
   IconHistory,
   IconInfoCircle,
+  IconSparkles,
   IconX,
 } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
+import {
+  AIAnalysisBadge,
+  AIRiskScore,
+  AIWarnings,
+} from "../../../components/admin/AIAnalysisBadge";
+import { AIAnalysisDetailModal } from "../../../components/admin/AIAnalysisDetailModal";
 import { ModerationHistoryTable } from "../../../components/common/ModerationHistoryTable";
 import {
   DataTable,
@@ -43,18 +50,20 @@ import { format } from "../../../lib/format";
 import { AdminCensorService } from "../../../services/AdminCensorService";
 
 // ── Story Detail Modal ─────────────────────────────────────────────────────────
-function StoryDetailModal({
+export function StoryDetailModal({
   story,
   opened,
   onClose,
   onApprove,
   onReject,
+  onViewAIDetail,
 }: {
   story: Story | null;
   opened: boolean;
   onClose: () => void;
   onApprove: (story: Story) => void;
   onReject: (story: Story) => void;
+  onViewAIDetail?: (story: Story) => void;
 }) {
   const { data: chapters, isLoading } = useQuery({
     queryKey: ["admin", "story-chapters", story?._id],
@@ -117,6 +126,46 @@ function StoryDetailModal({
             <Text size="sm">{format.date(new Date(story.createdAt))}</Text>
           </Stack>
         </Group>
+
+        {/* AI Analysis Section */}
+        {story.aiAnalysis && (
+          <Box>
+            <Divider
+              label={
+                <Group gap={4}>
+                  <IconSparkles size={14} />
+                  <Text size="xs">Phân tích AI</Text>
+                </Group>
+              }
+              my="md"
+            />
+            <Group gap="lg" align="flex-start">
+              <Box style={{ flex: 1 }}>
+                <Text size="sm" fw={600} mb={4}>
+                  Quyết định AI
+                </Text>
+                <Group gap="xs">
+                  <AIAnalysisBadge story={story} size="md" />
+                  {onViewAIDetail && (
+                    <Button
+                      variant="light"
+                      size="xs"
+                      onClick={() => onViewAIDetail(story)}
+                    >
+                      Chi tiết
+                    </Button>
+                  )}
+                </Group>
+              </Box>
+              <Box style={{ flex: 1 }}>
+                <AIRiskScore story={story} />
+              </Box>
+            </Group>
+            <Box mt="md">
+              <AIWarnings story={story} />
+            </Box>
+          </Box>
+        )}
 
         <Box>
           <Text size="sm" fw={600} mb={4}>
@@ -239,6 +288,9 @@ function PendingStoriesTab() {
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
   const [detailOpened, { open: openDetail, close: closeDetail }] =
     useDisclosure(false);
+  const [aiDetailOpened, { open: openAIDetail, close: closeAIDetail }] =
+    useDisclosure(false);
+  const [aiDetailStory, setAIDetailStory] = useState<Story | null>(null);
 
   const handleApprove = (story: Story) => {
     modals.openConfirmModal({
@@ -294,6 +346,11 @@ function PendingStoriesTab() {
     openDetail();
   };
 
+  const handleViewAIDetail = (story: Story) => {
+    setAIDetailStory(story);
+    openAIDetail();
+  };
+
   const dataTable = useDataTable<Story>({
     columns: getPendingColumns(handleApprove, handleReject, handleViewDetail),
     service: AdminCensorService.getPendingStories,
@@ -317,7 +374,16 @@ function PendingStoriesTab() {
         onClose={closeDetail}
         onApprove={handleApprove}
         onReject={handleReject}
+        onViewAIDetail={handleViewAIDetail}
       />
+
+      {aiDetailStory && (
+        <AIAnalysisDetailModal
+          story={aiDetailStory}
+          opened={aiDetailOpened}
+          onClose={closeAIDetail}
+        />
+      )}
     </>
   );
 }
