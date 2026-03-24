@@ -293,6 +293,7 @@ const ChatingPage = () => {
     .map((user: SearchUser) => { return { ...user, id: user._id } });
 
   const changeChatingUser = (conversation: Conversation) => {
+    if(conversation?.id === conversationId) return;
     setSelectedUser(conversation);
     setIsSearchNewUser(false);
     setSearchUser("");
@@ -319,8 +320,8 @@ const ChatingPage = () => {
     const keyword = searchConversation?.toLowerCase();
 
     return listChatingUsers?.filter((c: Conversation) =>
-      c.member.fullName?.toLowerCase().includes(keyword) ||
-      c.member.username?.toLowerCase().includes(keyword)
+      c?.member.fullName?.toLowerCase().includes(keyword) ||
+      c?.member.username?.toLowerCase().includes(keyword)
     );
   }, [searchConversation, listChatingUsers]);
 
@@ -439,27 +440,27 @@ const ChatingPage = () => {
                 filteredConversations.map((c: Conversation) => (
 
                   <Group
-                    key={c.id}
+                    key={c?.id}
                     p="xs"
                     style={{
                       cursor: "pointer",
                       borderRadius: 8,
                       background:
-                        selectedUser?.member._id === c.member._id ? "#f1f3f5" : "transparent",
+                        selectedUser?.member._id === c?.member._id ? "#f1f3f5" : "transparent",
                     }}
                     onClick={() => changeChatingUser(c)}
                   >
 
-                    <Avatar src={c.member.avatarURL || "/images/default-avatar.png"} radius="xl" />
+                    <Avatar src={c?.member.avatarURL || "/images/default-avatar.png"} radius="xl" />
 
                     <Box style={{ flex: 1 }}>
                       <Group justify="space-between">
 
                         <Text size="sm" fw={500}>
-                          {c.member.fullName}
+                          {c?.member?.fullName}
                         </Text>
 
-                        {(c.member.online === "online") ? (
+                        {(c?.member?.online === "online") ? (
                           <>
                             <span className="inline-flex items-center gap-1 text-green-600">
                               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
@@ -476,7 +477,7 @@ const ChatingPage = () => {
                       </Group>
 
                       <Text size="xs" c="dimmed" lineClamp={1}>
-                        @{c.member.username || "-----"}
+                        @{c?.member?.username || "-----"}
                       </Text>
 
                     </Box>

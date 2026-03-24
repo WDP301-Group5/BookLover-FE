@@ -28,11 +28,12 @@ import {
   useDeleteReadingList,
 } from "../../hooks/useReadingList";
 import { showSuccess, showError } from "../../utils/notifications";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 export function ReadingListTab() {
   const navigate = useNavigate();
-  const { isLoggedIn } = useUserStore();
+  const { authorId } = useParams();
+  const { isLoggedIn, user } = useUserStore();
   const [page, setPage] = useState(1);
   const LIMIT = 10;
   const [selectedList, setSelectedList] = useState<any>(null);
@@ -146,20 +147,22 @@ export function ReadingListTab() {
               {readingLists.length} danh sách
             </Text>
           </div>
+          { authorId === user?._id &&
           <Button
             leftSection={<Plus size={18} />}
             onClick={handleOpenCreateModal}
             className="bg-blue-600 hover:bg-blue-700"
           >
             Tạo danh sách
-          </Button>
+          </Button>}
         </Group>
 
         {/* Reading Lists - Wattpad Style */}
         {readingLists.length === 0 ? (
           <Paper withBorder radius="md" p="xl">
             <Center py="xl">
-              <Stack align="center" gap="md">
+              {authorId === user?._id ? 
+              (<Stack align="center" gap="md">
                 <Text c="dimmed" size="lg">
                   Bạn chưa có danh sách đọc nào
                 </Text>
@@ -170,7 +173,11 @@ export function ReadingListTab() {
                 >
                   Tạo danh sách đầu tiên
                 </Button>
-              </Stack>
+              </Stack>): (
+                <Text c="dimmed" size="lg">
+                  Tác giả này chưa có danh sách đọc nào
+                </Text>
+              )}
             </Center>
           </Paper>
         ) : (

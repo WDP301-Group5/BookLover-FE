@@ -149,12 +149,8 @@ const ChapterPage = () => {
   });
 
   // Only fetch public chapters if author chapters failed or if user is not logged in
-  const { data: publicChapters } = useChaptersByStory(
-    (!isLoggedIn || authorChaptersError) && chapter?.storyId
-      ? chapter.storyId
-      : "",
-  );
-  const listChapters = authorChapters ?? publicChapters;
+  const { data: publicChapters } = useChaptersByStory(story?.id ?? "");
+  const listChapters = (isLoggedIn && String(user?.id) == String(story?.authorId?._id)) ? authorChapters : publicChapters;
   const chapters =
     listChapters?.map((c) => ({
       value: c.chapterNumber.toString(),
@@ -584,9 +580,7 @@ const ChapterPage = () => {
               </Text>
             ) : chapterError || !chapter ? (
               <Text ta="center" size="lg" c="red">
-                {chapterError
-                  ? `Lỗi: ${chapterError.message}`
-                  : "Không thể tải chương. Vui lòng thử lại."}
+                {chapterError && "Có lỗi xảy ra khi tải nội dung chương. Vui lòng thử lại."}
               </Text>
             ) : (
               <>
