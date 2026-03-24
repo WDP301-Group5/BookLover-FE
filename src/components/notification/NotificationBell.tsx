@@ -13,22 +13,20 @@ export default function NotificationBell() {
     unreadCount,
     loading,
     fetchNotifications,
+    fetchUnreadCount,
     markOneAsRead,
     markAllAsRead,
     deleteOne,
+    resetNotifications,
   } = useNotification(isLoggedIn);
 
   useEffect(() => {
-    if (!isLoggedIn) return;
-
-    fetchNotifications();
-
-    const interval = setInterval(() => {
-      fetchNotifications();
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, [isLoggedIn, fetchNotifications]);
+    if (isLoggedIn) {
+      fetchUnreadCount();
+    } else {
+      resetNotifications();
+    }
+  }, [isLoggedIn, fetchUnreadCount, resetNotifications]);
 
   if (!isLoggedIn) return null;
 

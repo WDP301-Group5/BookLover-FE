@@ -20,6 +20,7 @@ import {
   Flex,
   Modal,
   TextInput,
+  ScrollArea,
 } from "@mantine/core";
 import {
   Activity,
@@ -718,29 +719,6 @@ const StoryDetailPage: FC = () => {
         </Stack>
       </Paper>
 
-      <Paper withBorder radius="md" p="md">
-        <Group mb="xs">
-          <MessageCircle size={16} />
-          <Title order={4}>Bình luận</Title>
-        </Group>
-
-        <Stack gap="xs">
-          <Textarea size="sm" minRows={3} placeholder="Viết bình luận..." />
-          <Button
-            size="xs"
-            w="fit-content"
-            onClick={() => {
-              if (!isLoggedIn) {
-                setLoginModalOpened(true);
-                return;
-              }
-            }}
-          >
-            Gửi bình luận
-          </Button>
-        </Stack>
-      </Paper>
-
       <RequireLoginModal
         opened={loginModalOpened}
         onClose={() => setLoginModalOpened(false)}
@@ -759,98 +737,135 @@ const StoryDetailPage: FC = () => {
           <Modal
             opened={openedAddToReadingList}
             onClose={() => setOpenedAddToReadingList(false)}
-            title="Thêm vào danh sách đọc"
+            title={<Title order={4}>Thêm vào danh sách đọc</Title>}
             centered
+            styles={{
+              content: {
+                maxHeight: "70vh",
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column",
+              },
+              body: {
+                display: "flex",
+                flexDirection: "column",
+                flex: 1,
+                minHeight: 0,
+                overflow: "hidden",
+              },
+            }}
           >
-            <Stack gap="lg">
-              <div>
-                <Text mb="sm" fw={500}>
-                  Danh sách đọc của bạn
-                </Text>
-                {myReadingLists.length > 0 ? (
-                  <Stack gap="xs">
-                    {myReadingLists.map((list: any) => {
-                      const isStoryInThisList = list.stories?.some(
-                        (story: any) => (story._id || story.id) === storyId,
-                      );
-                      const isSelected =
-                        selectedReadingListId === (list._id || list.id);
-
-                      const handleListClick = () => {
-                        if (isSelected) {
-                          setSelectedReadingListId(null);
-                        } else {
-                          setSelectedReadingListId(list._id || list.id);
-                        }
-                      };
-
-                      return (
-                        <Paper
-                          key={list._id || list.id}
-                          p="md"
-                          radius="md"
-                          withBorder
-                          style={{
-                            cursor: "pointer",
-                            border: isSelected ? "2px solid" : "1px solid",
-                            borderColor: isSelected
-                              ? "var(--mantine-color-blue-6)"
-                              : "var(--mantine-color-gray-3)",
-                            backgroundColor: isSelected
-                              ? "var(--mantine-color-blue-0)"
-                              : "transparent",
-                            transition: "all 0.2s ease",
-                          }}
-                          onClick={handleListClick}
-                          className="hover:shadow-sm"
-                        >
-                          <Flex justify="space-between" align="center" gap="md">
-                            <Stack gap={0} style={{ flex: 1 }}>
-                              <Group gap="sm" align="center">
-                                <Text
-                                  fw={600}
-                                  size="sm"
-                                  c={isSelected ? "blue" : "dark"}
-                                >
-                                  {list.name}
-                                </Text>
-                                {isStoryInThisList && (
-                                  <Badge
-                                    size="xs"
-                                    color="green"
-                                    variant="filled"
-                                  >
-                                    Đã có
-                                  </Badge>
-                                )}
-                              </Group>
-                              <Text size="xs" c="dimmed" mt={4}>
-                                {list.stories?.length || 0} truyện
-                              </Text>
-                            </Stack>
-                            {isSelected && (
-                              <CheckCircle2
-                                size={24}
-                                color="#40c057"
-                                strokeWidth={2.5}
-                              />
-                            )}
-                          </Flex>
-                        </Paper>
-                      );
-                    })}
-                  </Stack>
-                ) : (
-                  <Text size="sm" c="dimmed">
-                    Bạn chưa có danh sách đọc nào
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                height: "100%",
+                overflow: "hidden",
+              }}
+            >
+              {/* Scrollable reading list section - only this part scrolls */}
+              <div
+                style={{
+                  flex: 1,
+                  minHeight: 0,
+                  overflow: "auto",
+                  marginBottom: "var(--mantine-spacing-lg)",
+                }}
+              >
+                <div style={{ paddingRight: "var(--mantine-spacing-md)" }}>
+                  <Text mb="sm" fw={600} size="sm">
+                    Danh sách đọc của bạn
                   </Text>
-                )}
+                  {myReadingLists.length > 0 ? (
+                    <Stack gap="xs">
+                      {myReadingLists.map((list: any) => {
+                        const isStoryInThisList = list.stories?.some(
+                          (story: any) => (story._id || story.id) === storyId,
+                        );
+                        const isSelected =
+                          selectedReadingListId === (list._id || list.id);
+
+                        const handleListClick = () => {
+                          if (isSelected) {
+                            setSelectedReadingListId(null);
+                          } else {
+                            setSelectedReadingListId(list._id || list.id);
+                          }
+                        };
+
+                        return (
+                          <Paper
+                            key={list._id || list.id}
+                            p="md"
+                            radius="md"
+                            withBorder
+                            style={{
+                              cursor: "pointer",
+                              border: isSelected ? "2px solid" : "1px solid",
+                              borderColor: isSelected
+                                ? "var(--mantine-color-blue-6)"
+                                : "var(--mantine-color-gray-3)",
+                              backgroundColor: isSelected
+                                ? "var(--mantine-color-blue-0)"
+                                : "transparent",
+                              transition: "all 0.2s ease",
+                            }}
+                            onClick={handleListClick}
+                            className="hover:shadow-sm"
+                          >
+                            <Flex
+                              justify="space-between"
+                              align="center"
+                              gap="md"
+                            >
+                              <Stack gap={0} style={{ flex: 1 }}>
+                                <Group gap="sm" align="center">
+                                  <Text
+                                    fw={600}
+                                    size="sm"
+                                    c={isSelected ? "blue" : "dark"}
+                                  >
+                                    {list.name}
+                                  </Text>
+                                  {isStoryInThisList && (
+                                    <Badge
+                                      size="xs"
+                                      color="green"
+                                      variant="filled"
+                                    >
+                                      Đã có
+                                    </Badge>
+                                  )}
+                                </Group>
+                                <Text size="xs" c="dimmed" mt={4}>
+                                  {list.stories?.length || 0} truyện
+                                </Text>
+                              </Stack>
+                              {isSelected && (
+                                <CheckCircle2
+                                  size={24}
+                                  color="#40c057"
+                                  strokeWidth={2.5}
+                                />
+                              )}
+                            </Flex>
+                          </Paper>
+                        );
+                      })}
+                    </Stack>
+                  ) : (
+                    <Text size="sm" c="dimmed">
+                      Bạn chưa có danh sách đọc nào
+                    </Text>
+                  )}
+                </div>
               </div>
 
+              {/* Fixed sections - these do NOT scroll */}
               <Divider />
 
-              <div>
-                <Text mb="sm" fw={500}>
+              <div style={{ marginTop: "var(--mantine-spacing-lg)" }}>
+                <Text mb="sm" fw={600} size="sm">
                   Hoặc tạo danh sách mới
                 </Text>
                 <Group>
@@ -869,7 +884,7 @@ const StoryDetailPage: FC = () => {
                 </Group>
               </div>
 
-              <Group justify="flex-end" mt="md">
+              <Group justify="flex-end" mt="lg">
                 <Button
                   variant="light"
                   onClick={() => setOpenedAddToReadingList(false)}
@@ -894,7 +909,7 @@ const StoryDetailPage: FC = () => {
                   Thêm vào danh sách
                 </Button>
               </Group>
-            </Stack>
+            </div>
           </Modal>
         );
       })()}

@@ -89,12 +89,19 @@ const ChangePassword = () => {
         confirmPassword: "",
       });
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : typeof error === "string"
-            ? error
-            : "Có lỗi xảy ra khi thay đổi mật khẩu";
+      let errorMessage = "Có lỗi xảy ra khi thay đổi mật khẩu";
+
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === "string") {
+        errorMessage = error;
+      } else if (
+        typeof error === "object" &&
+        error !== null &&
+        "message" in error
+      ) {
+        errorMessage = (error as { message: string }).message;
+      }
 
       showError(errorMessage);
     } finally {

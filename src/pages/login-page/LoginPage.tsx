@@ -27,7 +27,14 @@ import classes from "./LoginPage.module.css";
 import socket from "../../lib/socket";
 
 const loginSchema = z.object({
-  email: z.email("Định dạng email không hợp lệ"),
+  account: z
+    .string()
+    .min(1, "Email hoặc username là bắt buộc")
+    .refine((value) => {
+      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+      const isUsername = /^[a-z0-9_]{3,20}$/.test(value);
+      return isEmail || isUsername;
+    }, "Vui lòng nhập email hoặc username hợp lệ"),
   password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
   rememberMe: z.boolean().optional(),
 });
@@ -42,7 +49,7 @@ export default function LoginPage() {
 
   const form = useForm<LoginFormValues>({
     initialValues: {
-      email: "",
+      account: "",
       password: "",
       rememberMe: false,
     },
@@ -178,11 +185,11 @@ export default function LoginPage() {
       <Paper withBorder shadow="sm" p={22} mt={30} radius="md">
         <form onSubmit={form.onSubmit(handleSubmit)}>
           <TextInput
-            label="Email"
-            placeholder="you@mantine.dev"
+            label="Email hoặc Username"
+            placeholder="Nhập email hoặc username"
             required
             radius="md"
-            {...form.getInputProps("email")}
+            {...form.getInputProps("account")}
           />
           <PasswordInput
             label="Mật khẩu"
