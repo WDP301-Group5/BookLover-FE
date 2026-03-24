@@ -5,7 +5,7 @@ import { AdminLayout } from "../../layouts/admin";
 import { AdminAccountManagement } from "../../pages/admin/account/AdminAccountManagement";
 import { GenreManagement } from "../../pages/admin/catalog/genre/GenreManagement";
 import { AdminChapterModeration } from "../../pages/admin/censor/AdminChapterModeration";
-import { AdminPendingStories } from "../../pages/admin/censor/AdminPendingStories";
+import { AdminStoryModeration } from "../../pages/admin/censor/AdminStoryModeration";
 import { BannedKeywordManagement } from "../../pages/admin/censor/BannedKeywordManagement";
 import AdminDashboardPage from "../../pages/admin/dashboard/AdminDashboardPage";
 import ReportManagement from "../../pages/admin/reports/ReportManagement";
@@ -62,7 +62,7 @@ export const AdminRoute: RouteObject = {
             },
             {
               path: "stories",
-              element: <AdminPendingStories />,
+              element: <AdminStoryModeration />,
             },
             {
               path: "chapters",
