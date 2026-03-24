@@ -6,7 +6,6 @@ import {
   Menu,
   Text,
   Textarea,
-  Title,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
@@ -193,10 +192,6 @@ export function AdminPendingStories() {
 
   return (
     <div className="space-y-4">
-      <Group justify="space-between" align="center">
-        <Title order={2}>Duyệt truyện mới</Title>
-      </Group>
-
       <DataTable dataTable={dataTable}>
         <div className="flex items-center justify-between gap-4">
           <DataTableFilter />
