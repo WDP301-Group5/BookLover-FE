@@ -24,6 +24,7 @@ import {
   useReadingListById,
   useDeleteReadingList,
 } from "../../hooks/useReadingList";
+import { useUserStore } from "../../stores/useUserStore";
 
 export function ReadingListDetailPage() {
   const navigate = useNavigate();
@@ -31,6 +32,10 @@ export function ReadingListDetailPage() {
   const [page, setPage] = useState(1);
   const LIMIT = 10;
   const { data: readingList, isLoading } = useReadingListById(listId || "");
+  const { user } = useUserStore();
+
+  // Check if current user owns this reading list
+  const isOwner = user?.id === readingList?.userId;
 
   // Mutations
   const deleteListMutation = useDeleteReadingList();
@@ -106,30 +111,32 @@ export function ReadingListDetailPage() {
               </Badge>
             </Group>
 
-            <Group gap="xs">
-              <Button
-                variant="light"
-                leftSection={<Edit size={16} />}
-                size="sm"
-                onClick={() =>
-                  navigate(
-                    `/reading-list/${readingList._id || readingList.id}/manage`,
-                  )
-                }
-              >
-                Quản lý
-              </Button>
-              <Button
-                variant="light"
-                color="red"
-                leftSection={<Trash2 size={16} />}
-                size="sm"
-                onClick={openDeleteList}
-                loading={deleteListMutation.isPending}
-              >
-                Xóa danh sách
-              </Button>
-            </Group>
+            {isOwner && (
+              <Group gap="xs">
+                <Button
+                  variant="light"
+                  leftSection={<Edit size={16} />}
+                  size="sm"
+                  onClick={() =>
+                    navigate(
+                      `/reading-list/${readingList._id || readingList.id}/manage`,
+                    )
+                  }
+                >
+                  Quản lý
+                </Button>
+                <Button
+                  variant="light"
+                  color="red"
+                  leftSection={<Trash2 size={16} />}
+                  size="sm"
+                  onClick={openDeleteList}
+                  loading={deleteListMutation.isPending}
+                >
+                  Xóa danh sách
+                </Button>
+              </Group>
+            )}
           </Stack>
         </Flex>
 
