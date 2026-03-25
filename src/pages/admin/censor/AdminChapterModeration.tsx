@@ -70,6 +70,10 @@ function ChapterDetailModal({
   isAnalyzing,
   onBan,
   onUnban,
+  isApproving,
+  isRejecting,
+  isBanning,
+  isUnbanning,
 }: {
   chapter: Chapter | null;
   opened: boolean;
@@ -81,6 +85,10 @@ function ChapterDetailModal({
   isAnalyzing?: boolean;
   onBan?: (ch: Chapter) => void;
   onUnban?: (ch: Chapter) => void;
+  isApproving?: boolean;
+  isRejecting?: boolean;
+  isBanning?: boolean;
+  isUnbanning?: boolean;
 }) {
   const { data: content, isLoading } = useQuery({
     queryKey: ["admin", "chapter-content", chapter?._id],
@@ -223,6 +231,7 @@ function ChapterDetailModal({
               variant="light"
               color="red"
               leftSection={<IconX size={14} />}
+              loading={isRejecting}
               onClick={() => {
                 onClose();
                 onReject(chapter);
@@ -233,6 +242,7 @@ function ChapterDetailModal({
             <Button
               color="green"
               leftSection={<IconCheck size={14} />}
+              loading={isApproving}
               onClick={() => {
                 onClose();
                 onApprove(chapter);
@@ -248,6 +258,7 @@ function ChapterDetailModal({
               variant="light"
               color="green"
               leftSection={<IconLockOff size={14} />}
+              loading={isUnbanning}
               onClick={() => {
                 onClose();
                 onUnban(chapter);
@@ -263,6 +274,7 @@ function ChapterDetailModal({
               variant="light"
               color="orange"
               leftSection={<IconLock size={14} />}
+              loading={isBanning}
               onClick={() => {
                 onClose();
                 onBan(chapter);
@@ -280,10 +292,11 @@ function ChapterDetailModal({
 // ── Pending Tab ──────────────────────────────────────────────────────────────────
 function PendingChaptersTab() {
   const queryClient = useQueryClient();
-  const { mutate: approveChapter } = useApproveChapter();
-  const { mutate: rejectChapter } = useRejectChapter();
-  const { mutate: banChapter } = useBanChapter();
-  const { mutate: unbanChapter } = useUnbanChapter();
+  const { mutate: approveChapter, isPending: isApproving } =
+    useApproveChapter();
+  const { mutate: rejectChapter, isPending: isRejecting } = useRejectChapter();
+  const { mutate: banChapter, isPending: isBanning } = useBanChapter();
+  const { mutate: unbanChapter, isPending: isUnbanning } = useUnbanChapter();
   const [analyzingChapterId, setAnalyzingChapterId] = useState<string | null>(
     null,
   );
@@ -435,6 +448,10 @@ function PendingChaptersTab() {
       handleViewAIDetail,
       handleBan,
       handleUnban,
+      isApproving,
+      isRejecting,
+      isBanning,
+      isUnbanning,
     ),
     service: () => AdminChapterCensorService.getPendingChapters(),
     queryKey: ["admin", "chapters", "pending"],
@@ -468,6 +485,10 @@ function PendingChaptersTab() {
         isAnalyzing={isAnalyzing}
         onBan={handleBan}
         onUnban={handleUnban}
+        isApproving={isApproving}
+        isRejecting={isRejecting}
+        isBanning={isBanning}
+        isUnbanning={isUnbanning}
       />
     </div>
   );
@@ -561,6 +582,10 @@ function getColumns(
   onViewAIDetail: (chapter: Chapter) => void,
   onBan: (chapter: Chapter) => void,
   onUnban: (chapter: Chapter) => void,
+  isApproving: boolean,
+  isRejecting: boolean,
+  isBanning: boolean,
+  isUnbanning: boolean,
 ): ColumnDef<Chapter>[] {
   return [
     {
@@ -633,6 +658,20 @@ function getColumns(
               variant="light"
               color="blue"
               size="xs"
+              disabled={
+                analyzingChapterId !== null ||
+                isApproving ||
+                isRejecting ||
+                isBanning ||
+                isUnbanning
+              }
+              loading={
+                analyzingChapterId === row.original._id ||
+                (isApproving && row.original.status === "pending") ||
+                (isRejecting && row.original.status === "pending") ||
+                (isBanning && row.original.status === "active") ||
+                (isUnbanning && row.original.status === "banned")
+              }
               rightSection={<IconDotsVertical size={14} />}
             >
               Thao tác

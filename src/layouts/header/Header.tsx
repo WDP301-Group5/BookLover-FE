@@ -1,5 +1,10 @@
 // src/layouts/header/Header.tsx
-import { Avatar, Box, Menu as MantineMenu, useMantineColorScheme } from "@mantine/core";
+import {
+  Avatar,
+  Box,
+  Menu as MantineMenu,
+  useMantineColorScheme,
+} from "@mantine/core";
 import {
   BookOpen,
   ChevronDown,
@@ -17,9 +22,15 @@ import {
   Zap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom"; import { useUserStore } from "../../stores/useUserStore";
-import { showSuccess } from "../../utils/notifications";
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
 import NotificationBell from "../../components/notification/NotificationBell";
+import { useUserStore } from "../../stores/useUserStore";
+import { showSuccess } from "../../utils/notifications";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -27,7 +38,8 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-  const [searchParams] = useSearchParams(); const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+  const [searchParams] = useSearchParams();
+  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const isSearchPage = location.pathname === "/search";
   const isDark = colorScheme === "dark";
   const { user, isLoggedIn, logout } = useUserStore();
@@ -109,11 +121,11 @@ const Header = () => {
             </Link>
 
             {/* Browse Dropdown */}
-              <Link to="/community/forums" >
-                <button className="hidden md:flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors duration-200 cursor-pointer">
-                  Diễn đàn
-                </button>
-              </Link>
+            <Link to="/community/forums">
+              <button className="hidden md:flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors duration-200 cursor-pointer">
+                Diễn đàn
+              </button>
+            </Link>
             {/* Community Dropdown */}
             <MantineMenu shadow="md" width={224} position="bottom-start">
               <MantineMenu.Target>
@@ -239,7 +251,10 @@ const Header = () => {
                 <button className="hidden sm:flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors duration-200 cursor-pointer">
                   {isLoggedIn ? (
                     <Avatar
-                      src={user?.avatarURL || "./../assets/images/default-avatar.png"}
+                      src={
+                        user?.avatarURL ||
+                        "./../assets/images/default-avatar.png"
+                      }
                       alt="avatar"
                       className="w-8 h-8 rounded-full object-cover border"
                     />
@@ -382,11 +397,11 @@ const Header = () => {
                 Mới phát hành
               </Link>
               <Link
-                to="/browse/genres"
+                to="/browse/topics"
                 className="block px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Tất cả thể loại
+                Tất cả chủ đề
               </Link>
             </div>
 
