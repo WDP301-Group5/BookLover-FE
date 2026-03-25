@@ -284,6 +284,9 @@ function PendingChaptersTab() {
   const { mutate: rejectChapter } = useRejectChapter();
   const { mutate: banChapter } = useBanChapter();
   const { mutate: unbanChapter } = useUnbanChapter();
+  const [analyzingChapterId, setAnalyzingChapterId] = useState<string | null>(
+    null,
+  );
   const { mutate: analyzeChapter, isPending: isAnalyzing } =
     useTriggerAIAnalysis(() => {
       // Refetch the data table after AI analysis completes
@@ -310,7 +313,12 @@ function PendingChaptersTab() {
   };
 
   const handleAnalyze = (chapter: Chapter) => {
-    analyzeChapter(chapter._id);
+    setAnalyzingChapterId(chapter._id);
+    analyzeChapter(chapter._id, {
+      onSettled: () => {
+        setAnalyzingChapterId(null);
+      },
+    });
   };
 
   const handleBan = (chapter: Chapter) => {
@@ -422,7 +430,7 @@ function PendingChaptersTab() {
       handleApprove,
       handleReject,
       handleAnalyze,
-      isAnalyzing,
+      analyzingChapterId,
       handleViewChapterDetail,
       handleViewAIDetail,
       handleBan,
@@ -548,7 +556,7 @@ function getColumns(
   onApprove: (chapter: Chapter) => void,
   onReject: (chapter: Chapter) => void,
   onAnalyze: (chapter: Chapter) => void,
-  isAnalyzing: boolean,
+  analyzingChapterId: string | null,
   onViewChapterDetail: (chapter: Chapter) => void,
   onViewAIDetail: (chapter: Chapter) => void,
   onBan: (chapter: Chapter) => void,
@@ -619,7 +627,7 @@ function getColumns(
       id: "actions",
       header: "Hành động",
       cell: ({ row }) => (
-        <Menu shadow="md" width={200} position="bottom-end">
+        <Menu shadow="md" width={200} position="bottom-end" closeOnItemClick>
           <Menu.Target>
             <Button
               variant="light"
@@ -634,9 +642,18 @@ function getColumns(
             <Menu.Item
               leftSection={<IconBrain size={14} />}
               onClick={() => onAnalyze(row.original)}
-              disabled={isAnalyzing}
+              disabled={analyzingChapterId !== null}
             >
-              {row.original.aiAnalysis ? "Phân tích lại" : "Phân tích"}
+              {analyzingChapterId === row.original._id ? (
+                <span className="inline-flex items-center gap-2">
+                  <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-solid border-current border-r-transparent" />
+                  Đang phân tích...
+                </span>
+              ) : row.original.aiAnalysis ? (
+                "Phân tích lại"
+              ) : (
+                "Phân tích"
+              )}
             </Menu.Item>
             {row.original.aiAnalysis && (
               <Menu.Item
