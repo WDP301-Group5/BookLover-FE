@@ -7,7 +7,7 @@ import StoryItemCard from "./story/StoryItemCard";
 
 const HistoryTable = () => {
   const { isLoggedIn } = useUserStore();
-  const { data: historyList } = useLast3History();
+  const { data: historyList } = useLast3History(isLoggedIn);
 
   return (
     <div className="border border-1 border-gray-300 px-3 rounded-sm">

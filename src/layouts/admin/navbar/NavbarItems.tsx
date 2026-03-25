@@ -27,6 +27,11 @@ export const NAVBAR_ITEMS: NavbarItem[] = [
     link: "/admin/catalog/genre",
   },
   {
+    label: "Chủ đề truyện",
+    icon: IconNotes,
+    link: "/admin/catalog/topic",
+  },
+  {
     label: "Quản trị viên",
     icon: UserLock,
     link: "/admin/account",

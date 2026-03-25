@@ -11,6 +11,7 @@ import AdminDashboardPage from "../../pages/admin/dashboard/AdminDashboardPage";
 import ReportManagement from "../../pages/admin/reports/ReportManagement";
 import { AdminTransactionPage } from "../../pages/admin/transaction/AdminTransactionPage";
 import { UserManagementPage } from "../../pages/admin/user-management/UserManagementPage";
+import TopicManagementPage from "../../pages/admin/catalog/topic/TopicManagemantPage";
 import NotFoundPage from "../../pages/error/not-found";
 
 export const AdminRoute: RouteObject = {
@@ -50,6 +51,10 @@ export const AdminRoute: RouteObject = {
               path: "genre",
               element: <GenreManagement />,
             },
+            {
+              path: "topic",
+              element: <TopicManagementPage/>,
+            }
           ],
         },
         {
