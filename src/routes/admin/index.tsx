@@ -12,6 +12,7 @@ import ReportManagement from "../../pages/admin/reports/ReportManagement";
 import { AdminTransactionPage } from "../../pages/admin/transaction/AdminTransactionPage";
 import { UserManagementPage } from "../../pages/admin/user-management/UserManagementPage";
 import NotFoundPage from "../../pages/error/not-found";
+import AdminRankingPage from "../../pages/admin/ranking/AdminRankingPage";
 
 export const AdminRoute: RouteObject = {
   path: "/admin",
@@ -29,6 +30,10 @@ export const AdminRoute: RouteObject = {
         {
           path: "dashboard",
           element: <AdminDashboardPage />,
+        },
+        {
+          path: "top",
+          element: <AdminRankingPage />,
         },
         {
           path: "account",
