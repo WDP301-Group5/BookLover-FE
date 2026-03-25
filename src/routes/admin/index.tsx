@@ -12,6 +12,7 @@ import NotFoundPage from "../../pages/error/not-found";
 import { UserManagementPage } from "../../pages/admin/user-management/UserManagementPage";
 import { AdminTransactionPage } from "../../pages/admin/transaction/AdminTransactionPage";
 import AdminDashboardPage from "../../pages/admin/dashboard/AdminDashboardPage";
+import TopicManagementPage from "../../pages/admin/catalog/topic/TopicManagemantPage";
 
 export const AdminRoute: RouteObject = {
   path: "/admin",
@@ -50,6 +51,10 @@ export const AdminRoute: RouteObject = {
               path: "genre",
               element: <GenreManagement />,
             },
+            {
+              path: "topic",
+              element: <TopicManagementPage/>,
+            }
           ],
         },
         {
