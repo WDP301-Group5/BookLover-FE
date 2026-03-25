@@ -162,11 +162,10 @@ export const useAnalyzeStory = () => {
         color: "green",
       });
     },
-    onError: (error: AxiosError<ErrorResponse>) => {
+    onError: () => {
       notifications.show({
         title: "Lỗi",
-        message:
-          error.response?.data?.message || "Có lỗi xảy ra khi phân tích AI",
+        message: "Có lỗi xảy ra khi phân tích AI",
         color: "red",
       });
     },
