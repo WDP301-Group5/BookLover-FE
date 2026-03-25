@@ -61,7 +61,7 @@ export const AdminCensorService = {
     id: string,
   ): Promise<{
     story: Story;
-    analysis: AIAnalysis;
+    analysis: AIAnalysis & { error?: string };
   }> => {
     const response = await axios.post(`/admin/stories/${id}/analyze`);
     return response.data.data;

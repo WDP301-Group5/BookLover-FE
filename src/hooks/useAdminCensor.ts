@@ -138,7 +138,16 @@ export const useAnalyzeStory = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => AdminCensorService.analyzeStory(id),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Check if there's an error in the analysis response
+      if (data.analysis.error) {
+        notifications.show({
+          title: "Lỗi phân tích AI",
+          message: data.analysis.error,
+          color: "red",
+        });
+        return;
+      }
       // Invalidate pending stories to refresh with AI data
       queryClient.invalidateQueries({
         queryKey: ["admin", "stories", "pending"],
