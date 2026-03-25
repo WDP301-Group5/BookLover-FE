@@ -23,6 +23,7 @@ import { Plus, Edit, Trash2, MoreVertical } from "lucide-react";
 import { useUserStore } from "../../stores/useUserStore";
 import {
   useMyReadingLists,
+  usePublicReadingLists,
   useCreateReadingList,
   useUpdateReadingList,
   useDeleteReadingList,
@@ -49,7 +50,13 @@ export function ReadingListTab() {
     string | null
   >(null);
 
-  const { data: readingLists = [], isLoading } = useMyReadingLists();
+  const isOwnProfile = authorId === user?._id;
+  const myListsQuery = useMyReadingLists();
+  const publicListsQuery = usePublicReadingLists(isOwnProfile ? "" : authorId!);
+
+  const { data: readingLists = [], isLoading } = isOwnProfile
+    ? myListsQuery
+    : publicListsQuery;
   const createMutation = useCreateReadingList();
   const updateMutation = useUpdateReadingList();
   const deleteMutation = useDeleteReadingList();
@@ -147,33 +154,35 @@ export function ReadingListTab() {
               {readingLists.length} danh sách
             </Text>
           </div>
-          { authorId === user?._id &&
-          <Button
-            leftSection={<Plus size={18} />}
-            onClick={handleOpenCreateModal}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            Tạo danh sách
-          </Button>}
+          {authorId === user?._id && (
+            <Button
+              leftSection={<Plus size={18} />}
+              onClick={handleOpenCreateModal}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Tạo danh sách
+            </Button>
+          )}
         </Group>
 
         {/* Reading Lists - Wattpad Style */}
         {readingLists.length === 0 ? (
           <Paper withBorder radius="md" p="xl">
             <Center py="xl">
-              {authorId === user?._id ? 
-              (<Stack align="center" gap="md">
-                <Text c="dimmed" size="lg">
-                  Bạn chưa có danh sách đọc nào
-                </Text>
-                <Button
-                  variant="light"
-                  leftSection={<Plus size={16} />}
-                  onClick={handleOpenCreateModal}
-                >
-                  Tạo danh sách đầu tiên
-                </Button>
-              </Stack>): (
+              {authorId === user?._id ? (
+                <Stack align="center" gap="md">
+                  <Text c="dimmed" size="lg">
+                    Bạn chưa có danh sách đọc nào
+                  </Text>
+                  <Button
+                    variant="light"
+                    leftSection={<Plus size={16} />}
+                    onClick={handleOpenCreateModal}
+                  >
+                    Tạo danh sách đầu tiên
+                  </Button>
+                </Stack>
+              ) : (
                 <Text c="dimmed" size="lg">
                   Tác giả này chưa có danh sách đọc nào
                 </Text>

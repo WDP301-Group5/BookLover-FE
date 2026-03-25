@@ -167,7 +167,6 @@ export default function WriteChapterPage() {
         chapterNumber: ch.chapterNumber,
       });
       setContentError(undefined);
-      setSaved(false);
       setChapterListOpened(false);
 
       // Fetch chapter content from the server
@@ -176,9 +175,17 @@ export default function WriteChapterPage() {
         const html = fullChapter.contentURL ?? "";
         setEditorInitialContent(html);
         setContentPayload({ mode: "editor", html });
+
+        // Update refs to track saved state
+        lastSavedContentRef.current = html;
+        lastSavedTitleRef.current = ch.title;
+        lastSavedChapterTypeRef.current = ch.isPremium ? "vip" : "free";
+        setHasChangesAfterSave(false);
+        setSaved(true);
       } catch {
         setEditorInitialContent("");
         setContentPayload(null);
+        setSaved(false);
       }
     },
     [chapters, form],
@@ -227,7 +234,12 @@ export default function WriteChapterPage() {
               ? 1
               : Math.max(...chapterList.map((c) => c.chapterNumber)) + 1;
           const newTitle = `Chương ${nextNum}`;
-          form.setValues({ title: newTitle, chapterType: "free", price: 1, chapterNumber: nextNum });
+          form.setValues({
+            title: newTitle,
+            chapterType: "free",
+            price: 1,
+            chapterNumber: nextNum,
+          });
           return;
         }
 
@@ -249,7 +261,6 @@ export default function WriteChapterPage() {
           chapterNumber: ch.chapterNumber,
         });
         setContentError(undefined);
-        setSaved(true);
         setChapterListOpened(false);
 
         // Fetch chapter content from the server
@@ -258,9 +269,17 @@ export default function WriteChapterPage() {
           const html = fullChapter.contentURL ?? "";
           setEditorInitialContent(html);
           setContentPayload({ mode: "editor", html });
+
+          // Update refs to track saved state
+          lastSavedContentRef.current = html;
+          lastSavedTitleRef.current = ch.title;
+          lastSavedChapterTypeRef.current = ch.isPremium ? "vip" : "free";
+          setHasChangesAfterSave(false);
+          setSaved(true);
         } catch {
           setEditorInitialContent("");
           setContentPayload(null);
+          setSaved(false);
         }
       })
       .catch(() => {
@@ -346,7 +365,12 @@ export default function WriteChapterPage() {
 
     // Pre-fill UI immediately for instant feedback
     setSelectedChapterIndex(null);
-    form.setValues({ title: newTitle, chapterType: "free", price: 1, chapterNumber: newNum });
+    form.setValues({
+      title: newTitle,
+      chapterType: "free",
+      price: 1,
+      chapterNumber: newNum,
+    });
     setEditorInitialContent("");
     setEditorResetKey((k) => k + 1);
     setContentPayload(null);
@@ -395,7 +419,7 @@ export default function WriteChapterPage() {
       (c) =>
         c.chapterNumber === values.chapterNumber &&
         (selectedChapterIndex === null ||
-          chapters[selectedChapterIndex].id !== c.id)
+          chapters[selectedChapterIndex].id !== c.id),
     );
     if (isDuplicate) {
       setChapterError("Chương số đã tồn tại. Vui lòng chọn số khác.");
@@ -459,7 +483,7 @@ export default function WriteChapterPage() {
     try {
       if (selectedChapterIndex !== null) {
         // Update existing chapter
-        
+
         const chapterId = chapters[selectedChapterIndex].id;
         await AuthorService.updateChapter(chapterId, formData);
       } else {
@@ -491,8 +515,8 @@ export default function WriteChapterPage() {
   };
 
   const handlePublishClick = async () => {
-    // Check if there are unsaved changes after last save
-    if (hasChangesAfterSave) {
+    // Check if content is empty or unsaved at all
+    if (!saved || hasChangesAfterSave) {
       setUnsavedPublishModalOpened(true);
       return;
     }
@@ -931,14 +955,18 @@ export default function WriteChapterPage() {
       <Container size="md" py="xl">
         <form onSubmit={(e) => e.preventDefault()}>
           <Stack gap="lg">
-            <NumberInput 
+            <NumberInput
               label="Chương số"
               ref={chapterNumberInputRef}
               size="md"
               withAsterisk
               {...form.getInputProps("chapterNumber")}
               error={chapterError}
-              placeholder={selectedChapterIndex !== null ? (chapters[selectedChapterIndex].chapterNumber).toString() : (nextChapterNumber-1).toString()}
+              placeholder={
+                selectedChapterIndex !== null
+                  ? chapters[selectedChapterIndex].chapterNumber.toString()
+                  : (nextChapterNumber - 1).toString()
+              }
             />
             {/* Chapter title input - centered, clean */}
             <TextInput
@@ -951,7 +979,7 @@ export default function WriteChapterPage() {
               styles={{
                 input: {
                   fontWeight: 500,
-                  color: "var(--mantine-color-text)"
+                  color: "var(--mantine-color-text)",
                 },
               }}
               {...form.getInputProps("title")}
@@ -959,22 +987,24 @@ export default function WriteChapterPage() {
 
             {/* Chapter content editor */}
             <Box>
-            <Text size="md" fw={500} >Nội dung<span className="text-red-500 ml-1">*</span></Text>
-            <Box
-              className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
-              p="md"
-            >
-              <ChapterContentInput
-                key={editorResetKey}
-                onChange={(payload) => {
-                  setContentPayload(payload);
-                  if (payload) setContentError(undefined);
-                  setSaved(false);
-                }}
-                initialContent={editorInitialContent}
-                error={contentError}
-              />
-            </Box>
+              <Text size="md" fw={500}>
+                Nội dung<span className="text-red-500 ml-1">*</span>
+              </Text>
+              <Box
+                className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+                p="md"
+              >
+                <ChapterContentInput
+                  key={editorResetKey}
+                  onChange={(payload) => {
+                    setContentPayload(payload);
+                    if (payload) setContentError(undefined);
+                    setSaved(false);
+                  }}
+                  initialContent={editorInitialContent}
+                  error={contentError}
+                />
+              </Box>
             </Box>
 
             {/* Word count warning below editor */}
@@ -1066,6 +1096,8 @@ export default function WriteChapterPage() {
               onClick={async () => {
                 setUnsavedPublishModalOpened(false);
                 await handleSave();
+                // Auto-proceed with publish after save completes
+                await proceedWithPublish();
               }}
             >
               Lưu và tiếp tục
