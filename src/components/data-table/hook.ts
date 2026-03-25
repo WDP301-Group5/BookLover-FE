@@ -34,9 +34,17 @@ export function useDataTable<TData>({
   const [globalFilter, setGlobalFilter] = useState("");
 
   // Memoize service to prevent infinite re-renders
+  // Wrap in try-catch to handle any errors gracefully
   const memoizedService = useCallback(async () => {
-    const result = await service();
-    return Array.isArray(result) ? result : [];
+    try {
+      const result = await service();
+      // Ensure we always return an array - handle null, undefined, or non-array returns
+      if (!result) return [];
+      return Array.isArray(result) ? result : [];
+    } catch (error) {
+      console.error("[DataTable] Service error:", error);
+      return [];
+    }
   }, [service]);
 
   const { data, isLoading } = useQuery({
@@ -46,10 +54,12 @@ export function useDataTable<TData>({
     retry: 1,
   });
 
+  // Manual trigger for data fetching - ensures we control when data loads
   const table = useReactTable({
     // Core
     columns,
-    data: data || [],
+    // Ensure data is always a valid array - handle null, undefined, or falsy values
+    data: data ?? [],
     getCoreRowModel: getCoreRowModel(),
     // Selection
     onRowSelectionChange: setRowSelection,
@@ -61,8 +71,14 @@ export function useDataTable<TData>({
     globalFilterFn: "auto",
     onGlobalFilterChange: setGlobalFilter,
     getFilteredRowModel: getFilteredRowModel(),
-    // Pagination
+    // Pagination - set explicit initial pagination to handle empty data correctly
     getPaginationRowModel: getPaginationRowModel(),
+    initialState: {
+      pagination: {
+        pageIndex: 0,
+        pageSize: 10,
+      },
+    },
     // States
     state: {
       rowSelection,

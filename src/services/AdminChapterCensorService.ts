@@ -1,3 +1,4 @@
+import type { CensorLog } from "../interfaces/Story";
 import { instance as axios } from "../lib/axios";
 
 export interface AIAnalysis {
@@ -14,7 +15,7 @@ export interface AIAnalysis {
     reasons: string[];
     warnings: string[];
   };
-  finalDecision: "auto-approved" | "flagged" | "auto-rejected" | "hard-filter-rejected";
+  finalDecision: "safe" | "review" | "risky" | "hard-filter-rejected";
   reasons: string[];
   processedAt: string;
 }
@@ -84,7 +85,7 @@ export const AdminChapterCensorService = {
   overrideDecision: async (
     id: string,
     decision: "active" | "rejected",
-    reason: string
+    reason: string,
   ): Promise<void> => {
     const response = await axios.post(`/admin/chapters/${id}/override`, {
       decision,

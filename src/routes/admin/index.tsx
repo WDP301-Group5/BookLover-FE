@@ -7,12 +7,12 @@ import { GenreManagement } from "../../pages/admin/catalog/genre/GenreManagement
 import { AdminChapterModeration } from "../../pages/admin/censor/AdminChapterModeration";
 import { AdminStoryModeration } from "../../pages/admin/censor/AdminStoryModeration";
 import { BannedKeywordManagement } from "../../pages/admin/censor/BannedKeywordManagement";
-import ReportManagement from "../../pages/admin/reports/ReportManagement";
-import NotFoundPage from "../../pages/error/not-found";
-import { UserManagementPage } from "../../pages/admin/user-management/UserManagementPage";
-import { AdminTransactionPage } from "../../pages/admin/transaction/AdminTransactionPage";
 import AdminDashboardPage from "../../pages/admin/dashboard/AdminDashboardPage";
+import ReportManagement from "../../pages/admin/reports/ReportManagement";
+import { AdminTransactionPage } from "../../pages/admin/transaction/AdminTransactionPage";
+import { UserManagementPage } from "../../pages/admin/user-management/UserManagementPage";
 import TopicManagementPage from "../../pages/admin/catalog/topic/TopicManagemantPage";
+import NotFoundPage from "../../pages/error/not-found";
 
 export const AdminRoute: RouteObject = {
   path: "/admin",
@@ -37,11 +37,11 @@ export const AdminRoute: RouteObject = {
         },
         {
           path: "users",
-          element: <UserManagementPage />
+          element: <UserManagementPage />,
         },
         {
           path: "transactions",
-          element: <AdminTransactionPage />
+          element: <AdminTransactionPage />,
         },
         {
           path: "catalog",

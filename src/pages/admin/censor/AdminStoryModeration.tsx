@@ -12,22 +12,25 @@ import {
   Table,
   Tabs,
   Text,
-  Textarea,
   Title,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { modals } from "@mantine/modals";
 import {
   IconBook,
   IconCheck,
   IconClockHour4,
   IconHistory,
-  IconInfoCircle,
+  IconSparkles,
   IconX,
 } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
+import {
+  AIAnalysisBadge,
+  AIRiskScore,
+  AIWarnings,
+} from "../../../components/admin/AIAnalysisBadge";
 import { ModerationHistoryTable } from "../../../components/common/ModerationHistoryTable";
 import {
   DataTable,
@@ -37,24 +40,26 @@ import {
   DataTablePagination,
   useDataTable,
 } from "../../../components/data-table";
-import { useApproveStory, useRejectStory } from "../../../hooks/useAdminCensor";
 import type { Story } from "../../../interfaces/Story";
 import { format } from "../../../lib/format";
 import { AdminCensorService } from "../../../services/AdminCensorService";
+import { AdminPendingStories } from "./AdminPendingStories";
 
 // ── Story Detail Modal ─────────────────────────────────────────────────────────
-function StoryDetailModal({
+export function StoryDetailModal({
   story,
   opened,
   onClose,
   onApprove,
   onReject,
+  onViewAIDetail,
 }: {
   story: Story | null;
   opened: boolean;
   onClose: () => void;
   onApprove: (story: Story) => void;
   onReject: (story: Story) => void;
+  onViewAIDetail?: (story: Story) => void;
 }) {
   const { data: chapters, isLoading } = useQuery({
     queryKey: ["admin", "story-chapters", story?._id],
@@ -117,6 +122,46 @@ function StoryDetailModal({
             <Text size="sm">{format.date(new Date(story.createdAt))}</Text>
           </Stack>
         </Group>
+
+        {/* AI Analysis Section */}
+        {story.aiAnalysis && (
+          <Box>
+            <Divider
+              label={
+                <Group gap={4}>
+                  <IconSparkles size={14} />
+                  <Text size="xs">Phân tích AI</Text>
+                </Group>
+              }
+              my="md"
+            />
+            <Group gap="lg" align="flex-start">
+              <Box style={{ flex: 1 }}>
+                <Text size="sm" fw={600} mb={4}>
+                  Quyết định AI
+                </Text>
+                <Group gap="xs">
+                  <AIAnalysisBadge story={story} size="md" />
+                  {onViewAIDetail && (
+                    <Button
+                      variant="light"
+                      size="xs"
+                      onClick={() => onViewAIDetail(story)}
+                    >
+                      Chi tiết
+                    </Button>
+                  )}
+                </Group>
+              </Box>
+              <Box style={{ flex: 1 }}>
+                <AIRiskScore story={story} />
+              </Box>
+            </Group>
+            <Box mt="md">
+              <AIWarnings story={story} />
+            </Box>
+          </Box>
+        )}
 
         <Box>
           <Text size="sm" fw={600} mb={4}>
@@ -232,96 +277,6 @@ function StoryDetailModal({
   );
 }
 
-// ── Pending Tab ────────────────────────────────────────────────────────────────
-function PendingStoriesTab() {
-  const { mutate: approveStory } = useApproveStory();
-  const { mutate: rejectStory } = useRejectStory();
-  const [selectedStory, setSelectedStory] = useState<Story | null>(null);
-  const [detailOpened, { open: openDetail, close: closeDetail }] =
-    useDisclosure(false);
-
-  const handleApprove = (story: Story) => {
-    modals.openConfirmModal({
-      title: "Xác nhận duyệt truyện",
-      children: (
-        <Text size="sm">
-          Bạn có chắc chắn muốn phê duyệt truyện{" "}
-          <Text span fw={600}>
-            "{story.title}"
-          </Text>
-          ?
-        </Text>
-      ),
-      labels: { confirm: "Duyệt", cancel: "Hủy" },
-      confirmProps: { color: "green" },
-      onConfirm: () => approveStory(story._id),
-    });
-  };
-
-  const handleReject = (story: Story) => {
-    let reason = "";
-    modals.openConfirmModal({
-      title: "Từ chối duyệt truyện",
-      children: (
-        <div className="space-y-4">
-          <Text size="sm">
-            Nhập lý do từ chối{" "}
-            <Text span fw={600}>
-              "{story.title}"
-            </Text>
-            :
-          </Text>
-          <Textarea
-            placeholder="Nhập lý do..."
-            onChange={(e) => {
-              reason = e.target.value;
-            }}
-            required
-          />
-        </div>
-      ),
-      labels: { confirm: "Từ chối", cancel: "Hủy" },
-      confirmProps: { color: "red" },
-      onConfirm: () => {
-        if (!reason.trim()) return;
-        rejectStory({ id: story._id, reason });
-      },
-    });
-  };
-
-  const handleViewDetail = (story: Story) => {
-    setSelectedStory(story);
-    openDetail();
-  };
-
-  const dataTable = useDataTable<Story>({
-    columns: getPendingColumns(handleApprove, handleReject, handleViewDetail),
-    service: AdminCensorService.getPendingStories,
-    queryKey: ["admin", "stories", "pending"],
-  });
-
-  return (
-    <>
-      <DataTable dataTable={dataTable}>
-        <div className="flex items-center justify-between gap-4">
-          <DataTableFilter />
-          <DataTableColumns />
-        </div>
-        <DataTableContent />
-        <DataTablePagination />
-      </DataTable>
-
-      <StoryDetailModal
-        story={selectedStory}
-        opened={detailOpened}
-        onClose={closeDetail}
-        onApprove={handleApprove}
-        onReject={handleReject}
-      />
-    </>
-  );
-}
-
 // ── History Tab ────────────────────────────────────────────────────────────────
 function HistoryStoriesTab() {
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
@@ -384,7 +339,7 @@ export function AdminStoryModeration() {
         </Tabs.List>
 
         <Tabs.Panel value="pending" pt="md">
-          <PendingStoriesTab />
+          <AdminPendingStories />
         </Tabs.Panel>
 
         <Tabs.Panel value="history" pt="md">
@@ -393,89 +348,6 @@ export function AdminStoryModeration() {
       </Tabs>
     </div>
   );
-}
-
-// ── Column definitions ─────────────────────────────────────────────────────────
-function getPendingColumns(
-  onApprove: (s: Story) => void,
-  onReject: (s: Story) => void,
-  onDetail: (s: Story) => void,
-): ColumnDef<Story>[] {
-  return [
-    {
-      accessorKey: "image",
-      header: "Ảnh",
-      cell: ({ row }) => (
-        <Avatar
-          src={row.original.image}
-          alt={row.original.title}
-          radius="sm"
-          size="lg"
-        />
-      ),
-    },
-    {
-      accessorKey: "title",
-      header: "Tên truyện",
-      cell: ({ row }) => <Text fw={500}>{row.original.title}</Text>,
-    },
-    {
-      accessorKey: "authorId",
-      header: "Tác giả",
-      cell: ({ row }) => (
-        <Group gap="xs">
-          <Avatar src={row.original.authorId.avatar} size="sm" radius="xl" />
-          <div>
-            <Text size="sm" fw={500}>
-              {row.original.authorId.fullName}
-            </Text>
-            <Text size="xs" c="dimmed">
-              @{row.original.authorId.username}
-            </Text>
-          </div>
-        </Group>
-      ),
-    },
-    {
-      accessorKey: "createdAt",
-      header: "Ngày gửi",
-      cell: ({ row }) => format.date(new Date(row.original.createdAt)),
-    },
-    {
-      id: "actions",
-      header: "Hành động",
-      cell: ({ row }) => (
-        <Group gap="xs" justify="center">
-          <Button
-            variant="subtle"
-            size="xs"
-            leftSection={<IconInfoCircle size={14} />}
-            onClick={() => onDetail(row.original)}
-          >
-            Chi tiết
-          </Button>
-          <Button
-            variant="light"
-            color="green"
-            size="xs"
-            leftSection={<IconCheck size={14} />}
-            onClick={() => onApprove(row.original)}
-          >
-            Duyệt
-          </Button>
-          <Button
-            variant="light"
-            color="red"
-            size="xs"
-            leftSection={<IconX size={14} />}
-            onClick={() => onReject(row.original)}
-          >
-            Từ chối
-          </Button>
-        </Group>
-      ),
-    },
-  ];
 }
 
 function getHistoryColumns(onHistory: (s: Story) => void): ColumnDef<Story>[] {
