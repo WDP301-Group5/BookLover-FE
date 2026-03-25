@@ -68,11 +68,15 @@ const finalDecisionConfig = {
 
 /**
  * Get color for risk level based on score (0-1)
+ * Score represents risk level: higher = more dangerous
+ * - score >= 0.7 means HIGH risk -> red
+ * - score >= 0.4 means MEDIUM risk -> yellow
+ * - score < 0.4 means LOW risk -> green
  */
 function getRiskColor(score: number): string {
-  if (score >= 0.7) return "green";
+  if (score >= 0.7) return "red";
   if (score >= 0.4) return "yellow";
-  return "red";
+  return "green";
 }
 
 /**
@@ -83,7 +87,7 @@ function getScoreLabel(key: string): string {
     overallRisk: "Rủi ro tổng thể",
     inappropriateName: "Tên không phù hợp",
     inappropriateDescription: "Mô tả không phù hợp",
-    inappropriateGenre: "Thể loại không phù hợp",
+    inappropriateGenre: "Chủ đề không phù hợp",
     toxicity: "Độc hại",
     sexual: "Nội dung khiêu dâm",
     violence: "Bạo lực",
@@ -276,10 +280,10 @@ export function AIAnalysisDetailModal({
                           color={getRiskColor(value)}
                         >
                           {value >= 0.7
-                            ? "An toàn"
+                            ? "Nguy hiểm"
                             : value >= 0.4
                               ? "Trung bình"
-                              : "Nguy hiểm"}
+                              : "An toàn"}
                         </Badge>
                       </Table.Td>
                     </Table.Tr>
