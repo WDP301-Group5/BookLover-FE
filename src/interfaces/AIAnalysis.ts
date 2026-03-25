@@ -34,11 +34,7 @@ export interface AIAnalysis {
     threat?: number;
   };
   geminiDecision?: AIGeminiDecision;
-  finalDecision:
-    | "auto-approved"
-    | "flagged"
-    | "auto-rejected"
-    | "hard-filter-rejected";
+  finalDecision: "safe" | "review" | "risky" | "hard-filter-rejected";
   reasons: string[];
   processedAt: string;
   createdAt: string;
@@ -51,7 +47,7 @@ export interface AIAnalysis {
  */
 export interface StoryWithAI extends Story {
   aiAnalysis?: AIAnalysis;
-  aiDecision?: "auto-approved" | "flagged" | "auto-rejected";
+  aiDecision?: "safe" | "review" | "risky";
 }
 
 // Re-export Story for convenience
