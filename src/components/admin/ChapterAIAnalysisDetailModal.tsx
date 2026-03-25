@@ -26,26 +26,38 @@ interface ChapterAIAnalysisDetailModalProps {
 }
 
 const decisionConfig = {
-  APPROVE: { color: "green", label: "DUYỆT", description: "Nội dung an toàn" },
+  APPROVE: {
+    color: "green",
+    label: "AN TOÀN",
+    description: "AI phân tích: Nội dung an toàn",
+  },
   FLAG: {
     color: "yellow",
-    label: "THEO DÕI",
-    description: "Cần theo dõi thêm",
+    label: "CẦN XEM XÉT",
+    description: "AI phân tích: Cần theo dõi thêm",
   },
-  REJECT: { color: "red", label: "TỪ CHỐI", description: "Vi phạm nội dung" },
+  REJECT: {
+    color: "red",
+    label: "RỦI RO",
+    description: "AI phân tích: Vi phạm nội dung",
+  },
 } as const;
 
 const finalDecisionConfig = {
-  "auto-approved": {
+  safe: {
     color: "green",
-    label: "Tự duyệt",
-    description: "Tự động phê duyệt",
+    label: "An toàn",
+    description: "AI đề xuất duyệt",
   },
-  flagged: { color: "yellow", label: "Theo dõi", description: "Cần theo dõi" },
-  "auto-rejected": {
+  review: {
+    color: "yellow",
+    label: "Cần xem xét",
+    description: "Cần admin xem xét",
+  },
+  risky: {
     color: "red",
-    label: "Tự từ chối",
-    description: "Tự động từ chối",
+    label: "Rủi ro cao",
+    description: "AI đề xuất từ chối",
   },
   "hard-filter-rejected": {
     color: "red",

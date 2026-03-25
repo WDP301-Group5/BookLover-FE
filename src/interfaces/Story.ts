@@ -30,7 +30,7 @@ export interface Story {
   author?: StoryAuthor | null;
   // AI Analysis fields (added when fetching with AI analysis enabled)
   aiAnalysis?: AIAnalysis;
-  aiDecision?: "auto-approved" | "flagged" | "auto-rejected";
+  aiDecision?: "safe" | "review" | "risky";
 }
 
 export interface StoryItem {
