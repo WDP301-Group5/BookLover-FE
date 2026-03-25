@@ -1,10 +1,11 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import HistoryService from "../services/HistoryService";
 
-export const useLast3History = () => {
+export const useLast3History = (isLoggedin: boolean) => {
   return useQuery({
     queryKey: ["last3History"],
     queryFn: () => HistoryService.getLast3History(),
+    enabled: isLoggedin,
   });
 };
 

@@ -9,15 +9,15 @@ interface AIAnalysisBadgeProps {
 }
 
 const decisionConfig = {
-  APPROVE: { color: "green", label: "DUYỆT" },
-  FLAG: { color: "yellow", label: "THEO DÕI" },
-  REJECT: { color: "red", label: "TỪ CHỐI" },
+  APPROVE: { color: "green", label: "An toàn" },
+  FLAG: { color: "yellow", label: "Cần xem xét" },
+  REJECT: { color: "red", label: "Rủi ro" },
 } as const;
 
 const finalDecisionConfig = {
-  "auto-approved": { color: "green", label: "Tự duyệt" },
-  flagged: { color: "yellow", label: "Theo dõi" },
-  "auto-rejected": { color: "red", label: "Tự từ chối" },
+  safe: { color: "green", label: "An toàn" },
+  review: { color: "yellow", label: "Cần xem xét" },
+  risky: { color: "red", label: "Rủi ro cao" },
   "hard-filter-rejected": { color: "red", label: "Lọc cứng" },
 } as const;
 

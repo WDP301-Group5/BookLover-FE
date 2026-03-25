@@ -48,8 +48,10 @@ export function AdminPendingStories() {
   const { mutate: rejectStory } = useRejectStory();
   const { mutate: banStory } = useBanStory();
   const { mutate: unbanStory } = useUnbanStory();
-  const { mutate: analyzeStory, isPending: isAnalyzing } = useAnalyzeStory();
+  const { mutate: analyzeStory, isPending: isAnalyzingGlobal } =
+    useAnalyzeStory();
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
+  const [analyzingStoryId, setAnalyzingStoryId] = useState<string | null>(null);
   const [detailOpened, { open: openDetail, close: closeDetail }] =
     useDisclosure(false);
   const [
@@ -68,7 +70,12 @@ export function AdminPendingStories() {
   };
 
   const handleAnalyze = (story: Story) => {
-    analyzeStory(story._id);
+    setAnalyzingStoryId(story._id);
+    analyzeStory(story._id, {
+      onSettled: () => {
+        setAnalyzingStoryId(null);
+      },
+    });
   };
 
   const handleBan = (story: Story) => {
@@ -180,11 +187,12 @@ export function AdminPendingStories() {
       handleApprove,
       handleReject,
       handleAnalyze,
-      isAnalyzing,
+      isAnalyzingGlobal,
       handleViewDetail,
       handleViewStoryDetail,
       handleBan,
       handleUnban,
+      analyzingStoryId,
     ),
     service: () => AdminCensorService.getPendingStories(true), // Enable AI analysis
     queryKey: ["pending-stories", "with-ai"],
@@ -228,6 +236,7 @@ function getColumns(
   onViewStoryDetail: (story: Story) => void,
   onBan: (story: Story) => void,
   onUnban: (story: Story) => void,
+  analyzingStoryId: string | null,
 ): ColumnDef<Story>[] {
   return [
     {
@@ -284,76 +293,89 @@ function getColumns(
     {
       id: "actions",
       header: "Hành động",
-      cell: ({ row }) => (
-        <Menu shadow="md" width={200} position="bottom-end">
-          <Menu.Target>
-            <Button
-              variant="light"
-              color="blue"
-              size="xs"
-              rightSection={<IconDotsVertical size={14} />}
-            >
-              Thao tác
-            </Button>
-          </Menu.Target>
-          <Menu.Dropdown>
-            <Menu.Item
-              leftSection={<IconBrain size={14} />}
-              onClick={() => onAnalyze(row.original)}
-              disabled={isAnalyzing}
-            >
-              {row.original.aiAnalysis ? "Phân tích lại" : "Phân tích"}
-            </Menu.Item>
-            {row.original.aiAnalysis && (
-              <Menu.Item
-                leftSection={<IconInfoCircle size={14} />}
-                onClick={() => onViewDetail(row.original)}
+      cell: ({ row }) => {
+        const isCurrentlyAnalyzing = analyzingStoryId === row.original._id;
+        return (
+          <Menu shadow="md" width={200} position="bottom-end" closeOnItemClick>
+            <Menu.Target>
+              <Button
+                variant="light"
+                color="blue"
+                size="xs"
+                rightSection={
+                  isCurrentlyAnalyzing ? null : <IconDotsVertical size={14} />
+                }
+                disabled={isCurrentlyAnalyzing}
               >
-                Xem phân tích
-              </Menu.Item>
-            )}
-            <Menu.Divider />
-            <Menu.Item
-              leftSection={<IconBook size={14} />}
-              onClick={() => onViewStoryDetail(row.original)}
-            >
-              Xem chi tiết
-            </Menu.Item>
-            <Menu.Item
-              leftSection={<IconCheck size={14} />}
-              onClick={() => onApprove(row.original)}
-              color="green"
-            >
-              Duyệt
-            </Menu.Item>
-            <Menu.Item
-              leftSection={<IconX size={14} />}
-              onClick={() => onReject(row.original)}
-              color="red"
-            >
-              Từ chối
-            </Menu.Item>
-            <Menu.Divider />
-            {row.original.status === "banned" ? (
+                {isCurrentlyAnalyzing ? (
+                  <span className="flex items-center gap-1">
+                    <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Đang xử lý...
+                  </span>
+                ) : (
+                  "Thao tác"
+                )}
+              </Button>
+            </Menu.Target>
+            <Menu.Dropdown>
               <Menu.Item
-                leftSection={<IconLockOff size={14} />}
-                onClick={() => onUnban(row.original)}
+                leftSection={<IconBrain size={14} />}
+                onClick={() => onAnalyze(row.original)}
+                disabled={isAnalyzing}
+              >
+                {row.original.aiAnalysis ? "Phân tích lại" : "Phân tích"}
+              </Menu.Item>
+              {row.original.aiAnalysis && (
+                <Menu.Item
+                  leftSection={<IconInfoCircle size={14} />}
+                  onClick={() => onViewDetail(row.original)}
+                >
+                  Xem phân tích
+                </Menu.Item>
+              )}
+              <Menu.Divider />
+              <Menu.Item
+                leftSection={<IconBook size={14} />}
+                onClick={() => onViewStoryDetail(row.original)}
+              >
+                Xem chi tiết
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<IconCheck size={14} />}
+                onClick={() => onApprove(row.original)}
                 color="green"
               >
-                Mở khóa
+                Duyệt
               </Menu.Item>
-            ) : (
               <Menu.Item
-                leftSection={<IconLock size={14} />}
-                onClick={() => onBan(row.original)}
-                color="orange"
+                leftSection={<IconX size={14} />}
+                onClick={() => onReject(row.original)}
+                color="red"
               >
-                Khóa
+                Từ chối
               </Menu.Item>
-            )}
-          </Menu.Dropdown>
-        </Menu>
-      ),
+              <Menu.Divider />
+              {row.original.status === "banned" ? (
+                <Menu.Item
+                  leftSection={<IconLockOff size={14} />}
+                  onClick={() => onUnban(row.original)}
+                  color="green"
+                >
+                  Mở khóa
+                </Menu.Item>
+              ) : (
+                <Menu.Item
+                  leftSection={<IconLock size={14} />}
+                  onClick={() => onBan(row.original)}
+                  color="orange"
+                >
+                  Khóa
+                </Menu.Item>
+              )}
+            </Menu.Dropdown>
+          </Menu>
+        );
+      },
     },
   ];
 }

@@ -7,3 +7,17 @@ export const useTopics = () => {
 		queryFn: () => TopicService.getTopics(),
 	});
 };
+
+export const useAllTopics = () => {
+	return useQuery({
+		queryKey: ["allTopics"],
+		queryFn: () => TopicService.getAllTopics(),
+	});
+};
+
+export const useTopic = (id: string) => {
+	return useQuery({
+		queryKey: ["topic", id],
+		queryFn: () => TopicService.getTopicById(id),
+	});
+};
