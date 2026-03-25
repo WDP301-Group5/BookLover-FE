@@ -57,6 +57,13 @@ export const getNotificationLink = (notification: NotificationItem) => {
       return "/forum";
     }
 
+    case "comment_replied":
+      if (data.storySlug && data.chapterNumber) {
+        return `/chapter/story/${data.storySlug}/chapter/${data.chapterNumber}?commentId=${data.parentCommentId || ""}`;
+      }
+
+      return "/notifications";
+
     default:
       return "/notifications";
   }

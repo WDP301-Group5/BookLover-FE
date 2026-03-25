@@ -7,7 +7,8 @@ export type NotificationType =
   | "chapter_approved"
   | "new_chapter_from_followed_story"
   | "forum_post_commented"
-  | "forum_post_reacted";
+  | "forum_post_reacted"
+  | "comment_replied";
 
 export interface NotificationUser {
   _id: string;
