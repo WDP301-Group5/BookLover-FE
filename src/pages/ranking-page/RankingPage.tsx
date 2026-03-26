@@ -520,7 +520,7 @@ export default function RankingPage() {
                       ? [
                           {
                             label: "đã nạp",
-                            value: `${user.totalSpent.toLocaleString("vi-VN")} ₫`,
+                            value: `${user.totalSpent.toLocaleString("vi-VN")} linh thạch`,
                             icon: Coins,
                           },
                         ]
