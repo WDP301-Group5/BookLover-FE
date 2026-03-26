@@ -203,6 +203,7 @@ const StoryDetailPage: FC = () => {
     data: rawStory,
     isLoading: storyLoading,
     isError: storyError,
+    isHidden: storyHidden,
   } = useStoryDetail(slug || "");
 
   const story = rawStory as StoryDetailResponse | undefined;
@@ -405,7 +406,16 @@ const StoryDetailPage: FC = () => {
   if (storyError || !viewData) {
     return (
       <Container size="lg" py="xl" ta="center">
-        <Text c="red">Không thể tải dữ liệu truyện</Text>
+        <Stack gap="md" align="center">
+          <Text c="red" size="lg">
+            {storyHidden
+              ? "Truyện này hiện đã bị tác giả ẩn đi"
+              : "Không thể tải dữ liệu truyện"}
+          </Text>
+          <Button onClick={() => navigate("/")}>
+            Về trang chủ
+          </Button>
+        </Stack>
       </Container>
     );
   }

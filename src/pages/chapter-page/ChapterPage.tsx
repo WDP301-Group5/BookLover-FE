@@ -32,6 +32,8 @@ import {
   IconMoodSurprised,
   IconSettings,
   IconThumbUp,
+  IconEyeOff,
+  IconHome,
 } from "@tabler/icons-react";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -134,6 +136,7 @@ const ChapterPage = () => {
     data: chapter,
     isLoading: chapterLoading,
     error: chapterError,
+    isHidden: chapterHidden,
   } = useChapterByChapterNumber(String(storySlug), Number(chapterNumber));
 
   // Try to fetch author chapters first (if user is author, shows all statuses)
@@ -150,7 +153,10 @@ const ChapterPage = () => {
 
   // Only fetch public chapters if author chapters failed or if user is not logged in
   const { data: publicChapters } = useChaptersByStory(story?.id ?? "");
-  const listChapters = (isLoggedIn && String(user?.id) == String(story?.authorId?._id)) ? authorChapters : publicChapters;
+  const listChapters =
+    isLoggedIn && String(user?.id) == String(story?.authorId?._id)
+      ? authorChapters
+      : publicChapters;
   const chapters =
     listChapters?.map((c) => ({
       value: c.chapterNumber.toString(),
@@ -202,8 +208,8 @@ const ChapterPage = () => {
   });
   const effectiveContentURL =
     isGated &&
-      authorOverride?.contentURL &&
-      !authorOverride.contentURL.startsWith("status-")
+    authorOverride?.contentURL &&
+    !authorOverride.contentURL.startsWith("status-")
       ? authorOverride.contentURL
       : chapter?.contentURL;
 
@@ -404,19 +410,72 @@ const ChapterPage = () => {
   return (
     <Container size="md" py="xl">
       <Stack gap="xl">
-        {/* Breadcrumb */}
-        <Breadcrumbs>
-          <Anchor href="/">Trang chủ</Anchor>
-          <Anchor
-            href={`/story/${storySlug}`}
-            className="max-w-48 truncate inline-block align-bottom"
-          >
-            {story?.title || storySlug}
-          </Anchor>
-          <Text className="max-w-96 truncate inline-block align-bottom">
-            Chương {chapterNumber}: {chapter?.title}
-          </Text>
-        </Breadcrumbs>
+        {/* Breadcrumb - hidden when chapter is not available */}
+        {!chapterError && chapter && (
+          <Breadcrumbs>
+            <Anchor href="/">Trang chủ</Anchor>
+            <Anchor
+              href={`/story/${storySlug}`}
+              className="max-w-48 truncate inline-block align-bottom"
+            >
+              {story?.title || storySlug}
+            </Anchor>
+            <Text className="max-w-96 truncate inline-block align-bottom">
+              Chương {chapterNumber}: {chapter?.title}
+            </Text>
+          </Breadcrumbs>
+        )}
+
+        {/* Error state - displayed before other content */}
+        {(chapterLoading || chapterError || !chapter) && (
+          <Paper p="xl" radius="md" withBorder>
+            <Stack gap="md">
+              {chapterLoading ? (
+                <Text ta="center" size="lg" c="dimmed">
+                  Đang tải chương...
+                </Text>
+              ) : chapterError || !chapter ? (
+                <Stack gap="lg" align="center">
+                  {/* Icon with colored background */}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: "80px",
+                      height: "80px",
+                      borderRadius: "50%",
+                      backgroundColor: "#ffe0e0",
+                    }}
+                  >
+                    <IconEyeOff size={40} style={{ color: "#f03e3e" }} />
+                  </div>
+
+                  {/* Main message */}
+                  <div style={{ textAlign: "center" }}>
+                    <Text size="lg" fw={600} mb="xs" c="dark">
+                      Chương không khả dụng
+                    </Text>
+                    <Text size="md" c="dimmed">
+                      {chapterHidden
+                        ? "Chương này hiện đã bị tác giả ẩn đi"
+                        : "Có lỗi xảy ra khi tải nội dung chương. Vui lòng thử lại."}
+                    </Text>
+                  </div>
+
+                  {/* Action button */}
+                  <Button
+                    onClick={() => navigate("/")}
+                    leftSection={<IconHome size={16} />}
+                    style={{ marginTop: "8px" }}
+                  >
+                    Về trang chủ
+                  </Button>
+                </Stack>
+              ) : null}
+            </Stack>
+          </Paper>
+        )}
 
         {/* Reader Settings Modal */}
         <Modal
@@ -508,557 +567,586 @@ const ChapterPage = () => {
           </Stack>
         </Modal>
 
-        {/* Navigation top */}
-        <Group justify="center" gap="sm">
-          <HoverCard>
-            <HoverCard.Target>
-              <Button
-                variant="outline"
-                color="blue"
-                onClick={handleChangeUserFollowStory}
-              >
-                {isFollowStory?.status === "follow" ||
-                  isFollowStory?.status === "unsend" ? (
-                  <IconHeartFilled size={16} />
-                ) : (
-                  <IconHeartPlus size={16} />
-                )}
-              </Button>
-            </HoverCard.Target>
-            <HoverCard.Dropdown>
-              <Text size="sm">
-                {isFollowStory?.status === "follow" ||
-                  isFollowStory?.status === "unsend"
-                  ? "Bỏ Theo Dõi"
-                  : "Theo Dõi"}
-              </Text>
-            </HoverCard.Dropdown>
-          </HoverCard>
-          <Button
-            disabled={!prevChapter}
-            onClick={() =>
-              navigate(
-                `/truyen/${storySlug}/chuong/${prevChapter?.chapterNumber}`,
-              )
-            }
-          >
-            <IconChevronLeft size={16} />
-          </Button>
-          <Select
-            color="blue"
-            withScrollArea
-            data={chapters}
-            value={chapterNumber}
-            onChange={(value) =>
-              navigate(`/truyen/${storySlug}/chuong/${value}`)
-            }
-            chevronColor="blue"
-            allowDeselect={false}
-            w={280}
-          />
-          <Button
-            disabled={!nextChapter}
-            onClick={() =>
-              navigate(
-                `/truyen/${storySlug}/chuong/${nextChapter?.chapterNumber}`,
-              )
-            }
-          >
-            <IconChevronRight size={16} />
-          </Button>
-          <Button variant="outline" color="blue" onClick={open}>
-            <IconSettings size={16} />
-          </Button>
-        </Group>
-
-        {/* Chapter content */}
-        <Paper p="xl" radius="md" withBorder>
-          <Stack gap="md">
-            {chapterLoading ? (
-              <Text ta="center" size="lg" c="dimmed">
-                Đang tải chương...
-              </Text>
-            ) : chapterError || !chapter ? (
-              <Text ta="center" size="lg" c="red">
-                {chapterError && "Có lỗi xảy ra khi tải nội dung chương. Vui lòng thử lại."}
-              </Text>
-            ) : (
-              <>
-                <Title order={2} ta="center">
-                  {`Chương ${chapter?.chapterNumber}: ${chapter?.title}`}
-                </Title>
-                <Divider />
-                {chapter?.contentURL === "status-require-login" ? (
-                  <Text size="lg">
-                    Vui lòng{" "}
-                    <Anchor href="/login" fw={600}>
-                      đăng nhập
-                    </Anchor>{" "}
-                    và mua chương để xem nội dung.
+        {/* Navigation - only show when chapter is loaded */}
+        {!chapterError && chapter && (
+          <>
+            <Group justify="center" gap="sm">
+              <HoverCard>
+                <HoverCard.Target>
+                  <Button
+                    variant="outline"
+                    color="blue"
+                    onClick={handleChangeUserFollowStory}
+                  >
+                    {isFollowStory?.status === "follow" ||
+                    isFollowStory?.status === "unsend" ? (
+                      <IconHeartFilled size={16} />
+                    ) : (
+                      <IconHeartPlus size={16} />
+                    )}
+                  </Button>
+                </HoverCard.Target>
+                <HoverCard.Dropdown>
+                  <Text size="sm">
+                    {isFollowStory?.status === "follow" ||
+                    isFollowStory?.status === "unsend"
+                      ? "Bỏ Theo Dõi"
+                      : "Theo Dõi"}
                   </Text>
-                ) : chapter?.contentURL === "status-buy-chapter" ? (
-                  <>
+                </HoverCard.Dropdown>
+              </HoverCard>
+              <Button
+                disabled={!prevChapter}
+                onClick={() =>
+                  navigate(
+                    `/truyen/${storySlug}/chuong/${prevChapter?.chapterNumber}`,
+                  )
+                }
+              >
+                <IconChevronLeft size={16} />
+              </Button>
+              <Select
+                color="blue"
+                withScrollArea
+                data={chapters}
+                value={chapterNumber}
+                onChange={(value) =>
+                  navigate(`/truyen/${storySlug}/chuong/${value}`)
+                }
+                chevronColor="blue"
+                allowDeselect={false}
+                w={280}
+              />
+              <Button
+                disabled={!nextChapter}
+                onClick={() =>
+                  navigate(
+                    `/truyen/${storySlug}/chuong/${nextChapter?.chapterNumber}`,
+                  )
+                }
+              >
+                <IconChevronRight size={16} />
+              </Button>
+              <Button variant="outline" color="blue" onClick={open}>
+                <IconSettings size={16} />
+              </Button>
+            </Group>
+
+            {/* Chapter content */}
+            <Paper p="xl" radius="md" withBorder>
+              <Stack gap="md">
+                <>
+                  <Title order={2} ta="center">
+                    {`Chương ${chapter?.chapterNumber}: ${chapter?.title}`}
+                  </Title>
+                  <Divider />
+                  {chapter?.contentURL === "status-require-login" ? (
                     <Text size="lg">
                       Vui lòng{" "}
-                      <Anchor
-                        component="button"
-                        onClick={openBuyChapter}
-                        className="text-blue-600 hover:underline"
-                        fw={600}
-                      >
-                        mua chương
+                      <Anchor href="/login" fw={600}>
+                        đăng nhập
                       </Anchor>{" "}
-                      để xem nội dung.
+                      và mua chương để xem nội dung.
                     </Text>
-
-                    <Modal
-                      opened={openedBuyChapter}
-                      onClose={closeBuyChapter}
-                      centered
-                      title={
-                        <Text fw={700} size="lg">
-                          Xác nhận mua chương
-                        </Text>
-                      }
-                    >
-                      <Text size="md" mb="sm">
-                        Bạn có chắc muốn mua chương này không?
+                  ) : chapter?.contentURL === "status-buy-chapter" ? (
+                    <>
+                      <Text size="lg">
+                        Vui lòng{" "}
+                        <Anchor
+                          component="button"
+                          onClick={openBuyChapter}
+                          className="text-blue-600 hover:underline"
+                          fw={600}
+                        >
+                          mua chương
+                        </Anchor>{" "}
+                        để xem nội dung.
                       </Text>
 
-                      {/* Thông tin linh thạch */}
-                      <Group justify="space-between" mb="md">
-                        <Text size="md" c={"blue"}>
-                          Linh thạch hiện tại
-                        </Text>
-                        <Text fw={600} c="blue">
-                          {user?.spiritStones || 0} 💎
-                        </Text>
-                      </Group>
-
-                      <Group justify="space-between" mb="lg">
-                        <Text size="md" c={"blue"}>
-                          Giá chương
-                        </Text>
-                        <Text fw={600} c="red">
-                          {chapter?.price} 💎
-                        </Text>
-                      </Group>
-
-                      {!user ||
-                        (user?.spiritStones < chapter?.price && (
-                          <Group justify="space-between" mb="md">
-                            <Text size="md" c={""}>
-                              Linh thạch không đủ.{" "}
-                              <Anchor
-                                component="button"
-                                onClick={() =>
-                                  navigate("/purchase/spirit-stone")
-                                }
-                                className="text-blue-600 hover:underline"
-                                fw={600}
-                              >
-                                Mua thêm
-                              </Anchor>{" "}
-                              linh thạch.
-                            </Text>
-                          </Group>
-                        ))}
-
-                      <Group justify="flex-end">
-                        <Button variant="default"
-                          onClick={closeBuyChapter} 
-                          disabled={buyChapterLoading}
-                        >
-                          Hủy
-                        </Button>
-
-                        <Button
-                          color="blue"
-                          onClick={openConfirmBuyChapter}
-                          disabled={
-                            !user || user?.spiritStones < chapter?.price || buyChapterLoading
-                          }
-                          loading={buyChapterLoading}
-                        >
-                          Xác nhận mua
-                        </Button>
-                      </Group>
-                    </Modal>
-                    <Modal
-                      opened={openedConfirmBuyChapter}
-                      onClose={closeConfirmBuyChapter}
-                      centered
-                      title={
-                        <Text fw={700} size="lg">
-                          Xác nhận mua chương
-                        </Text>
-                      }
-                    >
-                      <Text fw={500} size="md">
-                        Bạn chắc chắn xác nhận mua chương?
-                      </Text>
-                      <Group justify="flex-end">
-                        <Button
-                          variant="default"
-                          onClick={() => {
-                            closeConfirmBuyChapter();
-                            closeBuyChapter();
-                          }}
-                          disabled={buyChapterLoading}
-                        >
-                          Hủy
-                        </Button>
-
-                        <Button
-                          color="blue"
-                          onClick={handleBuyChapter}
-                          disabled={
-                            !user || user?.spiritStones < chapter?.price || buyChapterLoading
-                          }
-                          loading={buyChapterLoading}
-                        >
-                          Xác nhận
-                        </Button>
-                      </Group>
-                    </Modal>
-                  </>
-                ) : (
-                  <Text
-                    style={{ whiteSpace: "pre-wrap" }}
-                    ff={textSettings.fontFamily}
-                    fz={textSettings.fontSize}
-                    lh={textSettings.lineHeight}
-                    c={textSettings.textColor}
-                    bg={textSettings.backgroundColor || ""}
-                    dangerouslySetInnerHTML={{
-                      __html: chapter?.contentURL || "",
-                    }}
-                  ></Text>
-                )}
-              </>
-            )}
-          </Stack>
-        </Paper>
-
-        {/* Navigation bottom */}
-        <Group justify="center" gap="sm">
-          <Button
-            disabled={!prevChapter}
-            onClick={() =>
-              navigate(
-                `/truyen/${storySlug}/chuong/${prevChapter?.chapterNumber}`,
-              )
-            }
-          >
-            <IconChevronLeft size={16} />
-          </Button>
-          <Select
-            data={chapters}
-            value={chapterNumber}
-            onChange={(value) =>
-              navigate(`/truyen/${storySlug}/chuong/${value}`)
-            }
-            chevronColor="blue"
-            allowDeselect={false}
-            w={280}
-          />
-          <Button
-            disabled={!nextChapter}
-            onClick={() =>
-              navigate(
-                `/truyen/${storySlug}/chuong/${nextChapter?.chapterNumber}`,
-              )
-            }
-          >
-            <IconChevronRight size={16} />
-          </Button>
-        </Group>
-
-        {/* Comment input */}
-        <Paper withBorder p="md" radius="md">
-          <Stack>
-            <Title order={4}>Bình luận</Title>
-            <Textarea
-              placeholder="Viết bình luận của bạn..."
-              autosize
-              minRows={3}
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-            />
-            <Group justify="flex-end">
-              <Button onClick={handleSubmitComment}>Gửi bình luận</Button>
-            </Group>
-          </Stack>
-          <RequireLoginModal
-            opened={loginNotice}
-            onClose={() => {
-              setLoginNotice(false);
-            }}
-            title="Phiên đăng nhập đã hết hạn."
-            message="Bạn vui lòng đăng nhập để thực hiện chức năng này."
-          />
-        </Paper>
-
-        {/* Comment list */}
-        <Stack gap="md">
-          {!comments?.length && (
-            <Text c="dimmed" ta="center">
-              Chưa có bình luận nào. Hãy cùng bắt đầu cuộc trò chuyện.
-            </Text>
-          )}
-
-          {comments?.map((c: Comment) => (
-            <Paper key={c.id} withBorder p="md" radius="md">
-              <Group align="flex-start" wrap="nowrap">
-                <Avatar src={c.user?.avatarURL} radius="xl" />
-
-                <Stack gap={6} style={{ flex: 1 }}>
-                  <Group gap="xs">
-                    <Text fw={600}>{c.user?.nickName}</Text>
-
-                    <Text size="xs" c="dimmed">
-                      {DateHourFormat(c.createdAt)}
-                    </Text>
-                  </Group>
-
-                  <Text style={{ whiteSpace: "pre-line" }}>{c.content}</Text>
-
-                  <Group gap="lg" mt={4}>
-                    <HoverCard
-                      position="top-start"
-                      openDelay={800}
-                      closeDelay={800}
-                      shadow="md"
-                      transitionProps={{ transition: "pop", duration: 200 }}
-                      withinPortal
-                    >
-                      <HoverCard.Target>
-                        <Button
-                          variant="outline"
-                          radius="sm"
-                          size="xs"
-                          color={`${userReactMap?.get(c.id) ? getReactColor(userReactMap?.get(c.id) as ReactTypeValue) : "gray.5"}`}
-                          onClick={() =>
-                            handleUserReact(
-                              c.id,
-                              userReactMap?.get(c.id)
-                                ? ReactType.UNLIKE
-                                : ReactType.LIKE,
-                            )
-                          }
-                        >
-                          <Group gap={6}>
-                            <Text size="sm" fw={500} className="flex justify-center items-center align-middle min-w-[80px]">
-                              {totalReact(c?.react as Record<string, number>) > 0 && <ReactIconList react={c?.react} />}
-                              {totalReact(c?.react as Record<string, number>) || 0}
-                            </Text>
-                          </Group>
-                        </Button>
-                      </HoverCard.Target>
-
-                      <HoverCard.Dropdown
-                        p={6}
-                        className="rounded-xl border border-gray-200 bg-white shadow-lg"
+                      <Modal
+                        opened={openedBuyChapter}
+                        onClose={closeBuyChapter}
+                        centered
+                        title={
+                          <Text fw={700} size="lg">
+                            Xác nhận mua chương
+                          </Text>
+                        }
                       >
-                        <Group gap={6}>
-                          {/* Like */}
-                          <Button
-                            variant="outline"
-                            radius="xl"
-                            size="xs"
-                            className="transition-all duration-200 hover:-translate-y-1 hover:scale-125"
-                            onClick={() =>
-                              handleUserReact(c.id, ReactType.LIKE)
-                            }
-                          >
-                            <IconThumbUp size={18} className="text-blue-500" />
-                          </Button>
+                        <Text size="md" mb="sm">
+                          Bạn có chắc muốn mua chương này không?
+                        </Text>
 
-                          {/* Love */}
-                          <Button
-                            variant="outline"
-                            radius="xl"
-                            size="xs"
-                            className="transition-all duration-200 hover:-translate-y-1 hover:scale-125"
-                            onClick={() =>
-                              handleUserReact(c.id, ReactType.LOVE)
-                            }
-                          >
-                            <IconHeartFilled
-                              size={18}
-                              className="text-pink-500"
-                            />
-                          </Button>
-
-                          {/* Haha */}
-                          <Button
-                            variant="outline"
-                            radius="xl"
-                            size="xs"
-                            className="transition-all duration-200 hover:-translate-y-1 hover:scale-125"
-                            onClick={() =>
-                              handleUserReact(c.id, ReactType.HAHA)
-                            }
-                          >
-                            <IconMoodSmile
-                              size={18}
-                              className="text-yellow-500"
-                            />
-                          </Button>
-
-                          {/* Wow */}
-                          <Button
-                            variant="outline"
-                            radius="xl"
-                            size="xs"
-                            className="transition-all duration-200 hover:-translate-y-1 hover:scale-125"
-                            onClick={() => handleUserReact(c.id, ReactType.WOW)}
-                          >
-                            <IconMoodSurprised
-                              size={18}
-                              className="text-orange-500"
-                            />
-                          </Button>
-
-                          {/* Sad */}
-                          <Button
-                            variant="outline"
-                            radius="xl"
-                            size="xs"
-                            className="transition-all duration-200 hover:-translate-y-1 hover:scale-125"
-                            onClick={() => handleUserReact(c.id, ReactType.SAD)}
-                          >
-                            <IconMoodSad size={18} className="text-blue-400" />
-                          </Button>
-
-                          {/* Angry */}
-                          <Button
-                            variant="outline"
-                            radius="xl"
-                            size="xs"
-                            className="transition-all duration-200 hover:-translate-y-1 hover:scale-125"
-                            onClick={() =>
-                              handleUserReact(c.id, ReactType.ANGRY)
-                            }
-                          >
-                            <IconMoodAngry size={18} className="text-red-600" />
-                          </Button>
+                        {/* Thông tin linh thạch */}
+                        <Group justify="space-between" mb="md">
+                          <Text size="md" c={"blue"}>
+                            Linh thạch hiện tại
+                          </Text>
+                          <Text fw={600} c="blue">
+                            {user?.spiritStones || 0} 💎
+                          </Text>
                         </Group>
-                      </HoverCard.Dropdown>
-                    </HoverCard>
 
-                    <Group
-                      gap={4}
-                      className="cursor-pointer"
-                      onClick={() => {
-                        setReplyContent("");
-                        setReplyingCommentId(
-                          replyingCommentId === c.id ? null : c.id,
-                        );
-                      }}
-                    >
-                      <IconMessageCircle size={16} />
-                      <Text size="sm">Trả lời</Text>
-                    </Group>
+                        <Group justify="space-between" mb="lg">
+                          <Text size="md" c={"blue"}>
+                            Giá chương
+                          </Text>
+                          <Text fw={600} c="red">
+                            {chapter?.price} 💎
+                          </Text>
+                        </Group>
 
-                    {c.replyCount > 0 && (
-                      <Text
-                        size="sm"
-                        c="blue"
-                        className="cursor-pointer"
-                        onClick={() => toggleReplies(c.id)}
-                      >
-                        {expandedComments.includes(c.id)
-                          ? "Ẩn phản hồi"
-                          : `Xem ${c.replyCount} phản hồi`}
-                      </Text>
-                    )}
-                  </Group>
-
-                  {/* REPLY BOX */}
-                  {replyingCommentId === c.id && (
-                    <Paper withBorder radius="md" p="sm" mt={8}>
-                      <Stack gap="xs">
-                        <Textarea
-                          placeholder={`Trả lời ${c.user.nickName}...`}
-                          autosize
-                          minRows={2}
-                          autoFocus
-                          value={replyContent}
-                          onChange={(e) =>
-                            setReplyContent(e.currentTarget.value)
-                          }
-                        />
+                        {!user ||
+                          (user?.spiritStones < chapter?.price && (
+                            <Group justify="space-between" mb="md">
+                              <Text size="md" c={""}>
+                                Linh thạch không đủ.{" "}
+                                <Anchor
+                                  component="button"
+                                  onClick={() =>
+                                    navigate("/purchase/spirit-stone")
+                                  }
+                                  className="text-blue-600 hover:underline"
+                                  fw={600}
+                                >
+                                  Mua thêm
+                                </Anchor>{" "}
+                                linh thạch.
+                              </Text>
+                            </Group>
+                          ))}
 
                         <Group justify="flex-end">
                           <Button
-                            variant="subtle"
-                            size="xs"
-                            onClick={() => {
-                              setReplyingCommentId(null);
-                              setReplyContent("");
-                            }}
+                            variant="default"
+                            onClick={closeBuyChapter}
+                            disabled={buyChapterLoading}
                           >
                             Hủy
                           </Button>
 
                           <Button
-                            size="xs"
-                            onClick={() => handleSubmitReply(c.id)}
+                            color="blue"
+                            onClick={openConfirmBuyChapter}
+                            disabled={
+                              !user ||
+                              user?.spiritStones < chapter?.price ||
+                              buyChapterLoading
+                            }
+                            loading={buyChapterLoading}
                           >
-                            Gửi phản hồi
+                            Xác nhận mua
                           </Button>
                         </Group>
-                      </Stack>
-                    </Paper>
-                  )}
+                      </Modal>
+                      <Modal
+                        opened={openedConfirmBuyChapter}
+                        onClose={closeConfirmBuyChapter}
+                        centered
+                        title={
+                          <Text fw={700} size="lg">
+                            Xác nhận mua chương
+                          </Text>
+                        }
+                      >
+                        <Text fw={500} size="md">
+                          Bạn chắc chắn xác nhận mua chương?
+                        </Text>
+                        <Group justify="flex-end">
+                          <Button
+                            variant="default"
+                            onClick={() => {
+                              closeConfirmBuyChapter();
+                              closeBuyChapter();
+                            }}
+                            disabled={buyChapterLoading}
+                          >
+                            Hủy
+                          </Button>
 
-                  {/* REPLIES */}
-                  {expandedComments.includes(c.id) && (
-                    <Stack
-                      mt="sm"
-                      pl="lg"
-                      style={{
-                        borderLeft: "2px solid #eee",
-                      }}
-                    >
-                      {repliesMap[c.id]?.map((reply) => (
-                        <Group key={reply.id} align="flex-start" wrap="nowrap">
-                          <Avatar
-                            src={reply.user.avatarURL}
-                            radius="xl"
-                            size="sm"
-                          />
-
-                          <Stack gap={2}>
-                            <Group gap="xs">
-                              <Text fw={600} size="sm">
-                                {reply.user.nickName}
-                              </Text>
-
-                              <Text size="xs" c="dimmed">
-                                {DateHourFormat(reply.createdAt)}
-                              </Text>
-                            </Group>
-
-                            <Text size="sm">{reply.content}</Text>
-                          </Stack>
+                          <Button
+                            color="blue"
+                            onClick={handleBuyChapter}
+                            disabled={
+                              !user ||
+                              user?.spiritStones < chapter?.price ||
+                              buyChapterLoading
+                            }
+                            loading={buyChapterLoading}
+                          >
+                            Xác nhận
+                          </Button>
                         </Group>
-                      ))}
-                    </Stack>
+                      </Modal>
+                    </>
+                  ) : (
+                    <Text
+                      style={{ whiteSpace: "pre-wrap" }}
+                      ff={textSettings.fontFamily}
+                      fz={textSettings.fontSize}
+                      lh={textSettings.lineHeight}
+                      c={textSettings.textColor}
+                      bg={textSettings.backgroundColor || ""}
+                      dangerouslySetInnerHTML={{
+                        __html: chapter?.contentURL || "",
+                      }}
+                    ></Text>
                   )}
-                </Stack>
-              </Group>
+                </>
+              </Stack>
             </Paper>
-          ))}
 
-          <Pagination
-            total={totalCommentPages}
-            value={commentPage}
-            onChange={setCommentPage}
-            mx="auto"
-          />
-        </Stack>
+            <Group justify="center" gap="sm">
+              <Button
+                disabled={!prevChapter}
+                onClick={() =>
+                  navigate(
+                    `/truyen/${storySlug}/chuong/${prevChapter?.chapterNumber}`,
+                  )
+                }
+              >
+                <IconChevronLeft size={16} />
+              </Button>
+              <Select
+                data={chapters}
+                value={chapterNumber}
+                onChange={(value) =>
+                  navigate(`/truyen/${storySlug}/chuong/${value}`)
+                }
+                chevronColor="blue"
+                allowDeselect={false}
+                w={280}
+              />
+              <Button
+                disabled={!nextChapter}
+                onClick={() =>
+                  navigate(
+                    `/truyen/${storySlug}/chuong/${nextChapter?.chapterNumber}`,
+                  )
+                }
+              >
+                <IconChevronRight size={16} />
+              </Button>
+            </Group>
+          </>
+        )}
+
+        {/* Comment section - only visible when chapter is loaded */}
+        {!chapterError && chapter && (
+          <>
+            <Paper withBorder p="md" radius="md">
+              <Stack>
+                <Title order={4}>Bình luận</Title>
+                <Textarea
+                  placeholder="Viết bình luận của bạn..."
+                  autosize
+                  minRows={3}
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                />
+                <Group justify="flex-end">
+                  <Button onClick={handleSubmitComment}>Gửi bình luận</Button>
+                </Group>
+              </Stack>
+              <RequireLoginModal
+                opened={loginNotice}
+                onClose={() => {
+                  setLoginNotice(false);
+                }}
+                title="Phiên đăng nhập đã hết hạn."
+                message="Bạn vui lòng đăng nhập để thực hiện chức năng này."
+              />
+            </Paper>
+
+            {/* Comment list */}
+            <Stack gap="md">
+              {!comments?.length && (
+                <Text c="dimmed" ta="center">
+                  Chưa có bình luận nào. Hãy cùng bắt đầu cuộc trò chuyện.
+                </Text>
+              )}
+
+              {comments?.map((c: Comment) => (
+                <Paper key={c.id} withBorder p="md" radius="md">
+                  <Group align="flex-start" wrap="nowrap">
+                    <Avatar src={c.user?.avatarURL} radius="xl" />
+
+                    <Stack gap={6} style={{ flex: 1 }}>
+                      <Group gap="xs">
+                        <Text fw={600}>{c.user?.nickName}</Text>
+
+                        <Text size="xs" c="dimmed">
+                          {DateHourFormat(c.createdAt)}
+                        </Text>
+                      </Group>
+
+                      <Text style={{ whiteSpace: "pre-line" }}>
+                        {c.content}
+                      </Text>
+
+                      <Group gap="lg" mt={4}>
+                        <HoverCard
+                          position="top-start"
+                          openDelay={800}
+                          closeDelay={800}
+                          shadow="md"
+                          transitionProps={{ transition: "pop", duration: 200 }}
+                          withinPortal
+                        >
+                          <HoverCard.Target>
+                            <Button
+                              variant="outline"
+                              radius="sm"
+                              size="xs"
+                              color={`${userReactMap?.get(c.id) ? getReactColor(userReactMap?.get(c.id) as ReactTypeValue) : "gray.5"}`}
+                              onClick={() =>
+                                handleUserReact(
+                                  c.id,
+                                  userReactMap?.get(c.id)
+                                    ? ReactType.UNLIKE
+                                    : ReactType.LIKE,
+                                )
+                              }
+                            >
+                              <Group gap={6}>
+                                <Text
+                                  size="sm"
+                                  fw={500}
+                                  className="flex justify-center items-center align-middle min-w-[80px]"
+                                >
+                                  {totalReact(
+                                    c?.react as Record<string, number>,
+                                  ) > 0 && <ReactIconList react={c?.react} />}
+                                  {totalReact(
+                                    c?.react as Record<string, number>,
+                                  ) || 0}
+                                </Text>
+                              </Group>
+                            </Button>
+                          </HoverCard.Target>
+
+                          <HoverCard.Dropdown
+                            p={6}
+                            className="rounded-xl border border-gray-200 bg-white shadow-lg"
+                          >
+                            <Group gap={6}>
+                              {/* Like */}
+                              <Button
+                                variant="outline"
+                                radius="xl"
+                                size="xs"
+                                className="transition-all duration-200 hover:-translate-y-1 hover:scale-125"
+                                onClick={() =>
+                                  handleUserReact(c.id, ReactType.LIKE)
+                                }
+                              >
+                                <IconThumbUp
+                                  size={18}
+                                  className="text-blue-500"
+                                />
+                              </Button>
+
+                              {/* Love */}
+                              <Button
+                                variant="outline"
+                                radius="xl"
+                                size="xs"
+                                className="transition-all duration-200 hover:-translate-y-1 hover:scale-125"
+                                onClick={() =>
+                                  handleUserReact(c.id, ReactType.LOVE)
+                                }
+                              >
+                                <IconHeartFilled
+                                  size={18}
+                                  className="text-pink-500"
+                                />
+                              </Button>
+
+                              {/* Haha */}
+                              <Button
+                                variant="outline"
+                                radius="xl"
+                                size="xs"
+                                className="transition-all duration-200 hover:-translate-y-1 hover:scale-125"
+                                onClick={() =>
+                                  handleUserReact(c.id, ReactType.HAHA)
+                                }
+                              >
+                                <IconMoodSmile
+                                  size={18}
+                                  className="text-yellow-500"
+                                />
+                              </Button>
+
+                              {/* Wow */}
+                              <Button
+                                variant="outline"
+                                radius="xl"
+                                size="xs"
+                                className="transition-all duration-200 hover:-translate-y-1 hover:scale-125"
+                                onClick={() =>
+                                  handleUserReact(c.id, ReactType.WOW)
+                                }
+                              >
+                                <IconMoodSurprised
+                                  size={18}
+                                  className="text-orange-500"
+                                />
+                              </Button>
+
+                              {/* Sad */}
+                              <Button
+                                variant="outline"
+                                radius="xl"
+                                size="xs"
+                                className="transition-all duration-200 hover:-translate-y-1 hover:scale-125"
+                                onClick={() =>
+                                  handleUserReact(c.id, ReactType.SAD)
+                                }
+                              >
+                                <IconMoodSad
+                                  size={18}
+                                  className="text-blue-400"
+                                />
+                              </Button>
+
+                              {/* Angry */}
+                              <Button
+                                variant="outline"
+                                radius="xl"
+                                size="xs"
+                                className="transition-all duration-200 hover:-translate-y-1 hover:scale-125"
+                                onClick={() =>
+                                  handleUserReact(c.id, ReactType.ANGRY)
+                                }
+                              >
+                                <IconMoodAngry
+                                  size={18}
+                                  className="text-red-600"
+                                />
+                              </Button>
+                            </Group>
+                          </HoverCard.Dropdown>
+                        </HoverCard>
+
+                        <Group
+                          gap={4}
+                          className="cursor-pointer"
+                          onClick={() => {
+                            setReplyContent("");
+                            setReplyingCommentId(
+                              replyingCommentId === c.id ? null : c.id,
+                            );
+                          }}
+                        >
+                          <IconMessageCircle size={16} />
+                          <Text size="sm">Trả lời</Text>
+                        </Group>
+
+                        {c.replyCount > 0 && (
+                          <Text
+                            size="sm"
+                            c="blue"
+                            className="cursor-pointer"
+                            onClick={() => toggleReplies(c.id)}
+                          >
+                            {expandedComments.includes(c.id)
+                              ? "Ẩn phản hồi"
+                              : `Xem ${c.replyCount} phản hồi`}
+                          </Text>
+                        )}
+                      </Group>
+
+                      {/* REPLY BOX */}
+                      {replyingCommentId === c.id && (
+                        <Paper withBorder radius="md" p="sm" mt={8}>
+                          <Stack gap="xs">
+                            <Textarea
+                              placeholder={`Trả lời ${c.user.nickName}...`}
+                              autosize
+                              minRows={2}
+                              autoFocus
+                              value={replyContent}
+                              onChange={(e) =>
+                                setReplyContent(e.currentTarget.value)
+                              }
+                            />
+
+                            <Group justify="flex-end">
+                              <Button
+                                variant="subtle"
+                                size="xs"
+                                onClick={() => {
+                                  setReplyingCommentId(null);
+                                  setReplyContent("");
+                                }}
+                              >
+                                Hủy
+                              </Button>
+
+                              <Button
+                                size="xs"
+                                onClick={() => handleSubmitReply(c.id)}
+                              >
+                                Gửi phản hồi
+                              </Button>
+                            </Group>
+                          </Stack>
+                        </Paper>
+                      )}
+
+                      {/* REPLIES */}
+                      {expandedComments.includes(c.id) && (
+                        <Stack
+                          mt="sm"
+                          pl="lg"
+                          style={{
+                            borderLeft: "2px solid #eee",
+                          }}
+                        >
+                          {repliesMap[c.id]?.map((reply) => (
+                            <Group
+                              key={reply.id}
+                              align="flex-start"
+                              wrap="nowrap"
+                            >
+                              <Avatar
+                                src={reply.user.avatarURL}
+                                radius="xl"
+                                size="sm"
+                              />
+
+                              <Stack gap={2}>
+                                <Group gap="xs">
+                                  <Text fw={600} size="sm">
+                                    {reply.user.nickName}
+                                  </Text>
+
+                                  <Text size="xs" c="dimmed">
+                                    {DateHourFormat(reply.createdAt)}
+                                  </Text>
+                                </Group>
+
+                                <Text size="sm">{reply.content}</Text>
+                              </Stack>
+                            </Group>
+                          ))}
+                        </Stack>
+                      )}
+                    </Stack>
+                  </Group>
+                </Paper>
+              ))}
+
+              <Pagination
+                total={totalCommentPages}
+                value={commentPage}
+                onChange={setCommentPage}
+                mx="auto"
+              />
+            </Stack>
+          </>
+        )}
       </Stack>
     </Container>
   );

@@ -44,6 +44,12 @@ export function ReadingListDetailPage() {
   const [deleteListOpened, { open: openDeleteList, close: closeDeleteList }] =
     useDisclosure(false);
 
+  const handleBackToPreviousPage = () => {
+    // Signal AuthorProfile to scroll Intro tab to top once after navigating back.
+    sessionStorage.setItem("author-profile-scroll-intro-top", "1");
+    navigate(-1);
+  };
+
   if (isLoading) {
     return (
       <Container size="lg" py="xl">
@@ -60,7 +66,7 @@ export function ReadingListDetailPage() {
         <Center py="xl">
           <Stack align="center" gap="md">
             <Text>Danh sách đọc không được tìm thấy</Text>
-            <Button onClick={() => navigate(-1)}>Quay lại</Button>
+            <Button onClick={handleBackToPreviousPage}>Quay lại</Button>
           </Stack>
         </Center>
       </Container>
@@ -89,7 +95,11 @@ export function ReadingListDetailPage() {
       <Stack gap="lg">
         {/* Back Button */}
         <Group>
-          <ActionIcon variant="subtle" onClick={() => navigate(-1)} size="lg">
+          <ActionIcon
+            variant="subtle"
+            onClick={handleBackToPreviousPage}
+            size="lg"
+          >
             <ArrowLeft size={20} />
           </ActionIcon>
           <Text fw={500} c="blue">

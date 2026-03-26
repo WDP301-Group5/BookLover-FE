@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Outlet, ScrollRestoration, useNavigate } from "react-router-dom";
 import { setNavigate } from "../lib/navigation";
 import { useLogoutCleanup } from "../hooks/useLogoutCleanup";
+import { validateTokenAndLogoutIfExpired } from "../utils/authHandler";
 import Footer from "./footer/Footer";
 import Header from "./header/Header";
 import socket from "../lib/socket";
@@ -11,6 +12,7 @@ import { useUserStore } from "../stores/useUserStore";
 
 const Layout = () => {
   const navigate = useNavigate();
+  const { user, isLoggedIn } = useUserStore();
 
   // Cleanup cache khi user logout
   useLogoutCleanup();
@@ -18,16 +20,34 @@ const Layout = () => {
     setNavigate(navigate);
   }, [navigate]);
 
-	const [showScrollTop, setShowScrollTop] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
-	const { user } = useUserStore();
+  // Validate token expiration on mount and periodically
+  useEffect(() => {
+    // Initial check
+    if (isLoggedIn) {
+      validateTokenAndLogoutIfExpired();
+    }
 
-	useEffect(() => {
-		if (user?.id) {
-			socket.auth = { userId: user.id };
-			socket.connect();
-		}
-	}, []);
+    // Set interval to check token validity every 5 minutes
+    const interval = setInterval(
+      () => {
+        if (isLoggedIn) {
+          validateTokenAndLogoutIfExpired();
+        }
+      },
+      5 * 60 * 1000,
+    ); // 5 minutes
+
+    return () => clearInterval(interval);
+  }, [isLoggedIn]);
+
+  useEffect(() => {
+    if (user?.id) {
+      socket.auth = { userId: user.id };
+      socket.connect();
+    }
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {

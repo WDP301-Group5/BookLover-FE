@@ -9,6 +9,7 @@ import {
   Modal,
   Select,
   Stack,
+  Switch,
   TagsInput,
   Text,
   Textarea,
@@ -57,6 +58,7 @@ export default function PublishStoryModal({
   );
   const [tags, setTags] = useState<string[]>(story.tags || []);
   const [isFinish, setIsFinish] = useState(story.isFinish || false);
+  const [isPremium, setIsPremium] = useState(story.isPremium || false);
   const [copyrightConfirm, setCopyrightConfirm] = useState(false);
 
   // Cover image
@@ -83,6 +85,7 @@ export default function PublishStoryModal({
     setCategory(extractTopicId(story.topics?.[0]));
     setTags(story.tags || []);
     setIsFinish(story.isFinish || false);
+    setIsPremium(story.isPremium || false);
     setCoverPreview(story.image || null);
   }, [story]);
 
@@ -141,6 +144,7 @@ export default function PublishStoryModal({
         formData.append("tags", tag);
       }
       formData.append("isFinish", isFinish ? "true" : "false");
+      formData.append("isPremium", isPremium ? "true" : "false");
       formData.append("status", "pending");
       if (coverImage) {
         formData.append("image", coverImage);
@@ -302,6 +306,16 @@ export default function PublishStoryModal({
               onChange={(e) => setIsFinish(e.currentTarget.checked)}
               color="blue"
             />
+
+            <Group justify="space-between" align="center">
+              <Text size="sm" fw={500}>
+                Có trả phí hay không?
+              </Text>
+              <Switch
+                checked={isPremium}
+                onChange={(e) => setIsPremium(e.currentTarget.checked)}
+              />
+            </Group>
 
             <Checkbox
               label="Tôi xác nhận đây là tác phẩm do tôi sáng tác và không vi phạm bản quyền"
