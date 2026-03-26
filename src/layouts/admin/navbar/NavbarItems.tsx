@@ -28,11 +28,6 @@ export const NAVBAR_ITEMS: NavbarItem[] = [
     link: "/admin/top",
   },
   {
-    label: "Thể loại Truyện",
-    icon: IconNotes,
-    link: "/admin/catalog/genre",
-  },
-  {
     label: "Chủ đề truyện",
     icon: IconNotes,
     link: "/admin/catalog/topic",

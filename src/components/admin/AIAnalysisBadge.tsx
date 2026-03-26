@@ -23,14 +23,18 @@ const finalDecisionConfig = {
 
 /**
  * Get color for AI decision based on scores
+ * Score represents risk level: higher = more dangerous
+ * - score >= 0.7 means HIGH risk -> red
+ * - score >= 0.4 means MEDIUM risk -> yellow
+ * - score < 0.4 means LOW risk -> green
  */
 function getRiskLevelColor(aiAnalysis?: AIAnalysis): string {
   if (!aiAnalysis?.geminiDecision?.scores) return "gray";
   const scores = aiAnalysis.geminiDecision.scores;
   const riskScore = scores.overallRisk ?? 0;
-  if (riskScore >= 0.7) return "green"; // Safe
+  if (riskScore >= 0.7) return "red"; // High risk
   if (riskScore >= 0.4) return "yellow"; // Medium risk
-  return "red"; // High risk
+  return "green"; // Low risk
 }
 
 /**
