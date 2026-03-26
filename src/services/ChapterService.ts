@@ -43,10 +43,22 @@ export const ChapterPageService = {
     storySlug: string,
     chapterNumber: number,
   ): Promise<Chapter> {
-    const res = await instance.get<Chapter>(
-      `/chapter/story/${storySlug}/chapter/${chapterNumber}`,
-    );
-    return res.data;
+    try {
+      const res = await instance.get<Chapter>(
+        `/chapter/story/${storySlug}/chapter/${chapterNumber}`,
+      );
+      return res.data;
+    } catch (error: any) {
+      if (
+        error.response?.status === 404 &&
+        error.response?.data?.code === "CHAPTER_HIDDEN_BY_AUTHOR"
+      ) {
+        const newError = new Error("CHAPTER_HIDDEN_BY_AUTHOR");
+        (newError as any).code = "CHAPTER_HIDDEN_BY_AUTHOR";
+        throw newError;
+      }
+      throw error;
+    }
   },
 
   async userReadChapter(storyId: string, chapterNumber: number) {

@@ -79,10 +79,22 @@ const StoryService = {
   },
 
   async getStoryBySlug(slug: string) {
-    const res = await instance.get(`/story/with-author/${slug}`);
-    res.data.author = res.data.authorId;
-    res.data.id = res.data._id;
-    return res.data;
+    try {
+      const res = await instance.get(`/story/with-author/${slug}`);
+      res.data.author = res.data.authorId;
+      res.data.id = res.data._id;
+      return res.data;
+    } catch (error: any) {
+      if (
+        error.response?.status === 404 &&
+        error.response?.data?.code === "STORY_HIDDEN_BY_AUTHOR"
+      ) {
+        const newError = new Error("STORY_HIDDEN_BY_AUTHOR");
+        (newError as any).code = "STORY_HIDDEN_BY_AUTHOR";
+        throw newError;
+      }
+      throw error;
+    }
   },
 
   async getMyStories(): Promise<Story[]> {
@@ -91,41 +103,41 @@ const StoryService = {
   },
 
   async createStory(data: FormData): Promise<Story> {
-		const res = await instance.post("/story", data, {
-			headers: {
-				"Content-Type": "multipart/form-data",
-			},
-		});
-		return res.data;
-	},
-async getStoriesWithFilter(params: {
-  page: number;
-  limit: number;
-  status?: string;
-  category?: string;  
-  search?: string;
-  sortBy?: string;
-}) {
-  try {
-    const response = await instance.get("/story/search", { params });
-    return response?.data;
-  } catch (error) {
-    console.error("Error fetching stories with filter:", error);
-    throw error;
-  }
-},
+    const res = await instance.post("/story", data, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return res.data;
+  },
+  async getStoriesWithFilter(params: {
+    page: number;
+    limit: number;
+    status?: string;
+    category?: string;
+    search?: string;
+    sortBy?: string;
+  }) {
+    try {
+      const response = await instance.get("/story/search", { params });
+      return response?.data;
+    } catch (error) {
+      console.error("Error fetching stories with filter:", error);
+      throw error;
+    }
+  },
 
-async rateStory(storyId: string, rate: number) {
-  if (!storyId || !String(storyId).trim()) return null;
+  async rateStory(storyId: string, rate: number) {
+    if (!storyId || !String(storyId).trim()) return null;
 
-  try {
-    const response = await instance.post(`/story/${storyId}/rate`, { rate });
-    return response.data;
-  } catch (error) {
-    console.error("Error rate story:", error);
-    throw error;
-  }
-},
+    try {
+      const response = await instance.post(`/story/${storyId}/rate`, { rate });
+      return response.data;
+    } catch (error) {
+      console.error("Error rate story:", error);
+      throw error;
+    }
+  },
 
   async getAllStory() {
     try {
