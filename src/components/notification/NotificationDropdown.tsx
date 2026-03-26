@@ -26,12 +26,18 @@ export default function NotificationDropdown({
   const navigate = useNavigate();
 
   const handleClickNotification = async (notification: NotificationItem) => {
-    if (notification.status === "unread") {
-      await onMarkOneAsRead(notification._id);
-    }
+    const targetLink = getNotificationLink(notification);
 
-    onClose?.();
-    navigate(getNotificationLink(notification));
+    try {
+      if (notification.status === "unread") {
+        await onMarkOneAsRead(notification._id);
+      }
+    } catch (error) {
+      console.error("Không thể đánh dấu đã đọc:", error);
+    } finally {
+      onClose?.();
+      navigate(targetLink);
+    }
   };
 
   return (

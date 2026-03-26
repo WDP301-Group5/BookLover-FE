@@ -1,5 +1,6 @@
 import {
   IconAlertCircle,
+  IconChartBarPopular,
   IconGauge,
   IconListCheck,
   IconNotes,
@@ -20,6 +21,11 @@ export const NAVBAR_ITEMS: NavbarItem[] = [
     label: "Trang chủ",
     icon: IconGauge,
     link: "/admin/dashboard",
+  },
+  {
+    label: "Bảng xếp hạng",
+    icon: IconChartBarPopular,
+    link: "/admin/top",
   },
   {
     label: "Chủ đề truyện",
