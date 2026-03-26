@@ -243,7 +243,7 @@ export default function ReviewPage() {
 
   const storyOptions = useMemo(() => {
     return stories.map((story) => ({
-      value: story.title,
+      value: story.id,
       label: story.title,
     }));
   }, [stories]);
