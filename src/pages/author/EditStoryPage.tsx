@@ -36,7 +36,7 @@ export default function EditStoryPage() {
   const theme = useMantineTheme();
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === "dark";
-  
+
   const [topics, setTopics] = useState<Topic[]>([]);
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
@@ -82,7 +82,7 @@ export default function EditStoryPage() {
         // Fetch user's stories to find the one with matching ID
         const response = await AuthorService.getMyStories(1, 100);
         const story = response.stories.find((s) => s._id === storyId);
-        
+
         if (!story) {
           showError("Không tìm thấy truyện");
           navigate("/author/my-stories");
@@ -92,7 +92,7 @@ export default function EditStoryPage() {
         // Populate form with story data
         setTitle(story.title);
         setDescription(story.description || "");
-        
+
         // Set category - handle if topics is an array of objects or strings
         if (story.topics && Array.isArray(story.topics)) {
           const firstTopic = story.topics[0];
@@ -102,11 +102,11 @@ export default function EditStoryPage() {
             setCategory((firstTopic as any)._id);
           }
         }
-        
+
         setTags(story.tags || []);
         setIsPremium(story.isPremium || false);
         setIsFinish(story.isFinish || false);
-        
+
         // Set cover preview
         if (story.image) {
           setCoverPreview(story.image);
