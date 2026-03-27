@@ -3,6 +3,7 @@ import Layout from "../../layouts/Layout";
 import { RoleBasedRoute } from "../../components/common/RoleBasedRoute";
 import { ProtectedRoute } from "../../components/common/ProtectedRoute";
 import WriteStoryPage from "../../pages/author/WriteStoryPage";
+import EditStoryPage from "../../pages/author/EditStoryPage";
 import WriteChapterPage from "../../pages/author/WriteChapterPage";
 import MyStoriesPage from "../../pages/author/MyStoriesPage";
 
@@ -36,6 +37,23 @@ export const MyStoriesRoute: RouteObject = {
         {
           index: true,
           element: <MyStoriesPage />,
+        },
+      ],
+    },
+  ],
+};
+
+// Edit Story route - requires authentication
+export const EditStoryRoute: RouteObject = {
+  path: "/author/story/:storyId/edit-info",
+  element: <Layout />,
+  children: [
+    {
+      element: <ProtectedRoute />,
+      children: [
+        {
+          index: true,
+          element: <EditStoryPage />,
         },
       ],
     },

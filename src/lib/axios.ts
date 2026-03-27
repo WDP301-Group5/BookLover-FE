@@ -30,13 +30,21 @@ instance.interceptors.response.use(
   },
   async (error) => {
     if (error.response && error.response.status === 401) {
-      console.error(
-        "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để tiếp tục.",
-      );
-      // Perform complete logout
-      await handle401Unauthorized();
-      // Redirect to login page
-      window.location.href = "/login";
+      // Don't redirect if this is a login/register endpoint - let the component handle it
+      const isAuthEndpoint =
+        error.config?.url?.includes("/auth/login") ||
+        error.config?.url?.includes("/auth/register") ||
+        error.config?.url?.includes("/auth/google-login");
+
+      if (!isAuthEndpoint) {
+        console.error(
+          "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để tiếp tục.",
+        );
+        // Perform complete logout
+        await handle401Unauthorized();
+        // Redirect to login page
+        window.location.href = "/login";
+      }
     }
     return Promise.reject(error);
   },
