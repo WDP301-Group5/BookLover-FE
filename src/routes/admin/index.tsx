@@ -14,6 +14,7 @@ import { UserManagementPage } from "../../pages/admin/user-management/UserManage
 import TopicManagementPage from "../../pages/admin/catalog/topic/TopicManagemantPage";
 import NotFoundPage from "../../pages/error/not-found";
 import AdminRankingPage from "../../pages/admin/ranking/AdminRankingPage";
+import WithdrawPage from "../../pages/admin/withdraw/WithdrawPage";
 
 export const AdminRoute: RouteObject = {
   path: "/admin",
@@ -83,6 +84,10 @@ export const AdminRoute: RouteObject = {
               element: <BannedKeywordManagement />,
             },
           ],
+        },
+        {
+          path: "withdraws",
+          element: <WithdrawPage />,
         },
         {
           path: "reports",

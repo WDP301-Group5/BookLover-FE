@@ -57,6 +57,11 @@ export const NAVBAR_ITEMS: NavbarItem[] = [
     ],
   },
   {
+    label: "Yêu cầu rút tiền",
+    icon: IconNotes,
+    link: "/admin/withdraws",
+  },
+  {
     label: "Báo cáo vi phạm",
     icon: IconAlertCircle,
     link: "/admin/reports",
