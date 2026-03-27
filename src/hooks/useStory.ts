@@ -29,11 +29,25 @@ export const useTop10Story = (type: "m" | "w" | "d" = "m") => {
 };
 
 export const useStoryDetail = (slug?: string) => {
-  return useQuery({
+  const query = useQuery({
     queryKey: ["story", slug],
     queryFn: () => StoryService.getStoryBySlug(slug as string),
     enabled: !!slug,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    retry: (failureCount, error: any) => {
+      // Don't retry if story is hidden or not found
+      if (error?.message === "STORY_HIDDEN_BY_AUTHOR" || error?.response?.status === 404) {
+        return false;
+      }
+      // Retry other errors up to 1 time
+      return failureCount < 1;
+    },
   });
+  return {
+    ...query,
+    isHidden: (query.error as any)?.message === "STORY_HIDDEN_BY_AUTHOR",
+  };
 };
 
 export const useCreateStory = () => {

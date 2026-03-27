@@ -4,7 +4,7 @@ import { ReadingListTab } from "../../components/author/ReadingListTab.tsx";
 import { FollowingTab } from "../../components/author/FollowingTab.tsx";
 import { IntroductionTab } from "../../components/author/IntroductionTab";
 import { useParams } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { AuthorPublicProfile } from "../../services/UserService.ts";
 import Followers from "../../components/user/user-navbar/Followers.tsx";
 
@@ -17,6 +17,19 @@ export function AuthorProfile() {
   const { colorScheme } = useMantineColorScheme();
 
   const isDark = colorScheme === "dark";
+
+  useEffect(() => {
+    const shouldScrollIntroTop =
+      sessionStorage.getItem("author-profile-scroll-intro-top") === "1";
+
+    if (!shouldScrollIntroTop) return;
+
+    // Ensure layout is painted before scrolling.
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      sessionStorage.removeItem("author-profile-scroll-intro-top");
+    });
+  }, []);
 
   const refreshAllRelations = () => {
     setRefreshRelationsKey((prev) => prev + 1);

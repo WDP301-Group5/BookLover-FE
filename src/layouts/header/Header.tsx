@@ -150,14 +150,6 @@ const Header = () => {
                 >
                   Review
                 </MantineMenu.Item>
-                <MantineMenu.Divider className="border-gray-200 dark:border-gray-700" />
-                <MantineMenu.Item
-                  component={Link}
-                  to="/community/guidelines"
-                  className="text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                  Quy định cộng đồng
-                </MantineMenu.Item>
               </MantineMenu.Dropdown>
             </MantineMenu>
           </div>
@@ -203,14 +195,6 @@ const Header = () => {
                   className="text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
                   Truyện của tôi
-                </MantineMenu.Item>
-                <MantineMenu.Divider className="border-gray-200 dark:border-gray-700" />
-                <MantineMenu.Item
-                  component={Link}
-                  to="/write/guide"
-                  className="text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                  Hướng dẫn viết truyện
                 </MantineMenu.Item>
               </MantineMenu.Dropdown>
             </MantineMenu>
