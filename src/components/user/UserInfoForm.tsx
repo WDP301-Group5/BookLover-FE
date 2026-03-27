@@ -10,7 +10,7 @@ import {
   TextInput,
   Title,
 } from "@mantine/core";
-import { Bell, Book, BookCheck, Lock, Pencil, Save, User, UserRoundPlus, Users, X } from "lucide-react";
+import { Bell, Book, BookCheck, ChartNoAxesCombined, Lock, Pencil, Save, User, UserRoundPlus, Users, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import AvatarUploader from "./AvatarUploader";
@@ -22,9 +22,10 @@ import { showError, showSuccess } from "../../utils/notifications";
 import ChangePassword from "./user-navbar/ChangePassword";
 import ListStoryFollowed from "./user-navbar/ListStoryFollowed";
 import MyStory from "./user-navbar/MyStory";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Followers from "./user-navbar/Followers";
 import { FollowingTab } from "../author/FollowingTab";
+import RevenueTab from "./user-navbar/RevenueTab";
 
 const SIDEBAR_MENU = [
   { key: "info", label: "Thông tin cá nhân", icon: <User size={18} /> },
@@ -45,6 +46,7 @@ const SIDEBAR_MENU = [
     icon: <UserRoundPlus size={18} />,
   },
   { key: "change-password", label: "Đổi mật khẩu", icon: <Lock size={18} /> },
+  { key: "revenue", label: "Thống kê doanh thu", icon: <ChartNoAxesCombined size={18} /> },
 ];
 
 export default function UserInfoForm() {
@@ -53,6 +55,7 @@ export default function UserInfoForm() {
   const [activeTab, setActiveTab] = useState("info");
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [form, setForm] = useState({
     fullName: "",
@@ -61,6 +64,13 @@ export default function UserInfoForm() {
     penName: "",
     bio: "",
   });
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -117,12 +127,18 @@ export default function UserInfoForm() {
     return <Text>Vui lòng đăng nhập.</Text>;
   }
 
+  const handleChangeActiveTab = (tab: string) => {
+    setActiveTab(tab);
+    setSearchParams({ tab });
+  };
+
   const TAB_CONTENT: Record<string, React.ReactNode> = {
     "my-stories": <MyStory />,
     "following-stories": <ListStoryFollowed />,
     "following": <FollowingTab authorId={user.id} layout="compact" showTitle />,
     "followers": <Followers authorId={user.id} layout="compact" showTitle />,
     "change-password": <ChangePassword />,
+    "revenue": <RevenueTab />,
   };
 
   return (
@@ -130,7 +146,7 @@ export default function UserInfoForm() {
       {/* LEFT SIDEBAR */}
       <Box className={style.left}>
         <AvatarUploader />
-        <SidebarNav activeTab={activeTab} onChangeTab={setActiveTab} />
+        <SidebarNav activeTab={activeTab} onChangeTab={handleChangeActiveTab} />
       </Box>
 
       <Divider orientation="vertical" />
