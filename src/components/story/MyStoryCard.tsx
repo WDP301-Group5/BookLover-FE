@@ -131,6 +131,14 @@ export default function MyStoryCard({
             </ActionIcon>
           </Menu.Target>
           <Menu.Dropdown>
+            <Menu.Item
+              leftSection={<Pencil size={14} />}
+              onClick={() => navigate(`/author/story/${story._id}/edit-info`)}
+            >
+              Sửa thông tin
+            </Menu.Item>
+            <Menu.Divider />
+
             {/* {story.status === "draft" && (
               <Menu.Item
                 leftSection={<Send size={14} />}
