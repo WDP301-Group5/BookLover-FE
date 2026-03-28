@@ -102,50 +102,13 @@ export default function AdminRankingPage() {
       <Stack gap="lg">
         <Group justify="space-between" align="center">
           <div>
-            <Title order={2}>Ranking Management</Title>
+            <Title order={2}>Bảng xếp hạng</Title>
             <Text size="sm" c="dimmed" mt={4}>
               Theo dõi các bảng xếp hạng nổi bật của truyện, tác giả và người
               dùng.
             </Text>
           </div>
         </Group>
-
-        <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }}>
-          <OverviewCard
-            title="Chế độ truyện"
-            value={
-              storySubTab === "views" ? "Xem nhiều nhất" : "Theo dõi nhiều nhất"
-            }
-            icon={BookOpen}
-          />
-
-          <OverviewCard
-            title="Chế độ tác giả"
-            value={
-              authorSubTab === "followers"
-                ? "Được theo dõi nhiều nhất"
-                : "Có nhiều truyện nhất"
-            }
-            icon={User}
-          />
-
-          <OverviewCard
-            title="Chế độ người dùng"
-            value={
-              userSubTab === "comments"
-                ? "Bình luận nhiều nhất"
-                : "Chi tiêu nhiều nhất"
-            }
-            icon={Users}
-          />
-
-          <OverviewCard
-            title="Số lượng hiển thị"
-            value={10}
-            icon={Trophy}
-            subtitle="Top 10 của mỗi bảng xếp hạng"
-          />
-        </SimpleGrid>
 
         <Paper withBorder radius="md">
           <Tabs value={mainTab} onChange={setMainTab} variant="outline">
@@ -235,8 +198,8 @@ export default function AdminRankingPage() {
                 value={userSubTab}
                 onChange={(value) => setUserSubTab(value as UserSubTab)}
                 data={[
-                  { label: "Most Comments", value: "comments" },
-                  { label: "Highest Spending", value: "spent" },
+                  { label: "Bình luận nhiều nhất", value: "comments" },
+                  { label: "Chi tiêu nhiều nhất", value: "spent" },
                 ]}
                 mb="lg"
               />
