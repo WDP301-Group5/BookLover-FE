@@ -222,7 +222,7 @@ export default function AdminDashboardPage() {
       <SimpleGrid cols={{ base: 1, xl: 2 }} spacing="lg">
         <Card withBorder radius="xl" p="md" shadow="sm">
           <Title order={4} mb="md">
-            User mới theo ngày
+            User mới
           </Title>
           <div style={{ height: 320 }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -246,7 +246,7 @@ export default function AdminDashboardPage() {
 
         <Card withBorder radius="xl" p="md" shadow="sm">
           <Title order={4} mb="md">
-            Lượt đọc theo ngày
+            Lượt đọc
           </Title>
           <div style={{ height: 320 }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -271,7 +271,7 @@ export default function AdminDashboardPage() {
 
         <Card withBorder radius="xl" p="md" shadow="sm">
           <Title order={4} mb="md">
-            Doanh thu theo ngày
+            Doanh thu
           </Title>
           <div style={{ height: 320 }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -298,7 +298,7 @@ export default function AdminDashboardPage() {
 
         <Card withBorder radius="xl" p="md" shadow="sm">
           <Title order={4} mb="md">
-            Số truyện được đăng theo tháng
+            Số truyện được đăng
           </Title>
           <div style={{ height: 320 }}>
             <ResponsiveContainer width="100%" height="100%">
