@@ -110,43 +110,6 @@ export default function AdminRankingPage() {
           </div>
         </Group>
 
-        <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }}>
-          <OverviewCard
-            title="Chế độ truyện"
-            value={
-              storySubTab === "views" ? "Xem nhiều nhất" : "Theo dõi nhiều nhất"
-            }
-            icon={BookOpen}
-          />
-
-          <OverviewCard
-            title="Chế độ tác giả"
-            value={
-              authorSubTab === "followers"
-                ? "Được theo dõi nhiều nhất"
-                : "Có nhiều truyện nhất"
-            }
-            icon={User}
-          />
-
-          <OverviewCard
-            title="Chế độ người dùng"
-            value={
-              userSubTab === "comments"
-                ? "Bình luận nhiều nhất"
-                : "Chi tiêu nhiều nhất"
-            }
-            icon={Users}
-          />
-
-          <OverviewCard
-            title="Số lượng hiển thị"
-            value={10}
-            icon={Trophy}
-            subtitle="Top 10 của mỗi bảng xếp hạng"
-          />
-        </SimpleGrid>
-
         <Paper withBorder radius="md">
           <Tabs value={mainTab} onChange={setMainTab} variant="outline">
             <Tabs.List mb="lg">
@@ -235,8 +198,8 @@ export default function AdminRankingPage() {
                 value={userSubTab}
                 onChange={(value) => setUserSubTab(value as UserSubTab)}
                 data={[
-                  { label: "Most Comments", value: "comments" },
-                  { label: "Highest Spending", value: "spent" },
+                  { label: "Bình luận nhiều nhất", value: "comments" },
+                  { label: "Chi tiêu nhiều nhất", value: "spent" },
                 ]}
                 mb="lg"
               />
