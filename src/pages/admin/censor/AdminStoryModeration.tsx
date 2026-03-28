@@ -110,11 +110,14 @@ export function StoryDetailModal({
               Thể loại
             </Text>
             <Group gap={4}>
-              {story.topics.map((t) => (
-                <Badge key={t} size="xs" variant="light">
-                  {t}
-                </Badge>
-              ))}
+              {story.topics.map((t) => {
+                const name = typeof t === "string" ? t : t?.name;
+                return (
+                  <Badge key={name} size="xs" variant="light">
+                    {name}
+                  </Badge>
+                );
+              })}
             </Group>
             <Text size="sm" c="dimmed" mt={4}>
               Ngày gửi
